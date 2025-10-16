@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
+import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -29,10 +33,10 @@ public class Closet extends BaseEntity {
     @Column(nullable = false)
     private boolean visibility = false;
 
-//    @OneToMany(mappedBy = "closet")
-//    private List<ClosetClothesLink> closetClothesLinks = new ArrayList<>();
+    @OneToMany(mappedBy = "closet")
+    private List<ClosetClothesLink> closetClothesLinks = new ArrayList<>();
 
-    @Builder
+    @Builder(access = AccessLevel.PROTECTED)
     private Closet(
             String name,
             String description,
