@@ -25,6 +25,7 @@ public class Chat extends BaseEntity {
     }
 
     public static Chat create(String content) {
+        
         return Chat.builder()
                 .content(content)
                 .build();
