@@ -2,6 +2,7 @@ package org.example.ootoutfitoftoday.domain.closetclotheslink.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
@@ -24,4 +25,24 @@ public class ClosetClothesLink {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clothes_id", nullable = false)
     private Clothes clothes;
+
+    @Builder(access = AccessLevel.PROTECTED)
+    private ClosetClothesLink(
+            Closet closet,
+            Clothes clothes
+    ) {
+        this.closet = closet;
+        this.clothes = clothes;
+    }
+
+    public static ClosetClothesLink create(
+            Closet closet,
+            Clothes clothes
+    ) {
+
+        return ClosetClothesLink.builder()
+                .closet(closet)
+                .clothes(clothes)
+                .build();
+    }
 }
