@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/${DB_NAME}
+    username: ${USER_NAME}
+    password: ${PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+
+# API ?? ??
+server:
+  servlet:
+    context-path: /api
+
+# JWT ??? ?
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
