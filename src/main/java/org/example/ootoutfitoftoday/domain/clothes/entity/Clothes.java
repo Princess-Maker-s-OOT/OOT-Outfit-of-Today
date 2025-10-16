@@ -1,10 +1,14 @@
 package org.example.ootoutfitoftoday.domain.clothes.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
-import org.example.ootoutfitoftoday.domain.clothes.enums.Size;
+import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
 import org.example.ootoutfitoftoday.domain.clothes.enums.Color;
+import org.example.ootoutfitoftoday.domain.clothes.enums.Size;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 import java.util.ArrayList;
@@ -42,8 +46,8 @@ public class Clothes {
     @OneToMany(mappedBy = "clothes")
     private List<ClothesImage> images = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "clothes")
-//    private List<ClosetClothesLink> closetClothesLinks = new ArrayList<>();
+    @OneToMany(mappedBy = "clothes")
+    private List<ClosetClothesLink> closetClothesLinks = new ArrayList<>();
 
     @Builder(access = AccessLevel.PROTECTED)
     private Clothes(
