@@ -55,6 +55,7 @@ public class Closet extends BaseEntity {
             String imageUrl,
             Boolean visibility
     ) {
+
         return Closet.builder()
                 .name(name)
                 .description(description)
