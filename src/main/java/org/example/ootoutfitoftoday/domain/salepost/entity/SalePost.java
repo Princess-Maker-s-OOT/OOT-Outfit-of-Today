@@ -6,10 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
-import org.example.ootoutfitoftoday.domain.category.entity.Category;
-import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
-import org.example.ootoutfitoftoday.domain.user.entity.User;
+import java.math.BigDecimal;
 
 @Getter
 @Entity
@@ -27,8 +25,8 @@ public class SalePost extends BaseEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Column(nullable = false)
-    private Long price;
+    @Column(nullable = false, precision = 10, scale = 0)
+    private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -51,55 +49,24 @@ public class SalePost extends BaseEntity {
 
     @Builder(access = AccessLevel.PROTECTED)
     private SalePost(
-            User user,
-            Category category,
-            Clothes clothes,
             String title,
             String content,
-            Long price,
+            BigDecimal price,
             SaleStatus status
     ) {
-        this.user = user;
-        this.category = category;
-        this.clothes = clothes;
         this.title = title;
         this.content = content;
         this.price = price;
-        this.status = SaleStatus.SELLING;
+        this.status = status;
     }
 
     public static SalePost create(
-            User user,
-            Category category,
             String title,
             String content,
-            Long price
+            BigDecimal price
     ) {
 
         return SalePost.builder()
-                .user(user)
-                .category(category)
-                .clothes(null)
-                .title(title)
-                .content(content)
-                .price(price)
-                .status(SaleStatus.SELLING)
-                .build();
-    }
-
-    public static SalePost create(
-            User user,
-            Category category,
-            Clothes clothes,
-            String title,
-            String content,
-            Long price
-    ) {
-
-        return SalePost.builder()
-                .user(user)
-                .category(category)
-                .clothes(clothes)
                 .title(title)
                 .content(content)
                 .price(price)
