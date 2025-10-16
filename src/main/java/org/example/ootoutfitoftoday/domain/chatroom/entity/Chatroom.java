@@ -4,10 +4,15 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
+import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,6 +25,9 @@ public class Chatroom {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToMany(mappedBy = "chatroom")
+    private List<ChatParticipatingUser> ChatParticipatingUsers = new ArrayList<>();
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -28,6 +36,13 @@ public class Chatroom {
     private boolean isDeleted;
 
     private LocalDateTime deletedAt;
+
+    // 헬퍼 메서드
+    public void addChatParticipatingUser(User user) {
+        ChatParticipatingUserId chatParticipatingUserId = ChatParticipatingUserId.create(this.id, user.getId());
+        ChatParticipatingUser chatParticipatingUser = ChatParticipatingUser.create(chatParticipatingUserId, this, user);
+        this.ChatParticipatingUsers.add(chatParticipatingUser);
+    }
 
     public void softDelete() {
         this.isDeleted = true;
