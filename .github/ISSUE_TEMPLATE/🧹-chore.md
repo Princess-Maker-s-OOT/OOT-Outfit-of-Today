@@ -2,7 +2,7 @@
 name: "\U0001F9F9 Chore"
 about: 빌드, 설정, 패키지 매니저 등 기능 외적인 작업에 대한 이슈 템플릿입니다.
 title: "[chore] "
-labels: ''
+labels: "\U0001F9F9 chore"
 assignees: ''
 
 ---

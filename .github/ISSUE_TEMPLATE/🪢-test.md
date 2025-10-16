@@ -2,7 +2,7 @@
 name: "\U0001FAA2 Test"
 about: 프로젝트에 테스트 코드를 추가하거나 개선할 때 사용하는 템플릿입니다.
 title: "[test] "
-labels: ''
+labels: "\U0001FAA2 test"
 assignees: ''
 
 ---

@@ -2,7 +2,7 @@
 name: "⚙️ Ci"
 about: CI/CD 파이프라인, 빌드 워크플로우, 테스트 자동화 등 지속적 통합 관련 작업에 대한 이슈 템플릿입니다.
 title: "[ci]"
-labels: ''
+labels: "⚙️ ci"
 assignees: ''
 
 ---
