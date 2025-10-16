@@ -1,4 +1,7 @@
 package org.example.ootoutfitoftoday.domain.clothes.repository;
 
-public interface ClothesImageRepository {
+import org.example.ootoutfitoftoday.domain.clothes.entity.ClothesImage;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long> {
 }
