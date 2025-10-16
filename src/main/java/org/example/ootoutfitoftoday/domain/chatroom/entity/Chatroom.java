@@ -26,7 +26,7 @@ public class Chatroom {
     private Long id;
 
     @OneToMany(mappedBy = "chatroom")
-    private List<ChatParticipatingUser> ChatParticipatingUsers = new ArrayList<>();
+    private List<ChatParticipatingUser> chatParticipatingUsers = new ArrayList<>();
 
     @CreatedDate
     @Column(updatable = false)
@@ -39,9 +39,17 @@ public class Chatroom {
 
     // 헬퍼 메서드
     public void addChatParticipatingUser(User user) {
+        // 사용자가 이미 채팅방에 참여하고 있는지 확인하여 중복 추가를 방지합니다.
+        boolean alreadyExists = this.chatParticipatingUsers.stream()
+                .anyMatch(p -> p.getUser().getId().equals(user.getId()));
+        if (alreadyExists) {
+            return;
+        }
+        
         ChatParticipatingUserId chatParticipatingUserId = ChatParticipatingUserId.create(this.id, user.getId());
         ChatParticipatingUser chatParticipatingUser = ChatParticipatingUser.create(chatParticipatingUserId, this, user);
-        this.ChatParticipatingUsers.add(chatParticipatingUser);
+        this.chatParticipatingUsers.add(chatParticipatingUser);
+        user.getChatParticipatingUsers().add(chatParticipatingUser);
     }
 
     public void softDelete() {
