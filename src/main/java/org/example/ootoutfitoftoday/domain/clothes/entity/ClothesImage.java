@@ -43,7 +43,7 @@ public class ClothesImage {
                 .build();
     }
 
-    public void updateClothes(Clothes clothes) {
+    void updateClothes(Clothes clothes) {
         this.clothes = clothes;
     }
 }
