@@ -48,7 +48,7 @@ public class User extends BaseEntity {
 //    private List<ChatParticipatingUser> participants = new ArrayList<>();
 
     @Builder(access = AccessLevel.PROTECTED)
-    public User(
+    private User(
             String loginId,
             String email,
             String nickname,
