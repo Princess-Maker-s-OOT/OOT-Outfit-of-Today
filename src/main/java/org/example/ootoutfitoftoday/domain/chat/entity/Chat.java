@@ -17,6 +17,7 @@ public class Chat extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
     @Builder(access = AccessLevel.PROTECTED)
@@ -25,7 +26,7 @@ public class Chat extends BaseEntity {
     }
 
     public static Chat create(String content) {
-        
+
         return Chat.builder()
                 .content(content)
                 .build();
