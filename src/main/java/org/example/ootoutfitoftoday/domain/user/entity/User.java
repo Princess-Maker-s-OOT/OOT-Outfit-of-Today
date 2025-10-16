@@ -18,13 +18,13 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String loginId;
 
-    @Column(unique = true, nullable = false, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String email;
 
-    @Column(unique = true, nullable = false, length = 30)
+    @Column(nullable = false, unique = true, length = 30)
     private String nickname;
 
     @Column(nullable = false, length = 50)
@@ -40,11 +40,11 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @Column(length = 500)
+    @Column(nullable = true, length = 500)
     private String imageUrl;
 
     // 중간테이블
-//    @OneToMany(mappedBy = "chatRoom")
+//    @OneToMany(mappedBy = "user")
 //    private List<ChatParticipatingUser> participants = new ArrayList<>();
 
     @Builder(access = AccessLevel.PROTECTED)
