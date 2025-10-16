@@ -24,7 +24,7 @@ public class Chat extends BaseEntity {
         this.content = content;
     }
 
-    public Chat create(String content) {
+    public static Chat create(String content) {
         return Chat.builder()
                 .content(content)
                 .build();
