@@ -1,14 +1,16 @@
 package org.example.ootoutfitoftoday.domain.closet.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "closets")
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Closet extends BaseEntity {
 
     @Id
@@ -25,7 +27,7 @@ public class Closet extends BaseEntity {
     private String imageUrl;
 
     @Column(nullable = false)
-    private Boolean visibility = false;
+    private boolean visibility = false;
 
 //    @OneToMany(mappedBy = "closet")
 //    private List<ClosetClothesLink> closetClothesLinks = new ArrayList<>();
