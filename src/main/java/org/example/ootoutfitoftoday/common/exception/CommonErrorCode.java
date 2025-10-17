@@ -8,6 +8,11 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum CommonErrorCode implements ErrorCode {
 
+    // ======= 현재 사용 중 ======
+    UNEXPECTED_SERVER_ERROR("UNEXPECTED_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "예상하지 못한 서버 오류가 발생했습니다."),
+    VALIDATION_ERROR("VALIDATION_ERROR", HttpStatus.BAD_REQUEST, "Validation 오류가 발생했습니다."),
+    // ========================
+    
     UNSUPPORTED_TOKEN("UNSUPPORTED_TOKEN", HttpStatus.UNAUTHORIZED, "지원되지 않는 JWT 토큰입니다."),
     MALFORMED_TOKEN("MALFORMED_TOKEN", HttpStatus.UNAUTHORIZED, "잘못된 JWT 토큰입니다."),
     MISSING_TOKEN("MISSING_TOKEN", HttpStatus.UNAUTHORIZED, "JWT 토큰이 필요합니다."),
