@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
         log.error("알 수 없는 서버 오류 발생 ", ex);
         return ResponseEntity
                 .status(CommonErrorCode.UNEXPECTED_SERVER_ERROR.getHttpStatus())
-                .body(ApiResponse.error(CommonErrorCode.UNEXPECTED_SERVER_ERROR));
+                .body(ApiResponse.error(null, CommonErrorCode.UNEXPECTED_SERVER_ERROR));
     }
 
     @ExceptionHandler(GlobalException.class)
@@ -31,17 +31,17 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ApiResponse<Void>> handleExceptionInternal(ErrorCode errorCode) {
         return ResponseEntity
                 .status(errorCode.getHttpStatus())
-                .body(ApiResponse.error(errorCode));
+                .body(ApiResponse.error(null, errorCode));
     }
 
     // Validation Exception은 BAD_REQUEST로 통일
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         // 첫 번째 에러 메시지 가져오기
-        // String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
 
         return ResponseEntity
                 .status(CommonErrorCode.VALIDATION_ERROR.getHttpStatus())
-                .body(ApiResponse.error(CommonErrorCode.VALIDATION_ERROR));
+                .body(ApiResponse.error(errorMessage, CommonErrorCode.VALIDATION_ERROR));
     }
 }
