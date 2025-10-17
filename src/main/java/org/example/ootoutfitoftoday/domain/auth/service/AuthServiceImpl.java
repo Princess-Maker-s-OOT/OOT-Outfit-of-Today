@@ -1,4 +1,4 @@
 package org.example.ootoutfitoftoday.domain.auth.service;
 
-public interface AuthService {
+public class AuthServiceImpl implements AuthService {
 }
