@@ -1,7 +1,11 @@
 package org.example.ootoutfitoftoday.domain.category.service.command;
 
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.common.exception.GlobalException;
+import org.example.ootoutfitoftoday.domain.category.dto.request.CategoryRequest;
+import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryResponse;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
+import org.example.ootoutfitoftoday.domain.category.exception.CategoryErrorCode;
 import org.example.ootoutfitoftoday.domain.category.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -200,5 +204,28 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
                         kidsTee, kidsPants, kidsSneakers
                 )
         );
+    }
+
+    @Override
+    public CategoryResponse createCategory(CategoryRequest categoryRequest) {
+
+        Category parent = null;
+
+        /**
+         *  상위 카테고리를 입력했다면 존재 여부를 검증
+         *  - null 뿐만 아니라 0도 조건으로 건 이유는 아이디의 값이 1부터 시작하기 때문이다.
+         *  - 추가로 사용자가 아이디의 값을 0 이하로 입력시 아이디의 값이 null로 처리되어 최상위 카테고리로 인식한다.
+         */
+        if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
+            System.out.println("테스트 1");
+            parent = categoryRepository.findById(categoryRequest.getParentId())
+                    .orElseThrow(() -> new GlobalException(CategoryErrorCode.CATEGORY_NOT_FOUND)
+                    );
+        }
+
+        Category category = Category.create(categoryRequest.getName(), parent);
+        categoryRepository.save(category);
+
+        return CategoryResponse.of(category);
     }
 }
