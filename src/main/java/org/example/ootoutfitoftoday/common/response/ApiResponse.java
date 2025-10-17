@@ -47,7 +47,8 @@ public record ApiResponse<T>(
      *
      * @return HTTP 에러 응답 코드와 함께 메시지가 포함된 ApiResponseDto
      */
-    public static <T> ApiResponse<T> error(ErrorCode errorCode) {
+    // 빌더를 통해서 생성하지 않은 필드는 null 값이 들어가는지 궁금
+    public static <T> ApiResponse<T> error(T data, ErrorCode errorCode) {
 
         return
                 ApiResponse.<T>builder()
@@ -56,6 +57,7 @@ public record ApiResponse<T>(
                         .success(false)
                         .code(errorCode.getCode())
                         .message(errorCode.getMessage())
+                        .data(data)
                         .timestamp(LocalDateTime.now())
                         .build();
     }
