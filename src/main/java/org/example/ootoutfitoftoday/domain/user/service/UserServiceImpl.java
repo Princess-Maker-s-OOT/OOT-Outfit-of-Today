@@ -1,4 +1,4 @@
 package org.example.ootoutfitoftoday.domain.user.service;
 
-public interface UserService {
+public class UserServiceImpl implements UserService {
 }
