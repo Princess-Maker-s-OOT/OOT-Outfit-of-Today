@@ -217,7 +217,6 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
          *  - 추가로 사용자가 아이디의 값을 0 이하로 입력시 아이디의 값이 null로 처리되어 최상위 카테고리로 인식한다.
          */
         if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
-            System.out.println("테스트 1");
             parent = categoryRepository.findById(categoryRequest.getParentId())
                     .orElseThrow(() -> new GlobalException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                     );
