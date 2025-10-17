@@ -101,6 +101,26 @@ public class User extends BaseEntity {
                 .build();
     }
 
+    public static User createAdmin(
+            String loginId,
+            String email,
+            String nickname,
+            String username,
+            String password,
+            String phoneNumber
+    ) {
+        return User.builder()
+                .loginId(loginId)
+                .email(email)
+                .nickname(nickname)
+                .username(username)
+                .password(password)
+                .phoneNumber(phoneNumber)
+                .role(UserRole.ROLE_ADMIN)    // 고정값: 항상 ADMIN
+                .imageUrl(null)               // 고정값: 관리자 이미지 파일 제외
+                .build();
+    }
+
     // 헬퍼 메서드
     public void addChatParticipatingUser(Chatroom chatroom) {
         // 사용자가 이미 채팅방에 참여하고 있는지 확인하여 중복 추가를 방지합니다.
