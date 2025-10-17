@@ -106,8 +106,15 @@ public class User extends BaseEntity {
             return;
         }
 
-        ChatParticipatingUserId chatParticipatingUserId = ChatParticipatingUserId.create(chatroom.getId(), this.id);
-        ChatParticipatingUser chatParticipatingUser = ChatParticipatingUser.create(chatParticipatingUserId, chatroom, this);
+        ChatParticipatingUserId chatParticipatingUserId = ChatParticipatingUserId.create(
+                chatroom.getId(),
+                this.id
+        );
+        ChatParticipatingUser chatParticipatingUser = ChatParticipatingUser.create(
+                chatParticipatingUserId,
+                chatroom,
+                this
+        );
         this.chatParticipatingUsers.add(chatParticipatingUser);
         chatroom.getChatParticipatingUsers().add(chatParticipatingUser);
     }

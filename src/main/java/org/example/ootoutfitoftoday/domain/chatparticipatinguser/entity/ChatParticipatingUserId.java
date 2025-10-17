@@ -32,6 +32,9 @@ public class ChatParticipatingUserId implements Serializable {
             Long userId
     ) {
 
-        return new ChatParticipatingUserId(chatroomId, userId);
+        return new ChatParticipatingUserId(
+                chatroomId,
+                userId
+        );
     }
 }

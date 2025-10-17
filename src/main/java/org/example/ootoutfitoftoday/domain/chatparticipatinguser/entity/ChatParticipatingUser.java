@@ -44,6 +44,10 @@ public class ChatParticipatingUser {
             User user
     ) {
 
-        return new ChatParticipatingUser(id, chatroom, user);
+        return new ChatParticipatingUser(
+                id,
+                chatroom,
+                user
+        );
     }
 }

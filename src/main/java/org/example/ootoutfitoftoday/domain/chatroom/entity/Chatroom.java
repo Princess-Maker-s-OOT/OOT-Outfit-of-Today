@@ -45,9 +45,15 @@ public class Chatroom {
         if (alreadyExists) {
             return;
         }
-        
-        ChatParticipatingUserId chatParticipatingUserId = ChatParticipatingUserId.create(this.id, user.getId());
-        ChatParticipatingUser chatParticipatingUser = ChatParticipatingUser.create(chatParticipatingUserId, this, user);
+
+        ChatParticipatingUserId chatParticipatingUserId = ChatParticipatingUserId.create(
+                this.id,
+                user.getId()
+        );
+        ChatParticipatingUser chatParticipatingUser = ChatParticipatingUser.create(
+                chatParticipatingUserId,
+                this, user
+        );
         this.chatParticipatingUsers.add(chatParticipatingUser);
         user.getChatParticipatingUsers().add(chatParticipatingUser);
     }
