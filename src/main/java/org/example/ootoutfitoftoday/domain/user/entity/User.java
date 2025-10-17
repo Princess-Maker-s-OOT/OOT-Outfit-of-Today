@@ -39,7 +39,7 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, unique = true, length = 30)
     private String phoneNumber;
 
     @Column(nullable = false, length = 10)
