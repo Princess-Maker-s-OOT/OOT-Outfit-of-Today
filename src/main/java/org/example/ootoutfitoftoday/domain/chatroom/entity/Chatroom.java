@@ -1,7 +1,6 @@
 package org.example.ootoutfitoftoday.domain.chatroom.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
@@ -17,7 +16,7 @@ import java.util.List;
 @Entity
 @Getter
 @Table(name = "chatrooms")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Chatroom {
 
