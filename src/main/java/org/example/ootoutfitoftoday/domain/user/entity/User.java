@@ -6,7 +6,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
+import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
+import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
+import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -44,8 +50,8 @@ public class User extends BaseEntity {
     private String imageUrl;
 
     // 중간테이블
-//    @OneToMany(mappedBy = "chatRoom")
-//    private List<ChatParticipatingUser> participants = new ArrayList<>();
+    @OneToMany(mappedBy = "user")
+    private List<ChatParticipatingUser> chatParticipatingUsers = new ArrayList<>();
 
     @Builder(access = AccessLevel.PROTECTED)
     private User(
@@ -89,5 +95,27 @@ public class User extends BaseEntity {
                 .role(role)
                 .imageUrl(imageUrl)
                 .build();
+    }
+
+    // 헬퍼 메서드
+    public void addChatParticipatingUser(Chatroom chatroom) {
+        // 사용자가 이미 채팅방에 참여하고 있는지 확인하여 중복 추가를 방지합니다.
+        boolean alreadyExists = this.chatParticipatingUsers.stream()
+                .anyMatch(p -> p.getChatroom().getId().equals(chatroom.getId()));
+        if (alreadyExists) {
+            return;
+        }
+
+        ChatParticipatingUserId chatParticipatingUserId = ChatParticipatingUserId.create(
+                chatroom.getId(),
+                this.id
+        );
+        ChatParticipatingUser chatParticipatingUser = ChatParticipatingUser.create(
+                chatParticipatingUserId,
+                chatroom,
+                this
+        );
+        this.chatParticipatingUsers.add(chatParticipatingUser);
+        chatroom.getChatParticipatingUsers().add(chatParticipatingUser);
     }
 }
