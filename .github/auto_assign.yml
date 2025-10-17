@@ -12,7 +12,7 @@ reviewers:
   - AllSungho
   - assokk
 
-  # PR 제목에 특정 키워드가 포함되면 자동 reviewer 추가를 건너뜀
+# PR 제목에 특정 키워드가 포함되면 자동 reviewer 추가를 건너뜀
 skipKeywords:
   - skip
 
