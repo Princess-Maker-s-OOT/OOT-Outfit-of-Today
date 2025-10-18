@@ -12,16 +12,16 @@ import java.util.List;
 public class AuthUser {
 
     private final Long userId;
-    private final String email;
+    private final String loginId;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public AuthUser(
             Long userId,
-            String email,
+            String loginId,
             UserRole role
     ) {
         this.userId = userId;
-        this.email = email;
+        this.loginId = loginId;
         this.authorities = List.of(new SimpleGrantedAuthority(role.name()));
     }
 }
