@@ -2,14 +2,14 @@ package org.example.ootoutfitoftoday.domain.closet.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.exception.ErrorCode;
+import org.example.ootoutfitoftoday.common.exception.SuccessCode;
 import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum ClosetErrorCode implements ErrorCode {
+public enum ClosetSuccessCode implements SuccessCode {
 
-    CLOSET_UNAUTHORIZED("CLOSET_UNAUTHORIZED", HttpStatus.FORBIDDEN, "옷장에 접근할 권한이 없습니다.");
+    CLOSET_CREATED("CLOSET_CREATED", HttpStatus.CREATED, "옷장이 등록되었습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;

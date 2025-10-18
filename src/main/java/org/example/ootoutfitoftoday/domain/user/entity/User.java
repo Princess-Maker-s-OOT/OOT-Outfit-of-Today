@@ -49,6 +49,10 @@ public class User extends BaseEntity {
     @Column(length = 500)
     private String imageUrl;
 
+    // 옷장 연관관계
+//    @OneToMany(mappedBy = "user")
+//    private List<Closet> closets = new ArrayList<>();
+
     // 중간테이블
     @OneToMany(mappedBy = "user")
     private List<ChatParticipatingUser> chatParticipatingUsers = new ArrayList<>();
