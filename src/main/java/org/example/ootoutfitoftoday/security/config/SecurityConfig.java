@@ -47,9 +47,8 @@ public class SecurityConfig {
                 .rememberMe(AbstractHttpConfigurer::disable)     // 서버가 쿠키 발급하여 자동 로그인
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(request -> request.getRequestURI().startsWith("/auth")).permitAll()
-                        .requestMatchers("/test").hasAuthority(UserRole.Authority.ADMIN) // `/test`는 ADMIN만 허용
-                        .requestMatchers("/open").permitAll() // `/open`은 아무나 접근 가능
+                        .requestMatchers("/auth/signup", "/auth/login").permitAll()
+                        .requestMatchers("/admin/**").hasAuthority(UserRole.Authority.ADMIN)
                         .anyRequest().authenticated() // 다른 요청들은 authentication 필요
                 )
                 .build();
