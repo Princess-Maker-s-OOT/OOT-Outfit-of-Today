@@ -17,15 +17,15 @@ public record ClosetSaveResponse(
         LocalDateTime updatedAt
 ) {
     public static ClosetSaveResponse from(Closet closet) {
-        return ClosetSaveResponse.builder()
-                .closetId(closet.getId())
-                .userId(closet.getUserId())
-                .name(closet.getName())
-                .description(closet.getDescription())
-                .imageUrl(closet.getImageUrl())
-                .isPublic(closet.getIsPublic())
-                .createdAt(closet.getCreatedAt())
-                .updatedAt(closet.getUpdatedAt())
-                .build();
+        return new ClosetSaveResponse(
+                closet.getId(),
+                closet.getUserId(),
+                closet.getName(),
+                closet.getDescription(),
+                closet.getImageUrl(),
+                closet.getIsPublic(),
+                closet.getCreatedAt(),
+                closet.getUpdatedAt()
+        );
     }
 }
