@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 
 @Slf4j(topic = "JwtUtil")
 @Component
@@ -33,16 +34,16 @@ public class JwtUtil {
 
     public String createToken(
             Long userId,
-            String loginId,
             UserRole userRole
     ) {
         Date date = new Date();
 
         return BEARER_PREFIX +
                 Jwts.builder()
-                        .subject(String.valueOf(userId))
-                        .claim("loginId", loginId)
-                        .claim("userRole", userRole.getUserRole())
+                        .id(UUID.randomUUID().toString())                // JWT 표준 jti claim -> 블랙리스트 관리용
+                        .subject(UUID.randomUUID().toString())           // 토큰 고유 식별자
+                        .claim("userId", userId)                      // 사용자 식별용
+                        .claim("userRole", userRole.getUserRole())    // 인가용
                         .expiration(new Date(date.getTime() + TOKEN_TIME))
                         .issuedAt(date) // 발급일
                         .signWith(key) // 암호화 알고리즘
