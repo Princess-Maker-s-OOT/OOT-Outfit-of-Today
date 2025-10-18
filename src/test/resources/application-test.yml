@@ -18,4 +18,4 @@ spring:
 
 jwt:
   secret:
-    key: VGhpc0lzQUR1bW15S2V5Rm9yVGVzdGluZ1BsdXNQcm9qZWN0RG9Ob3RVc2VJblByb2R1Y3Rpb24xMjMh
+    key: ${JWT_SECRET_KEY:VGhpc0lzQUR1bW15S2V5Rm9yVGVzdGluZ1BsdXNQcm9qZWN0RG9Ob3RVc2VJblByb2R1Y3Rpb24xMjMh}
