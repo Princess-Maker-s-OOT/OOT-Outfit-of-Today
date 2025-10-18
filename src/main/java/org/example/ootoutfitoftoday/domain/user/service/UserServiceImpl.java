@@ -22,6 +22,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsByNickname(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsByPhoneNumber(String phoneNumber) {
+        return userRepository.existsByPhoneNumber(phoneNumber);
+    }
+
+    @Override
+    public void save(User user) {
+        userRepository.save(user);
+    }
+
+    @Override
     public void initializeAdmin(
             String loginId,
             String email,
@@ -39,7 +62,7 @@ public class UserServiceImpl implements UserService {
                     passwordEncoder.encode(password),
                     phoneNumber
             );
-            userRepository.save(admin);
+            save(admin);
             System.out.println("관리자 계정 초기 생성 완료되었습니다.");
         } else {
             System.out.println("관리자 계정이 이미 존재합니다.");
