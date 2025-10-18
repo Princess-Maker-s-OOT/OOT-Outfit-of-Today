@@ -40,9 +40,8 @@ public class JwtUtil {
 
         return BEARER_PREFIX +
                 Jwts.builder()
-                        .id(UUID.randomUUID().toString())                     // JWT 표준 jti claim -> 블랙리스트 관리용
-                        .subject(UUID.randomUUID().toString())                // 토큰 고유 식별자
-                        .claim("userId", userId)                              // 사용자 식별용
+                        .id(UUID.randomUUID().toString())              // jti: 토큰 고유 식별자 (블랙리스트용)
+                        .subject(String.valueOf(userId))
                         .claim("userRole", userRole.getUserRole())            // 인가용
                         .expiration(new Date(date.getTime() + TOKEN_TIME))
                         .issuedAt(date)                                       // 발급일

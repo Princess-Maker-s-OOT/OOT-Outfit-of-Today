@@ -104,8 +104,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // JWT Claims에서 사용자 정보를 추출하여 Spring Security의 인증 정보 설정
     private void setAuthentication(Claims claims) {
-        // claim에서 사용자 ID 추출
-        Long userId = claims.get("userId", Long.class);
+        // JWT의 subject claim에서 사용자 ID 추출 (subject는 JWT 표준 claim)
+        Long userId = Long.valueOf(claims.getSubject());
         // claim에서 사용자 권한 정보를 추출하여 enum으로 변환
         UserRole userRole = UserRole.of(claims.get("userRole", String.class));
 
