@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
-import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,9 +39,9 @@ public class Closet extends BaseEntity {
     private Boolean isPublic;
 
     // 옷장의 소유자
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "user_id", nullable = false)
+//    private User user;
 
     // 옷장과 의류 간의 중간 테이블 역할을 하는 엔티티
     @OneToMany(mappedBy = "closet")
