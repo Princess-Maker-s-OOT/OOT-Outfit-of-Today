@@ -1,8 +1,8 @@
-package org.example.ootoutfitoftoday.domain.auth.service;
+package org.example.ootoutfitoftoday.domain.auth.service.command;
 
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
 
-public interface AuthService {
+public interface AuthCommandService {
 
     void signup(AuthSignupRequest request);
 }

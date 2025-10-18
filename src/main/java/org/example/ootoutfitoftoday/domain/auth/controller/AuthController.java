@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthSuccessCode;
-import org.example.ootoutfitoftoday.domain.auth.service.AuthService;
+import org.example.ootoutfitoftoday.domain.auth.service.command.AuthCommandService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthCommandService authCommandService;
 
     // 회원가입
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signup(
             @Valid @RequestBody AuthSignupRequest request
     ) {
-        authService.signup(request);
+        authCommandService.signup(request);
 
         return ApiResponse.success(null, AuthSuccessCode.USER_SIGNUP);
     }

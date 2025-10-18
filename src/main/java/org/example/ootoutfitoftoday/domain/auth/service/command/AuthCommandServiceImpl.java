@@ -1,4 +1,4 @@
-package org.example.ootoutfitoftoday.domain.auth.service;
+package org.example.ootoutfitoftoday.domain.auth.service.command;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +7,8 @@ import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
-import org.example.ootoutfitoftoday.domain.user.service.UserService;
+import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
+import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.example.ootoutfitoftoday.security.jwt.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,25 +16,26 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AuthServiceImpl implements AuthService {
+public class AuthCommandServiceImpl implements AuthCommandService {
 
-    private final UserService userService;
+    private final UserCommandService userCommandService;
+    private final UserQueryService userQueryService;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public void signup(AuthSignupRequest request) {
 
-        if (userService.existsByLoginId(request.getLoginId())) {
+        if (userQueryService.existsByLoginId(request.getLoginId())) {
             throw new AuthException(AuthErrorCode.DUPLICATE_LOGIN_ID);
         }
-        if (userService.existsByEmail(request.getEmail())) {
+        if (userQueryService.existsByEmail(request.getEmail())) {
             throw new AuthException(AuthErrorCode.DUPLICATE_EMAIL);
         }
-        if (userService.existsByNickname(request.getNickname())) {
+        if (userQueryService.existsByNickname(request.getNickname())) {
             throw new AuthException(AuthErrorCode.DUPLICATE_NICKNAME);
         }
-        if (userService.existsByPhoneNumber(request.getPhoneNumber())) {
+        if (userQueryService.existsByPhoneNumber(request.getPhoneNumber())) {
             throw new AuthException(AuthErrorCode.DUPLICATE_PHONE_NUMBER);
         }
 
@@ -49,6 +51,6 @@ public class AuthServiceImpl implements AuthService {
                 .role(UserRole.ROLE_USER)
                 .build();
 
-        userService.save(user);
+        userCommandService.save(user);
     }
 }
