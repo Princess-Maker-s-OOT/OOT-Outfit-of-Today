@@ -225,6 +225,6 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
         Category category = Category.create(categoryRequest.getName(), parent);
         categoryRepository.save(category);
 
-        return CategoryResponse.of(category);
+        return CategoryResponse.from(category);
     }
 }
