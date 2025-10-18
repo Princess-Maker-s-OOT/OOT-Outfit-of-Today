@@ -1,11 +1,11 @@
 package org.example.ootoutfitoftoday.domain.category.service.command;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.exception.GlobalException;
 import org.example.ootoutfitoftoday.domain.category.dto.request.CategoryRequest;
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryResponse;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.exception.CategoryErrorCode;
+import org.example.ootoutfitoftoday.domain.category.exception.CategoryException;
 import org.example.ootoutfitoftoday.domain.category.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -218,7 +218,7 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
          */
         if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
             parent = categoryRepository.findById(categoryRequest.getParentId())
-                    .orElseThrow(() -> new GlobalException(CategoryErrorCode.CATEGORY_NOT_FOUND)
+                    .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                     );
         }
 
