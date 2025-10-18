@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/closets")
+@RequestMapping("/v1/closets")
 public class ClosetController {
 
     private final ClosetCommandService closetCommandService;
