@@ -57,7 +57,7 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user")
     private List<ChatParticipatingUser> chatParticipatingUsers = new ArrayList<>();
 
-    @Builder(access = AccessLevel.PROTECTED)
+    @Builder//(access = AccessLevel.PROTECTED)
     private User(
             String loginId,
             String email,
