@@ -2,7 +2,6 @@ package org.example.ootoutfitoftoday.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +20,6 @@ public class JwtUtil {
 
     private static final String BEARER_PREFIX = "Bearer ";
     private static final long TOKEN_TIME = 60 * 60 * 1000L; // 60분
-    private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
 
     @Value("${jwt.secret.key}")
     private String secretKey;
@@ -35,19 +33,19 @@ public class JwtUtil {
 
     public String createToken(
             Long userId,
-            String email,
+            String loginId,
             UserRole userRole
     ) {
         Date date = new Date();
 
         return BEARER_PREFIX +
                 Jwts.builder()
-                        .setSubject(String.valueOf(userId))
-                        .claim("email", email)
+                        .subject(String.valueOf(userId))
+                        .claim("loginId", loginId)
                         .claim("userRole", userRole.getUserRole())
-                        .setExpiration(new Date(date.getTime() + TOKEN_TIME))
-                        .setIssuedAt(date) // 발급일
-                        .signWith(key, signatureAlgorithm) // 암호화 알고리즘
+                        .expiration(new Date(date.getTime() + TOKEN_TIME))
+                        .issuedAt(date) // 발급일
+                        .signWith(key) // 암호화 알고리즘
                         .compact();
     }
 
