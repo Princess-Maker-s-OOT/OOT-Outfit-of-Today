@@ -1,7 +1,7 @@
-package org.example.ootoutfitoftoday.domain.user.config;
+package org.example.ootoutfitoftoday.domain.auth.init;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.domain.user.service.UserService;
+import org.example.ootoutfitoftoday.domain.auth.service.command.AuthCommandService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,11 +17,11 @@ public class AdminDataInitializer {
     private static final String ADMIN_PASSWORD = "admin00!";
     private static final String ADMIN_PHONE_NUMBER = "010-0000-0000";
 
-    private final UserService userService;
+    private final AuthCommandService authCommandService;
 
     @Bean
     public CommandLineRunner initAdmin() {
-        return args -> userService.initializeAdmin(
+        return args -> authCommandService.initializeAdmin(
                 ADMIN_LOGIN_ID,
                 ADMIN_EMAIL,
                 ADMIN_NICKNAME,

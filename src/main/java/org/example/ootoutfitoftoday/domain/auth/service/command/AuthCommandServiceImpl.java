@@ -23,6 +23,33 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
+    // 관리자 계정 초기 생성 자동
+    @Override
+    public void initializeAdmin(
+            String loginId,
+            String email,
+            String nickname,
+            String username,
+            String password,
+            String phoneNumber
+    ) {
+        if (!userQueryService.existsByLoginId(loginId)) {
+            User admin = User.createAdmin(
+                    loginId,
+                    email,
+                    nickname,
+                    username,
+                    passwordEncoder.encode(password),
+                    phoneNumber
+            );
+            userCommandService.save(admin);
+            System.out.println("관리자 계정 초기 생성 완료되었습니다.");
+        } else {
+            System.out.println("관리자 계정이 이미 존재합니다.");
+        }
+    }
+
+    // 회원가입
     @Override
     public void signup(AuthSignupRequest request) {
 
