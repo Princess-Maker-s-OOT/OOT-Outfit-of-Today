@@ -19,7 +19,7 @@ spring:
       database: 1
 
   cache:
-    type: redis
+    type: none  # <- 이 부분 변경(기존: redis)
 
 jwt:
   secret:
