@@ -12,7 +12,7 @@ public enum UserRole {
     ROLE_USER(Authority.USER),
     ROLE_ADMIN(Authority.ADMIN);
 
-    private final String role;
+    private final String userRole;
 
     public static UserRole of(String role) {
 
