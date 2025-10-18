@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum Size {
+public enum ClothesSize {
 
     XS("Extra Small"),
     S("Small"),
@@ -13,7 +13,8 @@ public enum Size {
     L("Large"),
     XL("Extra Large"),
     XXL("Double Extra Large"),
-    XXXL("Triple Extra Large");
+    XXXL("Triple Extra Large"),
+    FREE("Free");
 
     private final String size;
 }
