@@ -1,16 +1,8 @@
-package org.example.ootoutfitoftoday.domain.user.service;
+package org.example.ootoutfitoftoday.domain.user.service.command;
 
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
-public interface UserService {
-
-    boolean existsByLoginId(String loginId);
-
-    boolean existsByEmail(String email);
-
-    boolean existsByNickname(String nickname);
-
-    boolean existsByPhoneNumber(String phoneNumber);
+public interface UserCommandService {
 
     void save(User user);
 
