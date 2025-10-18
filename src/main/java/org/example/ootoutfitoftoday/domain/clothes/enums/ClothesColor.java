@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum Color {
+public enum ClothesColor {
 
     BLACK("검정색"),
     WHITE("흰색"),

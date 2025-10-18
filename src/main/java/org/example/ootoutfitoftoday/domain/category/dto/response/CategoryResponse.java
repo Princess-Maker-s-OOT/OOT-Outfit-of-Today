@@ -17,7 +17,7 @@ public class CategoryResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static CategoryResponse of(Category category) {
+    public static CategoryResponse from(Category category) {
 
         return CategoryResponse.builder()
                 .id(category.getId())

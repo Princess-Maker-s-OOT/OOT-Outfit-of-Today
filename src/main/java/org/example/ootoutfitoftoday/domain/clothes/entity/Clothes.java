@@ -7,9 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
-import org.example.ootoutfitoftoday.domain.clothes.enums.Color;
-import org.example.ootoutfitoftoday.domain.clothes.enums.Size;
-import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
+import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,20 +24,20 @@ public class Clothes {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id", nullable = true)
     private Category category;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "user_id", nullable = true) // 추후 유저가 생성된다면 nullable로 변경
+//    private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Size size;
+    @Column(nullable = true)
+    private ClothesSize clothesSize;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Color color;
+    @Column(nullable = true)
+    private ClothesColor clothesColor;
 
     @Column(length = 255, nullable = false)
     private String description;
@@ -52,31 +51,31 @@ public class Clothes {
     @Builder(access = AccessLevel.PROTECTED)
     private Clothes(
             Category category,
-            User user,
-            Size size,
-            Color color,
+//            User user,
+            ClothesSize clothesSize,
+            ClothesColor clothesColor,
             String description
     ) {
         this.category = category;
-        this.user = user;
-        this.size = size;
-        this.color = color;
+//        this.user = user;
+        this.clothesSize = clothesSize;
+        this.clothesColor = clothesColor;
         this.description = description;
     }
 
     public static Clothes create(
             Category category,
-            User user,
-            Size size,
-            Color color,
+//            User user,
+            ClothesSize clothesSize,
+            ClothesColor clothesColor,
             String description
     ) {
 
         return Clothes.builder()
                 .category(category)
-                .user(user)
-                .size(size)
-                .color(color)
+//                .user(user)
+                .clothesSize(clothesSize)
+                .clothesColor(clothesColor)
                 .description(description)
                 .build();
     }
