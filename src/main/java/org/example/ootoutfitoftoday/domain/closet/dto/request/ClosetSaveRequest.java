@@ -16,7 +16,8 @@ public record ClosetSaveRequest(
 
         @Size(max = 255, message = "옷장 설명은 255자를 초과할 수 없습니다.")
         String description,
-
+        
+        @Size(max = 500, message = "이미지 URL은 500자를 초과할 수 없습니다.")
         String imageUrl,
 
         @NotNull(message = "공개 여부는 필수입니다.")
