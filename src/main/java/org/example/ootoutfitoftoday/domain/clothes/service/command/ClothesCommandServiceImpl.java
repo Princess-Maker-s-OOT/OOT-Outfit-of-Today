@@ -8,6 +8,8 @@ import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryS
 import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
+import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesErrorCode;
+import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesException;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
@@ -15,6 +17,8 @@ import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -49,6 +53,34 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         );
 
         clothesRepository.save(clothes);
+
+        return ClothesResponse.from(clothes);
+    }
+
+    public ClothesResponse updateClothes(
+            Long userId,
+            Long id,
+            ClothesRequest clothesRequest
+    ) {
+
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
+        );
+
+        if (!Objects.equals(userId, clothes.getUser().getId())) {
+            throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
+        }
+
+        Category category = categoryQueryService.findById(clothesRequest.getCategoryId()).orElseThrow(
+                () -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
+        );
+
+        clothes.update(
+                category,
+                clothesRequest.getClothesSize(),
+                clothesRequest.getClothesColor(),
+                clothesRequest.getDescription()
+        );
 
         return ClothesResponse.from(clothes);
     }

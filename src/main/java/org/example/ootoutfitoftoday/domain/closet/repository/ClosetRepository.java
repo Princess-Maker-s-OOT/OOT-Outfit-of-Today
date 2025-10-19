@@ -14,4 +14,16 @@ public interface ClosetRepository extends JpaRepository<Closet, Long> {
      * 삭제: Isdeleted = false
      */
     Page<Closet> findAllByIsPublicTrueAndIsDeletedFalse(Pageable pageable);
+
+
+    /**
+     * 내 옷장 리스트 조회
+     * 리스트(전체): all
+     * 로그인한 사용자의 ID: userId
+     * 삭제: Isdeleted = false
+     */
+    Page<Closet> findAllByUserIdAndIsDeletedFalse(
+            Long userId,
+            Pageable pageable
+    );
 }
