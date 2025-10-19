@@ -64,7 +64,7 @@ public class ClosetController {
     /**
      * 내 옷장 리스트 조회
      *
-     * @param authUser
+     * @param authUser:  인증된 사용자 정보
      * @param page:      페이지 번호
      * @param size:      페이지 크기
      * @param sort:      정렬 기준
