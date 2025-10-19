@@ -69,7 +69,7 @@ public class ClosetController {
                 direction
         );
 
-        return ApiPageResponse.success(closetGetPublicResponses, ClosetSuccessCode.CLOSET_GET_PUBLIC_OK);
+        return ApiPageResponse.success(closetGetPublicResponses, ClosetSuccessCode.CLOSETS_GET_PUBLIC_OK);
     }
 
     /**
@@ -115,6 +115,6 @@ public class ClosetController {
                 direction
         );
 
-        return ApiPageResponse.success(closetGetMyResponses, ClosetSuccessCode.CLOSET_GET_MY_OK);
+        return ApiPageResponse.success(closetGetMyResponses, ClosetSuccessCode.CLOSETS_GET_MY_OK);
     }
 }
