@@ -9,7 +9,7 @@ import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetPublicRe
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetSaveResponse;
 import org.example.ootoutfitoftoday.domain.closet.exception.ClosetSuccessCode;
 import org.example.ootoutfitoftoday.domain.closet.service.command.ClosetCommandService;
-import org.example.ootoutfitoftoday.domain.closet.service.query.ClosetQueryService;
+import org.example.ootoutfitoftoday.domain.closet.service.query.ClosetQueryServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +20,13 @@ import org.springframework.web.bind.annotation.*;
 public class ClosetController {
 
     private final ClosetCommandService closetCommandService;
-    private final ClosetQueryService closetQueryService;
+    private final ClosetQueryServiceImpl closetQueryService;
 
     // 옷장 등록
     @PostMapping
-    public ResponseEntity<ApiResponse<ClosetSaveResponse>> createCloset(@Valid @RequestBody ClosetSaveRequest closetSaveRequest) {
+    public ResponseEntity<ApiResponse<ClosetSaveResponse>> createCloset(
+            @Valid @RequestBody ClosetSaveRequest closetSaveRequest
+    ) {
         ClosetSaveResponse closetSaveResponse = closetCommandService.createCloset(closetSaveRequest);
 
         return ApiResponse.success(closetSaveResponse, ClosetSuccessCode.CLOSET_CREATED);
