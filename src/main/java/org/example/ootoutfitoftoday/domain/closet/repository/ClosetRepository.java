@@ -22,7 +22,7 @@ public interface ClosetRepository extends JpaRepository<Closet, Long> {
      * 로그인한 사용자의 ID: userId
      * 삭제: Isdeleted = false
      */
-    Page<Closet> findAllByUserIdAndIsDeletedFalse(
+    Page<Closet> findAllByUser_IdAndIsDeletedFalse(
             Long userId,
             Pageable pageable
     );
