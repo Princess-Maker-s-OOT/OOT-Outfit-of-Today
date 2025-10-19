@@ -2,7 +2,10 @@ package org.example.ootoutfitoftoday.domain.closet.service.query;
 
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetPublicResponse;
+import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetResponse;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
+import org.example.ootoutfitoftoday.domain.closet.exception.ClosetErrorCode;
+import org.example.ootoutfitoftoday.domain.closet.exception.ClosetException;
 import org.example.ootoutfitoftoday.domain.closet.repository.ClosetRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,5 +35,18 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
         Page<Closet> closets = closetRepository.findAllByIsPublicTrueAndIsDeletedFalse(pageable);
 
         return closets.map(ClosetGetPublicResponse::from);
+    }
+
+    // 옷장 상세 조회
+    public ClosetGetResponse getCloset(Long closetId) {
+
+        Closet closet = closetRepository.findById(closetId)
+                .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
+
+        if (closet.isDeleted()) {
+            throw new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND);
+        }
+
+        return ClosetGetResponse.from(closet);
     }
 }
