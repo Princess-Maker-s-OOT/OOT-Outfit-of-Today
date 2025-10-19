@@ -2,7 +2,9 @@ package org.example.ootoutfitoftoday.domain.auth.service.command;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
+import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
@@ -77,5 +79,20 @@ public class AuthCommandService {
                 .build();
 
         userCommandService.save(user);
+    }
+
+    // 로그인
+    public AuthLoginResponse login(AuthLoginRequest request) {
+
+        User user = userQueryService.findByLoginId(request.getLoginId()).orElseThrow(
+                () -> new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS)
+        );
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS);
+        }
+        
+        String token = jwtUtil.createToken(user.getId(), user.getRole());
+
+        return new AuthLoginResponse(token);
     }
 }
