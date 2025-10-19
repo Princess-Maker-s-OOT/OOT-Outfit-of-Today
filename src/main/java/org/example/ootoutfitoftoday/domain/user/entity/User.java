@@ -109,6 +109,7 @@ public class User extends BaseEntity {
             String password,
             String phoneNumber
     ) {
+
         return User.builder()
                 .loginId(loginId)
                 .email(email)
@@ -127,6 +128,7 @@ public class User extends BaseEntity {
         boolean alreadyExists = this.chatParticipatingUsers.stream()
                 .anyMatch(p -> p.getChatroom().getId().equals(chatroom.getId()));
         if (alreadyExists) {
+
             return;
         }
 
