@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
@@ -17,7 +18,7 @@ import java.util.List;
 @Getter
 @Table(name = "clothes")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Clothes {
+public class Clothes extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
