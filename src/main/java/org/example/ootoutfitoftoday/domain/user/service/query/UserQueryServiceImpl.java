@@ -8,32 +8,28 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class UserQueryServiceImpl implements UserQueryService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    @Transactional(readOnly = true)
     public boolean existsByLoginId(String loginId) {
         return userRepository.existsByLoginId(loginId);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean existsByNickname(String nickname) {
         return userRepository.existsByNickname(nickname);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean existsByPhoneNumber(String phoneNumber) {
         return userRepository.existsByPhoneNumber(phoneNumber);
     }
