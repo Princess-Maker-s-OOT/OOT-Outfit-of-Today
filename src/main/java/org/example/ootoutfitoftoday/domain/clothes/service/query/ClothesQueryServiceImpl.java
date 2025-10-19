@@ -5,7 +5,13 @@ import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
+import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesErrorCode;
+import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesException;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
+import org.example.ootoutfitoftoday.domain.user.exception.UserException;
+import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ClothesQueryServiceImpl implements ClothesQueryService {
 
     private final ClothesRepository clothesRepository;
+    private final UserQueryService userQueryService;
 
     public Page<ClothesResponse> getClothes(
             Long categoryId,
@@ -40,5 +47,22 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
         );
 
         return clothes.map(ClothesResponse::from);
+    }
+
+    public ClothesResponse getClothesById(Long userId, Long id) {
+
+        User user = userQueryService.findByIdAndIsDeletedFalse(userId).orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
+        );
+
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
+        );
+
+        clothesRepository.findByIdAndUserId(id, user.getId()).orElseThrow(
+                () -> new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN)
+        );
+
+        return ClothesResponse.from(clothes);
     }
 }
