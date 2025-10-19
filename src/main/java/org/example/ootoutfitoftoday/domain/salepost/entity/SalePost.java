@@ -6,8 +6,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
+import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
+import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
+import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
+
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -32,28 +39,32 @@ public class SalePost extends BaseEntity {
     @Column(nullable = false)
     private SaleStatus status;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id", nullable = false)
-//    private User user;
-//
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "category_id", nullable = false)
-//    private Category category;
-//
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
+    @OneToMany(mappedBy = "salePost", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SalePostImage> images = new ArrayList<>();
+
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "clothes_id")
 //    private Clothes clothes;
-//
-//    @OneToMany(mappedBy = "salePost", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<SalePostImage> images = new ArrayList<>();
 
     @Builder(access = AccessLevel.PROTECTED)
     private SalePost(
+            User user,
+            Category category,
             String title,
             String content,
             BigDecimal price,
             SaleStatus status
     ) {
+        this.user = user;
+        this.category = category;
         this.title = title;
         this.content = content;
         this.price = price;
@@ -61,16 +72,48 @@ public class SalePost extends BaseEntity {
     }
 
     public static SalePost create(
+            User user,
+            Category category,
             String title,
             String content,
-            BigDecimal price
+            BigDecimal price,
+            List<String> imageUrls
     ) {
+        validatePrice(price);
+        validateImages(imageUrls);
 
-        return SalePost.builder()
+        SalePost salePost = SalePost.builder()
+                .user(user)
+                .category(category)
                 .title(title)
                 .content(content)
                 .price(price)
                 .status(SaleStatus.SELLING)
                 .build();
+
+        // 이미지 URL 리스트를 순서대로 SalePostImage 엔티티로 변환 (displayOrder: 1, 2, 3, ...)
+        for (int i = 0; i < imageUrls.size(); i++) {
+            SalePostImage image = SalePostImage.create(imageUrls.get(i), i + 1);
+            salePost.addImage(image);
+        }
+
+        return salePost;
+    }
+
+    private static void validatePrice(BigDecimal price) {
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new SalePostException(SalePostErrorCode.INVALID_PRICE);
+        }
+    }
+
+    private static void validateImages(List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            throw new SalePostException(SalePostErrorCode.EMPTY_IMAGES);
+        }
+    }
+
+    public void addImage(SalePostImage image) {
+        this.images.add(image);
+        image.setSalePost(this);
     }
 }
