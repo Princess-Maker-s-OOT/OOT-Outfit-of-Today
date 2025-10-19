@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.closet.service.query;
 
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetMyResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetPublicResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetResponse;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
@@ -43,11 +44,35 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
 
         Closet closet = closetRepository.findById(closetId)
                 .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
-        
+
         if (closet.isDeleted()) {
             throw new ClosetException(ClosetErrorCode.CLOSET_DELETED);
         }
 
         return ClosetGetResponse.from(closet);
+    }
+
+    // 내 옷장 리스트 조회
+    public Page<ClosetGetMyResponse> getMyClosets(
+            Long userId,
+            int page,
+            int size,
+            String sort,
+            String direction
+    ) {
+        Sort sortObj = Sort.by(Sort.Direction.fromString(direction), sort);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sortObj
+        );
+
+        Page<Closet> closets = closetRepository.findAllByUserIdAndIsDeletedFalse(
+                userId,
+                pageable
+        );
+
+        return closets.map(ClosetGetMyResponse::from);
     }
 }
