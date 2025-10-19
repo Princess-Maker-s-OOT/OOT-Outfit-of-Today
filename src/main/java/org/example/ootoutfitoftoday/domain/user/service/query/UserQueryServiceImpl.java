@@ -42,9 +42,9 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     @Override
-    public Optional<User> findByLoginId(String loginId) {
+    public Optional<User> findByLoginIdAndIsDeletedFalse(String loginId) {
 
-        return userRepository.findByLoginId(loginId);
+        return userRepository.findByLoginIdAndIsDeletedFalse(loginId);
     }
 
     @Override
