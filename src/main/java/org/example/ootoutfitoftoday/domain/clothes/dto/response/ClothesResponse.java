@@ -14,7 +14,7 @@ public class ClothesResponse {
 
     private final Long id;
     private final Long categoryId;
-//    private final User user;
+    private final Long userId;
     private final ClothesSize clothesSize;
     private final ClothesColor clothesColor;
     private final String description;
@@ -28,7 +28,7 @@ public class ClothesResponse {
                                 ? clothes.getCategory().getId()
                                 : null
                 )
-//                .user(clothes.getUser())
+                .userId(clothes.getUser().getId())
                 .clothesSize(clothes.getClothesSize())
                 .clothesColor(clothes.getClothesColor())
                 .description(clothes.getDescription())
