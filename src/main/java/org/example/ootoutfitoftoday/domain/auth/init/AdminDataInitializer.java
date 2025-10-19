@@ -21,6 +21,7 @@ public class AdminDataInitializer {
 
     @Bean
     public CommandLineRunner initAdmin() {
+        
         return args -> authCommandService.initializeAdmin(
                 ADMIN_LOGIN_ID,
                 ADMIN_EMAIL,
