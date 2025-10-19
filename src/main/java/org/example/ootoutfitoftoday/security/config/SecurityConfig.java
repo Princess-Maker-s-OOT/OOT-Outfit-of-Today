@@ -48,12 +48,12 @@ public class SecurityConfig {
                 .rememberMe(AbstractHttpConfigurer::disable)     // 서버가 쿠키 발급하여 자동 로그인
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/auth/v1/signup", "/auth/v1/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/auth/signup", "/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET,
-                                "/api/v1/closets/public",
-                                "/api/v1/sale-posts",
-                                "/api/v1/sale-posts/{salePostId}",
-                                "/api/v1/categories").permitAll()
+                                "/v1/api/closets/public",
+                                "/v1/api/sale-posts",
+                                "/v1/api/sale-posts/{salePostId}",
+                                "/v1/api/categories").permitAll()
                         .requestMatchers("/admin/**").hasAuthority(UserRole.Authority.ADMIN)
                         .anyRequest().authenticated() // 다른 요청들은 authentication 필요
                 )
