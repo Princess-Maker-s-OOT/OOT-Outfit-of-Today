@@ -1,0 +1,17 @@
+package org.example.ootoutfitoftoday.domain.user.exception;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.common.exception.SuccessCode;
+import org.springframework.http.HttpStatus;
+
+@Getter
+@RequiredArgsConstructor
+public enum UserSuccessCode implements SuccessCode {
+
+    GET_MY_PROFILE("GET_MY_PROFILE", HttpStatus.OK, "프로필 조회 완료입니다.");
+
+    private final String code;
+    private final HttpStatus httpStatus;
+    private final String message;
+}

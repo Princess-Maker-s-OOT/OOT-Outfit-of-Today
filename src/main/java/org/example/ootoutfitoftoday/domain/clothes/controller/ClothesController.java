@@ -4,15 +4,17 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiPageResponse;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesSuccessCode;
-import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandService;
-import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
+import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandServiceImpl;
+import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,20 +22,23 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/clothes")
 public class ClothesController {
 
-    private final ClothesCommandService clothesCommandService;
-    private final ClothesQueryService clothesQueryService;
+    private final ClothesCommandServiceImpl clothesCommandService;
+    private final ClothesQueryServiceImpl clothesQueryService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<ClothesResponse>> createClothes(
+            @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody ClothesRequest clothesRequest
     ) {
-        ClothesResponse clothesResponse = clothesCommandService.createClothes(clothesRequest);
+
+        ClothesResponse clothesResponse = clothesCommandService.createClothes(authUser.getUserId(), clothesRequest);
 
         return ApiResponse.success(clothesResponse, ClothesSuccessCode.CLOTHES_CREATED);
     }
 
     @GetMapping
     public ResponseEntity<ApiPageResponse<ClothesResponse>> getClothes(
+            @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) ClothesColor clothesColor,
             @RequestParam(required = false) ClothesSize clothesSize,
@@ -44,6 +49,7 @@ public class ClothesController {
     ) {
         Page<ClothesResponse> clothes = clothesQueryService.getClothes(
                 categoryId,
+                authUser.getUserId(),
                 clothesColor,
                 clothesSize,
                 page,
@@ -53,5 +59,14 @@ public class ClothesController {
         );
 
         return ApiPageResponse.success(clothes, ClothesSuccessCode.CLOTHES_OK);
+    }
+
+    @GetMapping("/{clothesId}")
+    public ResponseEntity<ApiResponse<ClothesResponse>> getClothesById(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long clothesId
+    ) {
+
+        return ApiResponse.success(clothesQueryService.getClothesById(authUser.getUserId(), clothesId), ClothesSuccessCode.CLOTHES_OK);
     }
 }

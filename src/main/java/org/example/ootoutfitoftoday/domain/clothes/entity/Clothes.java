@@ -10,6 +10,7 @@ import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +29,9 @@ public class Clothes extends BaseEntity {
     @JoinColumn(name = "category_id", nullable = true)
     private Category category;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id", nullable = true) // 추후 유저가 생성된다면 nullable로 변경
-//    private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
@@ -52,13 +53,13 @@ public class Clothes extends BaseEntity {
     @Builder(access = AccessLevel.PROTECTED)
     private Clothes(
             Category category,
-//            User user,
+            User user,
             ClothesSize clothesSize,
             ClothesColor clothesColor,
             String description
     ) {
         this.category = category;
-//        this.user = user;
+        this.user = user;
         this.clothesSize = clothesSize;
         this.clothesColor = clothesColor;
         this.description = description;
@@ -66,7 +67,7 @@ public class Clothes extends BaseEntity {
 
     public static Clothes create(
             Category category,
-//            User user,
+            User user,
             ClothesSize clothesSize,
             ClothesColor clothesColor,
             String description
@@ -74,7 +75,7 @@ public class Clothes extends BaseEntity {
 
         return Clothes.builder()
                 .category(category)
-//                .user(user)
+                .user(user)
                 .clothesSize(clothesSize)
                 .clothesColor(clothesColor)
                 .description(description)
