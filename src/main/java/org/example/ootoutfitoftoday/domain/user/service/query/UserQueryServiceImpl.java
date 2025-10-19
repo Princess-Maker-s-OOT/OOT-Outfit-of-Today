@@ -58,7 +58,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     public UserGetResponse getMyProfile(Long userId) {
 
-        User user = userRepository.findById(userId).orElseThrow(
+        User user = userRepository.findByIdAndIsDeletedFalse(userId).orElseThrow(
                 () -> new UserException(UserErrorCode.USER_NOT_FOUND)
         );
 
