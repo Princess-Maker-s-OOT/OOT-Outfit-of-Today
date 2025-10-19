@@ -56,9 +56,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // GET 요청에서 인증 불필요한 경로
         if ("GET".equalsIgnoreCase(method) &&
-                (requestUri.startsWith("/v1/api/closets/public") ||
-                        requestUri.startsWith("/v1/api/sale-posts") ||   // /sale-posts, /sale-posts/{id} 포함
-                        requestUri.startsWith("/v1/api/categories"))
+                (requestUri.startsWith("/v1/closets/public") ||
+                        requestUri.startsWith("/v1/sale-posts") ||
+                        requestUri.startsWith("/v1/categories"))
         ) {
             chain.doFilter(httpRequest, httpResponse);
 
