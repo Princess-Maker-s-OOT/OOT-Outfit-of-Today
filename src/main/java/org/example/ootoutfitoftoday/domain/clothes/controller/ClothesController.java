@@ -60,4 +60,13 @@ public class ClothesController {
 
         return ApiPageResponse.success(clothes, ClothesSuccessCode.CLOTHES_OK);
     }
+
+    @GetMapping("/{clothesId}")
+    public ResponseEntity<ApiResponse<ClothesResponse>> getClothesById(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long clothesId
+    ) {
+
+        return ApiResponse.success(clothesQueryService.getClothesById(authUser.getUserId(), clothesId), ClothesSuccessCode.CLOTHES_OK);
+    }
 }
