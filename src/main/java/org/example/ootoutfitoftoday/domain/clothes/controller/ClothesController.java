@@ -6,12 +6,13 @@ import org.example.ootoutfitoftoday.common.response.ApiPageResponse;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
+import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
+import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesSuccessCode;
 import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandService;
 import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,9 +36,17 @@ public class ClothesController {
 
     @GetMapping
     public ResponseEntity<ApiPageResponse<ClothesResponse>> getClothes(
-            @PageableDefault(sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) ClothesColor clothesColor,
+            @RequestParam(required = false) ClothesSize clothesSize,
+            @PageableDefault Pageable pageable
     ) {
-        Page<ClothesResponse> clothes = clothesQueryService.getClothes(pageable);
+        Page<ClothesResponse> clothes = clothesQueryService.getClothes(
+                categoryId,
+                clothesColor,
+                clothesSize,
+                pageable
+        );
 
         return ApiPageResponse.success(clothes, ClothesSuccessCode.CLOTHES_OK);
     }
