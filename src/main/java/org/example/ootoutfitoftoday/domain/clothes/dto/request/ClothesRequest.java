@@ -14,6 +14,6 @@ public class ClothesRequest {
     private ClothesColor clothesColor;
 
     @NotBlank
-    @Size(min = 1, max = 255, message = "255자 이하로 입력해 주세요!")
+    @Size(max = 255, message = "255자 이하로 입력해 주세요!")
     private String description;
 }
