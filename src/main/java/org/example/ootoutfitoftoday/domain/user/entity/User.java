@@ -9,6 +9,7 @@ import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
+import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 
 import java.util.ArrayList;
@@ -50,8 +51,8 @@ public class User extends BaseEntity {
     private String imageUrl;
 
     // 옷장 연관관계
-//    @OneToMany(mappedBy = "user")
-//    private List<Closet> closets = new ArrayList<>();
+    @OneToMany(mappedBy = "user")
+    private List<Closet> closets = new ArrayList<>();
 
     // 중간테이블
     @OneToMany(mappedBy = "user")
