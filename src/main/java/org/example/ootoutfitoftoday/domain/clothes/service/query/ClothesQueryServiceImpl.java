@@ -59,9 +59,9 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
                 () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
         );
 
-        clothesRepository.findByIdAndUserId(id, user.getId()).orElseThrow(
-                () -> new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN)
-        );
+        if (!Objects.equals(userId, clothes.getUser().getId())) {
+            throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
+        }
 
         return ClothesResponse.from(clothes);
     }
