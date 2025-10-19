@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ClosetSuccessCode implements SuccessCode {
 
-    CLOSET_CREATED("CLOSET_CREATED", HttpStatus.CREATED, "옷장이 등록되었습니다.");
+    CLOSET_CREATED("CLOSET_CREATED", HttpStatus.CREATED, "옷장이 등록되었습니다."),
+    CLOSET_GET_PUBLIC_OK("CLOSET_GET_PUBLIC_OK", HttpStatus.OK, "공개 옷장 리스트를 조회했습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
