@@ -48,6 +48,7 @@ public class SalePost extends BaseEntity {
     private Category category;
 
     @OneToMany(mappedBy = "salePost", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
     private List<SalePostImage> images = new ArrayList<>();
 
 //    @ManyToOne(fetch = FetchType.LAZY)

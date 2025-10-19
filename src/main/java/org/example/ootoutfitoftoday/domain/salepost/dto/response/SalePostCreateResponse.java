@@ -7,7 +7,6 @@ import org.example.ootoutfitoftoday.domain.salepost.entity.SalePostImage;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -32,9 +31,9 @@ public class SalePostCreateResponse {
                 .content(salePost.getContent())
                 .price(salePost.getPrice())
                 .status(salePost.getStatus().name())
+                .userId(salePost.getUser().getId())
                 .categoryId(salePost.getCategory().getId())
                 .imageUrls(salePost.getImages().stream()
-                        .sorted(Comparator.comparing(SalePostImage::getDisplayOrder))
                         .map(SalePostImage::getImageUrl)
                         .toList())
                 .createdAt(salePost.getCreatedAt())
