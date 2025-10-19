@@ -47,7 +47,13 @@ public class SecurityConfig {
                 .rememberMe(AbstractHttpConfigurer::disable)     // 서버가 쿠키 발급하여 자동 로그인
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/signup", "/auth/login").permitAll()
+                        .requestMatchers(
+                                "/auth/v1/signup",
+                                "/auth/v1/login",
+                                "/api/v1/closets/public",
+                                "/api/v1/sale-posts",
+                                "/api/v1/sale-posts/{salePostId}",
+                                "/api/v1/categories").permitAll()
                         .requestMatchers("/admin/**").hasAuthority(UserRole.Authority.ADMIN)
                         .anyRequest().authenticated() // 다른 요청들은 authentication 필요
                 )
