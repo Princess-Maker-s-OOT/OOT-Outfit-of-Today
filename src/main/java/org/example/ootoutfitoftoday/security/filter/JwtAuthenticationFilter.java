@@ -44,8 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String requestUri = httpRequest.getRequestURI();
 
         // 인증 불필요 경로는 필터 스킵
-        if (requestUri.startsWith("/api/auth/")) {
+        if (requestUri.startsWith("/api/v1/auth/")) {
             chain.doFilter(httpRequest, httpResponse);
+            
             return;
         }
 
