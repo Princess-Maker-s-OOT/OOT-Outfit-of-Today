@@ -52,4 +52,10 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         return userRepository.findByIdAndIsDeletedFalse(id);
     }
+
+    @Override
+    public Optional<User> findByIdAndIsDeletedFalse(Long id) {
+
+        return userRepository.findByIdAndIsDeletedFalse(id);
+    }
 }
