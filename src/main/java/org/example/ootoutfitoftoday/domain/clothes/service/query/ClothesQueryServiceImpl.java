@@ -51,10 +51,6 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
 
     public ClothesResponse getClothesById(Long userId, Long id) {
 
-        User user = userQueryService.findByIdAndIsDeletedFalse(userId).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
-        );
-
         Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
                 () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
         );
