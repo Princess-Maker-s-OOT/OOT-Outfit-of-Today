@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ClosetErrorCode implements ErrorCode {
 
-    CLOSET_UNAUTHORIZED("CLOSET_UNAUTHORIZED", HttpStatus.FORBIDDEN, "옷장에 접근할 권한이 없습니다.");
+    CLOSET_NOT_FOUND("CLOSET_NOT_FOUND", HttpStatus.NOT_FOUND, "옷장을 찾을 수 없습니다."),
+    CLOSET_DELETED("CLOSET_DELETED", HttpStatus.NOT_FOUND, "삭제된 옷장입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
