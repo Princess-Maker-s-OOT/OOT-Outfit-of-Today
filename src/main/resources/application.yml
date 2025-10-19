@@ -13,12 +13,12 @@ spring:
   jackson:
     default-property-inclusion: non_null
 
-# API ?? ??
+# API
 server:
   servlet:
     context-path: /api
 
-# JWT ??? ?
+# JWT
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
