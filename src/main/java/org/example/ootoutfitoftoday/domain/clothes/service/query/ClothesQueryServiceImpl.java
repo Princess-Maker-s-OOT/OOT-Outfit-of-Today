@@ -7,7 +7,6 @@ import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,14 +22,20 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
             Long categoryId,
             ClothesColor clothesColor,
             ClothesSize clothesSize,
-            Pageable pageable
+            int page,
+            int size,
+            String sort,
+            String direction
     ) {
 
         Page<Clothes> clothes = clothesRepository.findAllByIsDeletedFalse(
                 categoryId,
                 clothesColor,
                 clothesSize,
-                pageable
+                page,
+                size,
+                sort,
+                direction
         );
 
         return clothes.map(ClothesResponse::from);

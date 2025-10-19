@@ -4,7 +4,6 @@ import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface ClothesQueryService {
 
@@ -12,6 +11,9 @@ public interface ClothesQueryService {
             Long categoryId,
             ClothesColor clothesColor,
             ClothesSize clothesSize,
-            Pageable pageable
+            int page,
+            int size,
+            String sort,
+            String direction
     );
 }

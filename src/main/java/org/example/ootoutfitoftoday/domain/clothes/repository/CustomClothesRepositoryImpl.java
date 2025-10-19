@@ -9,7 +9,7 @@ import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
@@ -23,18 +23,23 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
      * @param categoryId 카테코리 아이디의 값을 파람으로 받아 필터링
      * @param clothesColor 색상의 값을 파람으로 받아 필터링
      * @param clothesSize 사이즈의 값을 파람으로 받아 필터링
-     * @param pageable 페이지의 값을 파람으로 받아 필터링
+     * @param page,size,sort,direction 페이지의 값을 파람으로 받아 필터링
      * - 위의 파람 값이 null 이라면 필터링에서 제외
      * Todo: 유저의 값이 들어온다면 유저는 필수 조건으로 필터링할 예정
      *     + 엔티티가 아닌 리스폰스로 바로 반환하는 것도 방법인데 그것은 추후에 리팩토링으로 생각하겠음.
      *     + 카테고리 아이디가 존재하지 않을 때도 일단 조회가 되는 상황(빈 리스트) 이것도 추후에 리팩토링으로 생각.
+     *     + 동적으로 파람 값을 받도록 성능 개선예정
+     *       예) 생성일, 수정일 둘 중 하나의 값을 입력 시 그 값으로 정렬 방향 설정
      */
     @Override
     public Page<Clothes> findAllByIsDeletedFalse(
             Long categoryId,
             ClothesColor clothesColor,
             ClothesSize clothesSize,
-            Pageable pageable
+            int page,
+            int size,
+            String sort,
+            String direction
     ) {
         // QueryDSL 에서 사용되는 객체 생성
         QClothes clothes = QClothes.clothes;
@@ -61,9 +66,9 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
         List<Clothes> result = jpaQueryFactory
                 .selectFrom(clothes)
                 .where(builder)
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .orderBy(clothes.updatedAt.desc())
+                .offset((long) page * size)
+                .limit(size)
+                .orderBy(clothes.createdAt.desc()) // 등록일 기준 내림차순
                 .fetch();
 
         // 데이터 개수 조회
@@ -78,7 +83,7 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
 
         return new PageImpl<>(
                 result,
-                pageable,
+                PageRequest.of(page, size),  // 여기도 수정 필요
                 totalCount
         );
     }

@@ -12,8 +12,6 @@ import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesSuccessCode;
 import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandService;
 import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,13 +37,19 @@ public class ClothesController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) ClothesColor clothesColor,
             @RequestParam(required = false) ClothesSize clothesSize,
-            @PageableDefault(size = 10, page = 0) Pageable pageable
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "DESC") String direction
     ) {
         Page<ClothesResponse> clothes = clothesQueryService.getClothes(
                 categoryId,
                 clothesColor,
                 clothesSize,
-                pageable
+                page,
+                size,
+                sort,
+                direction
         );
 
         return ApiPageResponse.success(clothes, ClothesSuccessCode.CLOTHES_OK);
