@@ -46,4 +46,10 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         return userRepository.findByLoginId(loginId);
     }
+
+    @Override
+    public Optional<User> findByIdAndIsDeletedFalse(Long id) {
+
+        return userRepository.findByIdAndIsDeletedFalse(id);
+    }
 }

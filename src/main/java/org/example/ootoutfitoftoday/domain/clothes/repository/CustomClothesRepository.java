@@ -9,6 +9,7 @@ public interface CustomClothesRepository {
 
     Page<Clothes> findAllByIsDeletedFalse(
             Long categoryId,
+            Long userId,
             ClothesColor clothesColor,
             ClothesSize clothesSize,
             int page,
