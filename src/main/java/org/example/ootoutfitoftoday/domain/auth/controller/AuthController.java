@@ -3,7 +3,9 @@ package org.example.ootoutfitoftoday.domain.auth.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
+import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthSuccessCode;
 import org.example.ootoutfitoftoday.domain.auth.service.command.AuthCommandService;
 import org.springframework.http.ResponseEntity;
@@ -27,5 +29,15 @@ public class AuthController {
         authCommandService.signup(request);
 
         return ApiResponse.success(null, AuthSuccessCode.USER_SIGNUP);
+    }
+
+    // 로그인
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<AuthLoginResponse>> login(
+            @Valid @RequestBody AuthLoginRequest request
+    ) {
+        AuthLoginResponse response = authCommandService.login(request);
+
+        return ApiResponse.success(response, AuthSuccessCode.USER_LOGIN);
     }
 }
