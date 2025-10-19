@@ -1,9 +1,11 @@
 package org.example.ootoutfitoftoday.domain.user.dto.response;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 @Getter
+@RequiredArgsConstructor
 public class UserGetResponse {
 
     private final String loginId;
@@ -11,20 +13,6 @@ public class UserGetResponse {
     private final String username;
     private final String nickname;
     private final String phoneNumber;
-
-    public UserGetResponse(
-            String loginId,
-            String email,
-            String username,
-            String nickname,
-            String phoneNumber
-    ) {
-        this.loginId = loginId;
-        this.email = email;
-        this.username = username;
-        this.nickname = nickname;
-        this.phoneNumber = phoneNumber;
-    }
 
     public static UserGetResponse from(User user) {
 
