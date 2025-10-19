@@ -15,4 +15,6 @@ public interface UserQueryService {
     boolean existsByPhoneNumber(String phoneNumber);
 
     Optional<User> findByLoginIdAndIsDeletedFalse(String loginId);
+
+    Optional<User> findByIdAndIsDeletedFalse(Long id);
 }

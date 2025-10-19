@@ -3,13 +3,17 @@ package org.example.ootoutfitoftoday.domain.auth.service.command;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
+import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
+import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
+import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.example.ootoutfitoftoday.security.jwt.JwtUtil;
@@ -96,5 +100,18 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         String token = jwtUtil.createToken(user.getId(), user.getRole());
 
         return new AuthLoginResponse(token);
+    }
+
+    // 회원탈퇴
+    public void withdraw(AuthWithdrawRequest request, AuthUser authUser) {
+
+        User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId())
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS);
+        }
+
+        userCommandService.softDeleteUser(user);
     }
 }
