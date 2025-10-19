@@ -23,7 +23,7 @@ public class SalePostDetailResponse {
     // 판매자 정보
     private Long sellerId;
     private String sellerNickname;
-    private String sellerProfileImage;
+    private String sellerImageUrl;
 
     // 카테고리 정보
     private String categoryName;
@@ -45,7 +45,7 @@ public class SalePostDetailResponse {
                 .status(salePost.getStatus().name())
                 .sellerId(salePost.getUser().getId())
                 .sellerNickname(salePost.getUser().getNickname())
-                .sellerProfileImage(salePost.getUser().getImageUrl())
+                .sellerImageUrl(salePost.getUser().getImageUrl())
                 .categoryName(salePost.getCategory().getName())
                 .imageUrls(salePost.getImages().stream()
                         .map(SalePostImage::getImageUrl)

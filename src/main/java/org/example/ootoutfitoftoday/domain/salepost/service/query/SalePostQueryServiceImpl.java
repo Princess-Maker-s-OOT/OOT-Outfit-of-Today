@@ -25,7 +25,8 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
 
     @Override
     public SalePostDetailResponse getSalePostDetail(Long salePostId) {
-        SalePost salePost = findSalePostById(salePostId);
+        SalePost salePost = salePostRepository.findByIdWithDetailsAndNotDeleted(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
         return SalePostDetailResponse.from(salePost);
     }
