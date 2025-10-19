@@ -86,7 +86,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     // 로그인
     public AuthLoginResponse login(AuthLoginRequest request) {
 
-        User user = userQueryService.findByLoginId(request.getLoginId()).orElseThrow(
+        User user = userQueryService.findByLoginIdAndIsDeletedFalse(request.getLoginId()).orElseThrow(
                 () -> new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS)
         );
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
