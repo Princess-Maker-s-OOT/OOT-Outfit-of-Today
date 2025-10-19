@@ -17,9 +17,9 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
 
     private final ClothesRepository clothesRepository;
 
-    @Override
     public Page<ClothesResponse> getClothes(
             Long categoryId,
+            Long userId,
             ClothesColor clothesColor,
             ClothesSize clothesSize,
             int page,
@@ -30,6 +30,7 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
 
         Page<Clothes> clothes = clothesRepository.findAllByIsDeletedFalse(
                 categoryId,
+                userId,
                 clothesColor,
                 clothesSize,
                 page,
