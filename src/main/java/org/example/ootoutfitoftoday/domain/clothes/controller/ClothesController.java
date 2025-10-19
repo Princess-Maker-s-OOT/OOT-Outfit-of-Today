@@ -69,4 +69,14 @@ public class ClothesController {
 
         return ApiResponse.success(clothesQueryService.getClothesById(authUser.getUserId(), clothesId), ClothesSuccessCode.CLOTHES_OK);
     }
+
+    @PutMapping("/{clothesId}")
+    public ResponseEntity<ApiResponse<ClothesResponse>> updateClothes(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long clothesId,
+            @Valid @RequestBody ClothesRequest clothesRequest
+    ) {
+
+        return ApiResponse.success(clothesCommandService.updateClothes(authUser.getUserId(), clothesId, clothesRequest), ClothesSuccessCode.CLOTHES_UPDATE);
+    }
 }
