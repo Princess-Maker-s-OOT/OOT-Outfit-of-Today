@@ -1,13 +1,11 @@
 package org.example.ootoutfitoftoday.domain.salepost.dto.request;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -26,4 +24,7 @@ public class SalePostCreateRequest {
 
     @NotNull(message = "카테고리 선택은 필수입니다.")
     private Long categoryId;
+
+    @NotEmpty(message = "이미지는 최소 1개 이상 필요합니다.")
+    private List<String> imageUrls;
 }
