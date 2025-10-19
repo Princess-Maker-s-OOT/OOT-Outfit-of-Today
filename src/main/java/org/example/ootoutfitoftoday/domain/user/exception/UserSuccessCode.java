@@ -1,4 +1,4 @@
-package org.example.ootoutfitoftoday.domain.clothes.exception;
+package org.example.ootoutfitoftoday.domain.user.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -7,14 +7,11 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum ClothesSuccessCode implements SuccessCode {
+public enum UserSuccessCode implements SuccessCode {
 
-    CLOTHES_CREATED("CLOTHES_CREATED", HttpStatus.CREATED, "옷을 등록하였습니다!"),
-    CLOTHES_OK("CLOTHES_OK",HttpStatus.OK, "옷을 성공적으로 조회하였습니다!"),;
+    GET_MY_PROFILE("GET_MY_PROFILE", HttpStatus.OK, "프로필 조회 완료입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
     private final String message;
 }
-
-

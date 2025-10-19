@@ -5,10 +5,12 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +19,7 @@ import java.util.List;
 @Getter
 @Table(name = "clothes")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Clothes {
+public class Clothes extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,9 +29,9 @@ public class Clothes {
     @JoinColumn(name = "category_id", nullable = true)
     private Category category;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id", nullable = true) // 추후 유저가 생성된다면 nullable로 변경
-//    private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
@@ -51,13 +53,13 @@ public class Clothes {
     @Builder(access = AccessLevel.PROTECTED)
     private Clothes(
             Category category,
-//            User user,
+            User user,
             ClothesSize clothesSize,
             ClothesColor clothesColor,
             String description
     ) {
         this.category = category;
-//        this.user = user;
+        this.user = user;
         this.clothesSize = clothesSize;
         this.clothesColor = clothesColor;
         this.description = description;
@@ -65,7 +67,7 @@ public class Clothes {
 
     public static Clothes create(
             Category category,
-//            User user,
+            User user,
             ClothesSize clothesSize,
             ClothesColor clothesColor,
             String description
@@ -73,7 +75,7 @@ public class Clothes {
 
         return Clothes.builder()
                 .category(category)
-//                .user(user)
+                .user(user)
                 .clothesSize(clothesSize)
                 .clothesColor(clothesColor)
                 .description(description)
