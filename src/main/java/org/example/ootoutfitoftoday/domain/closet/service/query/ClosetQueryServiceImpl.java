@@ -39,10 +39,14 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
 
     // 옷장 상세 조회
     public ClosetGetResponse getCloset(Long closetId) {
-        
+
+
         Closet closet = closetRepository.findById(closetId)
-                .filter(c -> !c.isDeleted())
                 .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
+        
+        if (closet.isDeleted()) {
+            throw new ClosetException(ClosetErrorCode.CLOSET_DELETED);
+        }
 
         return ClosetGetResponse.from(closet);
     }
