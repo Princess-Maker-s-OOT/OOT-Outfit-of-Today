@@ -1,0 +1,42 @@
+package org.example.ootoutfitoftoday.domain.salepost.dto.response;
+
+import lombok.Builder;
+import lombok.Getter;
+import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
+import org.example.ootoutfitoftoday.domain.salepost.entity.SalePostImage;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@Builder
+public class SalePostCreateResponse {
+
+    private Long salePostId;
+    private String title;
+    private String content;
+    private BigDecimal price;
+    private String status;
+    private Long userId;
+    private Long categoryId;
+    private List<String> imageUrls;
+    private LocalDateTime createdAt;
+
+    public static SalePostCreateResponse from(SalePost salePost) {
+
+        return SalePostCreateResponse.builder()
+                .salePostId(salePost.getId())
+                .title(salePost.getTitle())
+                .content(salePost.getContent())
+                .price(salePost.getPrice())
+                .status(salePost.getStatus().name())
+                .userId(salePost.getUser().getId())
+                .categoryId(salePost.getCategory().getId())
+                .imageUrls(salePost.getImages().stream()
+                        .map(SalePostImage::getImageUrl)
+                        .toList())
+                .createdAt(salePost.getCreatedAt())
+                .build();
+    }
+}
