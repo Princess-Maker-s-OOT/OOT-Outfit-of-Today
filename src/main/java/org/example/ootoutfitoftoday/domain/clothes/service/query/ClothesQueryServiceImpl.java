@@ -8,13 +8,11 @@ import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesErrorCode;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesException;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
-import org.example.ootoutfitoftoday.domain.user.entity.User;
-import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
-import org.example.ootoutfitoftoday.domain.user.exception.UserException;
-import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
@@ -22,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ClothesQueryServiceImpl implements ClothesQueryService {
 
     private final ClothesRepository clothesRepository;
-    private final UserQueryService userQueryService;
 
     public Page<ClothesResponse> getClothes(
             Long categoryId,
