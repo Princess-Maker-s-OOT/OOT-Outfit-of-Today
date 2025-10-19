@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 @Builder
 public record ClosetSaveResponse(
+
         Long closetId,
         Long userId,
         String name,
@@ -17,6 +18,7 @@ public record ClosetSaveResponse(
         LocalDateTime updatedAt
 ) {
     public static ClosetSaveResponse from(Closet closet) {
+
         return new ClosetSaveResponse(
                 closet.getId(),
                 closet.getUserId(),
