@@ -64,7 +64,11 @@ dependencies {
     implementation "io.github.openfeign.querydsl:querydsl-jpa:7.0"
     annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:7.0:jpa"
 
-    testImplementation 'com.h2database:h2'
+    //Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    testImplementation 'com.h2database:h2:2.3.232'
 }
 
 tasks.named('test') {

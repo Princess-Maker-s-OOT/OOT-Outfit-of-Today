@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SPRING_PROFILES_ACTIVE: test
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
@@ -22,6 +23,4 @@ jobs:
         run: chmod +x gradlew   # :흰색_확인_표시: 실행 권한 부여
 
       - name: Run tests with coverage check
-        env:
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-        run: ./gradlew clean check -Dspring.profiles.active=test
+        run: JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} ./gradlew clean check -Dspring.profiles.active=test
