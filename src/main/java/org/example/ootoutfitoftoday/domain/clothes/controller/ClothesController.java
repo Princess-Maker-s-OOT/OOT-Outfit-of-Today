@@ -39,7 +39,7 @@ public class ClothesController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) ClothesColor clothesColor,
             @RequestParam(required = false) ClothesSize clothesSize,
-            @PageableDefault Pageable pageable
+            @PageableDefault(size = 10, page = 0) Pageable pageable
     ) {
         Page<ClothesResponse> clothes = clothesQueryService.getClothes(
                 categoryId,
