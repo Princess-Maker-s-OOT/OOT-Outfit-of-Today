@@ -47,6 +47,7 @@ public class ClothesController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
+
         Page<ClothesResponse> clothes = clothesQueryService.getClothes(
                 categoryId,
                 authUser.getUserId(),
@@ -67,7 +68,9 @@ public class ClothesController {
             @PathVariable Long clothesId
     ) {
 
-        return ApiResponse.success(clothesQueryService.getClothesById(authUser.getUserId(), clothesId), ClothesSuccessCode.CLOTHES_OK);
+        ClothesResponse clothesResponse = clothesQueryService.getClothesById(authUser.getUserId(), clothesId);
+
+        return ApiResponse.success(clothesResponse, ClothesSuccessCode.CLOTHES_OK);
     }
 
     @PutMapping("/{clothesId}")
@@ -77,6 +80,8 @@ public class ClothesController {
             @Valid @RequestBody ClothesRequest clothesRequest
     ) {
 
-        return ApiResponse.success(clothesCommandService.updateClothes(authUser.getUserId(), clothesId, clothesRequest), ClothesSuccessCode.CLOTHES_UPDATE);
+        ClothesResponse clothesResponse = clothesCommandService.updateClothes(authUser.getUserId(), clothesId, clothesRequest);
+
+        return ApiResponse.success(clothesResponse, ClothesSuccessCode.CLOTHES_UPDATE);
     }
 }
