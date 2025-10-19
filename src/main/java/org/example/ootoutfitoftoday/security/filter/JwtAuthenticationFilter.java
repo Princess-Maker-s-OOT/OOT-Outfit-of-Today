@@ -42,9 +42,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         String requestUri = httpRequest.getRequestURI();
+        String method = httpRequest.getMethod();
 
         // 인증 불필요 경로는 필터 스킵
-        if (requestUri.startsWith("/api/v1/auth/")) {
+        // POST 요청에서 인증 불필요한 경로 (회원가입/로그인)
+        if ("POST".equalsIgnoreCase(method) &&
+                (requestUri.equals("/v1/auth/signup") || requestUri.equals("/v1/auth/login"))
+        ) {
+            chain.doFilter(httpRequest, httpResponse);
+
+            return;
+        }
+
+        // GET 요청에서 인증 불필요한 경로
+        if ("GET".equalsIgnoreCase(method) &&
+                (requestUri.startsWith("/v1/api/closets/public") ||
+                        requestUri.startsWith("/v1/api/sale-posts") ||   // /sale-posts, /sale-posts/{id} 포함
+                        requestUri.startsWith("/v1/api/categories"))
+        ) {
             chain.doFilter(httpRequest, httpResponse);
 
             return;
