@@ -1,10 +1,12 @@
 package org.example.ootoutfitoftoday.domain.user.dto.response;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 @Getter
+@Builder
 @RequiredArgsConstructor
 public class UserGetResponse {
 
@@ -16,12 +18,12 @@ public class UserGetResponse {
 
     public static UserGetResponse from(User user) {
 
-        return new UserGetResponse(
-                user.getLoginId(),
-                user.getEmail(),
-                user.getUsername(),
-                user.getNickname(),
-                user.getPhoneNumber()
-        );
+        return UserGetResponse.builder()
+                .loginId(user.getLoginId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .nickname(user.getNickname())
+                .phoneNumber(user.getPhoneNumber())
+                .build();
     }
 }
