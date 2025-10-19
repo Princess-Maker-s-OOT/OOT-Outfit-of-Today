@@ -78,7 +78,7 @@ public class Closet extends BaseEntity {
 
     // userId를 반환하는 편의 메서드
     public Long getUserId() {
-
-        return this.user != null ? this.user.getId() : null;
+        
+        return this.user.getId();
     }
 }
