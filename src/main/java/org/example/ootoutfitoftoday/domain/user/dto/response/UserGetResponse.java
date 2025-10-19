@@ -27,6 +27,7 @@ public class UserGetResponse {
     }
 
     public static UserGetResponse from(User user) {
+
         return new UserGetResponse(
                 user.getLoginId(),
                 user.getEmail(),
