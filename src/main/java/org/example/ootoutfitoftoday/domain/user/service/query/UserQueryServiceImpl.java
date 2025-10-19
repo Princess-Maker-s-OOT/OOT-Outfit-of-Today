@@ -1,7 +1,10 @@
 package org.example.ootoutfitoftoday.domain.user.service.query;
 
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
+import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -51,5 +54,14 @@ public class UserQueryServiceImpl implements UserQueryService {
     public Optional<User> findByIdAndIsDeletedFalse(Long id) {
 
         return userRepository.findByIdAndIsDeletedFalse(id);
+    }
+
+    public UserGetResponse getMyProfile(Long userId) {
+
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
+        );
+
+        return UserGetResponse.from(user);
     }
 }
