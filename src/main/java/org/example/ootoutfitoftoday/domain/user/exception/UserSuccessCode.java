@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum UserSuccessCode implements SuccessCode {
 
-    USER_SUCCESS_CODE("USER_SUCCESS_CODE",HttpStatus.OK, "임시 성공 코드입니다!"),;
+    USER_SUCCESS_CODE("USER_SUCCESS_CODE",HttpStatus.OK, "임시 성공 코드입니다!");
 
     private final String code;
     private final HttpStatus httpStatus;
