@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiPageResponse;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetSaveRequest;
+import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetMyResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetPublicResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetSaveResponse;
@@ -13,6 +15,7 @@ import org.example.ootoutfitoftoday.domain.closet.service.command.ClosetCommandS
 import org.example.ootoutfitoftoday.domain.closet.service.query.ClosetQueryServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -56,5 +59,35 @@ public class ClosetController {
         ClosetGetResponse closetGetResponse = closetQueryService.getCloset(closetId);
 
         return ApiResponse.success(closetGetResponse, ClosetSuccessCode.CLOSET_GET_OK);
+    }
+
+    /**
+     * 내 옷장 리스트 조회
+     *
+     * @param authUser:  인증된 사용자 정보
+     * @param page:      페이지 번호
+     * @param size:      페이지 크기
+     * @param sort:      정렬 기준
+     * @param direction: 정렬 방향
+     * @return Page<ClosetGetMyResponse>: 내 옷장 리스트
+     */
+    @GetMapping("/me")
+    public ResponseEntity<ApiPageResponse<ClosetGetMyResponse>> getClosetByMe(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "DESC") String direction
+    ) {
+
+        Page<ClosetGetMyResponse> closetGetMyResponses = closetQueryService.getMyClosets(
+                authUser.getUserId(),
+                page,
+                size,
+                sort,
+                direction
+        );
+
+        return ApiPageResponse.success(closetGetMyResponses, ClosetSuccessCode.CLOSET_GET_MY_OK);
     }
 }
