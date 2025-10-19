@@ -106,10 +106,11 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     public void withdraw(AuthWithdrawRequest request, AuthUser authUser) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId())
-                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND)
+                );
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS);
+            throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
         }
 
         userCommandService.softDeleteUser(user);

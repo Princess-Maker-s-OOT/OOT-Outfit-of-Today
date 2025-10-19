@@ -25,7 +25,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     public void softDeleteUser(User user) {
 
         if (user.isDeleted()) {
-            throw new UserException(UserErrorCode.USER_NOT_FOUND);
+            throw new UserException(UserErrorCode.USER_ALREADY_WITHDRAWN);
         }
 
         user.softDelete();
