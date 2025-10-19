@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +21,6 @@ public class Closet extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    // 임시
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
 
     @Column(length = 100, nullable = false)
     private String name;
@@ -39,9 +36,9 @@ public class Closet extends BaseEntity {
     private Boolean isPublic;
 
     // 옷장의 소유자
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id", nullable = false)
-//    private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     // 옷장과 의류 간의 중간 테이블 역할을 하는 엔티티
     @OneToMany(mappedBy = "closet")
@@ -49,15 +46,13 @@ public class Closet extends BaseEntity {
 
     @Builder(access = AccessLevel.PROTECTED)
     private Closet(
-//            User user,
-            Long userId,
+            User user,
             String name,
             String description,
             String imageUrl,
             Boolean isPublic
     ) {
-//        this.user = user;
-        this.userId = userId;
+        this.user = user;
         this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;
@@ -65,20 +60,25 @@ public class Closet extends BaseEntity {
     }
 
     public static Closet create(
-//            User user,
-            Long userId,
+            User user,
             String name,
             String description,
             String imageUrl,
             Boolean isPublic
     ) {
+
         return Closet.builder()
-//                .user(user)
-                .userId(userId)
+                .user(user)
                 .name(name)
                 .description(description)
                 .imageUrl(imageUrl)
                 .isPublic(isPublic)
                 .build();
+    }
+
+    // userId를 반환하는 편의 메서드
+    public Long getUserId() {
+
+        return this.user != null ? this.user.getId() : null;
     }
 }
