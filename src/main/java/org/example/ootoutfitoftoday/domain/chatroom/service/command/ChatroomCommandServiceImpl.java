@@ -40,6 +40,12 @@ public class ChatroomCommandServiceImpl {
 
         Chatroom saveChatroom = chatroomRepository.save(chatroom);
 
+        // OneToMany 필드에 데이터 삽입
+        // 1. 채팅방 - 판매자
+        saveChatroom.addChatParticipatingUser(salePost.getUser());
+        // 2. 채팅방 - 구매자
+        saveChatroom.addChatParticipatingUser(user);
+
         chatParticipatingUserCommandService.saveKeys(saveChatroom, salePost, user);
     }
 }
