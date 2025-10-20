@@ -30,6 +30,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final PasswordEncoder passwordEncoder;
 
     // 관리자 계정 초기 생성 자동
+    @Override
     public void initializeAdmin(
             String loginId,
             String email,
@@ -55,6 +56,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     // 회원가입
+    @Override
     public void signup(AuthSignupRequest request) {
 
         if (userQueryService.existsByLoginId(request.getLoginId())) {
@@ -86,6 +88,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     // 로그인
+    @Override
     public AuthLoginResponse login(AuthLoginRequest request) {
 
         User user = userQueryService.findByLoginIdAndIsDeletedFalse(request.getLoginId());
@@ -99,6 +102,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     // 회원탈퇴
+    @Override
     public void withdraw(AuthWithdrawRequest request, AuthUser authUser) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
