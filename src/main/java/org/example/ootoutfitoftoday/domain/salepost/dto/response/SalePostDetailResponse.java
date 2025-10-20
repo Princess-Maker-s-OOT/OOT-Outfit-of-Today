@@ -32,8 +32,8 @@ public class SalePostDetailResponse {
     private List<String> imageUrls;
 
     // 시간 정보
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
 
     public static SalePostDetailResponse from(SalePost salePost) {
 

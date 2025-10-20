@@ -21,7 +21,7 @@ public class SalePostCreateResponse {
     private Long userId;
     private Long categoryId;
     private List<String> imageUrls;
-    private LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
 
     public static SalePostCreateResponse from(SalePost salePost) {
 
