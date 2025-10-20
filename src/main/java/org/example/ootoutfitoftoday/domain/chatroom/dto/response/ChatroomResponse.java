@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
 
 @Getter
 public class ChatroomResponse {
@@ -14,7 +14,7 @@ public class ChatroomResponse {
     //    - 마지막 채팅 : chat.getContent()
     private String finalChat;
     //    - 현재 시간 - 마지막 채팅 시간 : LocalDateTime.now() - chat.getCreatedAt() : 정렬의 기준
-    private LocalDateTime afterFinalChatTime;
+    private Duration afterFinalChatTime;
     //    - 읽지 않은 채팅 개수
     private int noReadChats;
 
@@ -22,7 +22,7 @@ public class ChatroomResponse {
     private ChatroomResponse(
             String otherUsername,
             String finalChat,
-            LocalDateTime afterFinalChatTime,
+            Duration afterFinalChatTime,
             int noReadChats
     ) {
         this.otherUsername = otherUsername;
@@ -34,7 +34,7 @@ public class ChatroomResponse {
     public static ChatroomResponse from(
             String otherUsername,
             String finalChat,
-            LocalDateTime afterFinalChatTime,
+            Duration afterFinalChatTime,
             int noReadChats
     ) {
 

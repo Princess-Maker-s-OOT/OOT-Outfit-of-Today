@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
+import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
 
 @Entity
 @Getter
@@ -20,15 +21,30 @@ public class Chat extends BaseEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    @Column(name = "is_readed", nullable = false)
+    private boolean isReaded;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Chatroom chatroom;
+
     @Builder(access = AccessLevel.PROTECTED)
-    private Chat(String content) {
+    private Chat(
+            String content,
+            Chatroom chatroom
+    ) {
         this.content = content;
+        this.chatroom = chatroom;
+        isReaded = false;
     }
 
-    public static Chat create(String content) {
+    public static Chat create(
+            String content,
+            Chatroom chatroom
+    ) {
 
         return Chat.builder()
                 .content(content)
+                .chatroom(chatroom)
                 .build();
     }
 }
