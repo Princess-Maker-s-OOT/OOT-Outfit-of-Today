@@ -31,7 +31,7 @@ public class ChatroomResponse {
         this.noReadChats = noReadChats;
     }
 
-    public static ChatroomResponse from(
+    public static ChatroomResponse of(
             String otherUsername,
             String finalChat,
             Duration afterFinalChatTime,

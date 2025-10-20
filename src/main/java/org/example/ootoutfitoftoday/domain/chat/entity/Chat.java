@@ -21,7 +21,7 @@ public class Chat extends BaseEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Column(name = "is_readed", nullable = false)
+    @Column(name = "is_read", nullable = false)
     private boolean isRead;
 
     @ManyToOne(fetch = FetchType.LAZY)

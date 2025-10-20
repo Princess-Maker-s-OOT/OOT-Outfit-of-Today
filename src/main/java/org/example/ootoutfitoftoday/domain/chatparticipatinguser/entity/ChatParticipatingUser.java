@@ -29,10 +29,10 @@ public class ChatParticipatingUser {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @JoinColumn(name = "deleted_at")
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @JoinColumn(name = "is_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @Builder(access = AccessLevel.PROTECTED)

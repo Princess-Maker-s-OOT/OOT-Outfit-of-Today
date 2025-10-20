@@ -24,6 +24,5 @@ public class ChatQueryServiceImpl implements ChatQueryService {
     public int getCountNotReadChat(Chatroom chatroom) {
 
         return chatRepository.countByChatroomAndIsDeletedFalseAndIsReadFalse(chatroom);
-        // AndReadedIsFalse
     }
 }

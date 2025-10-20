@@ -7,6 +7,7 @@ import org.example.ootoutfitoftoday.domain.chat.service.query.ChatQueryService;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.query.ChatParticipatingUserQueryService;
 import org.example.ootoutfitoftoday.domain.chatroom.dto.response.ChatroomResponse;
+import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Pageable;
@@ -17,11 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Service
@@ -36,66 +34,48 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
     // 채팅방 조회
     @Override
     public Slice<ChatroomResponse> getChatrooms(Long userId, Pageable pageable) {
-        // 상대방 이름
-        // 1. 해당 유저의 id로 User 객체를 찾는다.
-        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
-        // 2. 중간테이블을 통해 복합키 <Chatroomm, User>를 찾는다.
-        List<ChatParticipatingUser> getChatroomsAndBuyers = chatParticipatingUserQueryService.getChatParticipatingUsers(user);
+        User currentUser = userQueryService.findByIdAndIsDeletedFalse(userId);
 
-        List<ChatParticipatingUser> getChatroomsAndSellers = new ArrayList<>();
+        // 1. 사용자가 참여하고 있는 채팅방 목록을 가져옵니다.
+        List<ChatParticipatingUser> userParticipations = chatParticipatingUserQueryService.getChatParticipatingUsers(currentUser);
 
-        getChatroomsAndBuyers
-                .forEach(chatParticipatingUser -> {
-                    AtomicBoolean isAllDeleted = new AtomicBoolean(false);
-                    List<ChatParticipatingUser> getChatroomsAndUsers = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatParticipatingUser.getChatroom());
-                    getChatroomsAndUsers
-                            .forEach(chatParticipatingUser1 -> {
-                                if (Objects.equals(chatParticipatingUser1.getUser(), user) && chatParticipatingUser1.isDeleted()) {
-                                    isAllDeleted.set(true);
-                                }
-                            });
+        List<ChatroomResponse> chatroomResponses = userParticipations.stream()
+                .map(participation -> {
+                    Chatroom chatroom = participation.getChatroom();
 
-                    // 3. 현재 유저가 포함 되어있는 복합키는 제외한다.
-                    if (!isAllDeleted.get()) {
-                        getChatroomsAndUsers
-                                .forEach(chatParticipatingUser2 -> {
-                                    if (Objects.equals(chatParticipatingUser2.getUser(), user)) {
-                                        getChatroomsAndSellers.add(chatParticipatingUser2);
-                                    }
-                                });
-                    }
-                });
+                    // 2. 채팅방의 다른 참여자 정보를 가져옵니다. (N+1 문제 개선 필요)
+                    String otherUsername = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatroom)
+                            .stream()
+                            .map(ChatParticipatingUser::getUser)
+                            .filter(u -> !u.getId().equals(userId))
+                            .findFirst()
+                            .map(User::getNickname)
+                            .orElse("알 수 없는 사용자");
 
-        List<ChatroomResponse> listChatroomResponse = new ArrayList<>();
-        getChatroomsAndBuyers
-                .forEach(chatParticipatingUser -> {
-                    // 4. 찾은 유저의 정보를 userQueryService.findByIdAndIsDeletedFalse(다른 유저)를 통해 이름을 얻는다.
-                    String otherUsername = chatParticipatingUser.getUser().getNickname();
-                    log.info("채팅방 상대 유저 이름 : {}", otherUsername);
-                    // 5. 위 로직을 통해 찾은 chatroom id를 chatQueryService.findByChatroomId...(chatroomId); 마지막 채팅 찾기
-                    Chat chat = chatQueryService.getFinalChat(chatParticipatingUser.getChatroom());
-                    String content = (chat != null) ? chat.getContent() : null;
-                    Duration time = (chat != null) ? Duration.between(LocalDateTime.now(), chat.getCreatedAt()) : null;
-                    // 6. chatQueryService.findByChatroomId...(chatroomId) 읽지 않은 채팅 개수
-                    int count = chatQueryService.getCountNotReadChat(chatParticipatingUser.getChatroom());
+                    // 3. 마지막 채팅과 읽지 않은 채팅 수를 가져옵니다. (N+1 문제 개선 필요)
+                    Chat finalChat = chatQueryService.getFinalChat(chatroom);
+                    int unreadCount = chatQueryService.getCountNotReadChat(chatroom);
 
-                    ChatroomResponse chatroomResponse = ChatroomResponse.from(
+                    String finalChatContent = (finalChat != null) ? finalChat.getContent() : null;
+                    // 시간 계산 버그 수정
+                    Duration timeSinceFinalChat = (finalChat != null) ? Duration.between(finalChat.getCreatedAt(), LocalDateTime.now()) : null;
+
+                    return ChatroomResponse.of(
                             otherUsername,
-                            content,
-                            time,
-                            count
+                            finalChatContent,
+                            timeSinceFinalChat,
+                            unreadCount
                     );
-                    listChatroomResponse.add(chatroomResponse);
-                });
+                })
+                // 정렬 NPE 버그 수정
+                .sorted(Comparator.comparing(ChatroomResponse::getAfterFinalChatTime, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
 
-        // 최신순으로 정렬
-        listChatroomResponse.sort(Comparator.comparing(ChatroomResponse::getAfterFinalChatTime).reversed());
-
-        // List -> Slice로 변환
+        // 메모리 내 페이지네이션 (DB 페이지네이션으로 개선 필요)
         int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), listChatroomResponse.size());
-        List<ChatroomResponse> subList = listChatroomResponse.subList(start, end);
-        boolean hasNext = end < listChatroomResponse.size();
+        int end = Math.min(start + pageable.getPageSize(), chatroomResponses.size());
+        List<ChatroomResponse> subList = (start >= chatroomResponses.size()) ? List.of() : chatroomResponses.subList(start, end);
+        boolean hasNext = end < chatroomResponses.size();
 
         return new SliceImpl<>(subList, pageable, hasNext);
     }
