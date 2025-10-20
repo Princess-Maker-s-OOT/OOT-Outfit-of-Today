@@ -12,10 +12,10 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ChatParticipatingUserId implements Serializable {
 
-    @Column(name = "chatroom_id")
+    @Column(name = "chatroom_id", nullable = false)
     private Long chatroomId;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
     @Builder(access = AccessLevel.PROTECTED)
