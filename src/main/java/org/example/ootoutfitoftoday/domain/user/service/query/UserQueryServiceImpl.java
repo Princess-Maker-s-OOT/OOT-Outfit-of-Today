@@ -64,18 +64,14 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     public UserGetResponse getMyInfo(Long id) {
 
-        User user = userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
-        );
+        User user = findByIdAndIsDeletedFalse(id);
 
         return UserGetResponse.from(user);
     }
 
     public void verifyPassword(UserPasswordVerificationRequest request, AuthUser authUser) {
 
-        User user = userRepository.findByIdAndIsDeletedFalse(authUser.getUserId()).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
-        );
+        User user = findByIdAndIsDeletedFalse(authUser.getUserId());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
