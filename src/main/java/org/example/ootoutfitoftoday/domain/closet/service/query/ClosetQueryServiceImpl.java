@@ -31,7 +31,11 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
     ) {
         Sort sortObj = Sort.by(Sort.Direction.fromString(direction), sort);
 
-        Pageable pageable = PageRequest.of(page, size, sortObj);
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sortObj
+        );
 
         Page<Closet> closets = closetRepository.findAllByIsPublicTrueAndIsDeletedFalse(pageable);
 
@@ -40,7 +44,6 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
 
     // 옷장 상세 조회
     public ClosetGetResponse getCloset(Long closetId) {
-
 
         Closet closet = closetRepository.findById(closetId)
                 .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
@@ -68,7 +71,7 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
                 sortObj
         );
 
-        Page<Closet> closets = closetRepository.findAllByUserIdAndIsDeletedFalse(
+        Page<Closet> closets = closetRepository.findAllByUser_IdAndIsDeletedFalse(
                 userId,
                 pageable
         );
