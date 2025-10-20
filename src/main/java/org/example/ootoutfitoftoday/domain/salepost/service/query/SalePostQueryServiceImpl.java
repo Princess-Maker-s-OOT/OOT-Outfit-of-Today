@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.salepost.service.query;
 
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
@@ -20,5 +21,13 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
 
         return salePostRepository.findById(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
+    }
+
+    @Override
+    public SalePostDetailResponse getSalePostDetail(Long salePostId) {
+        SalePost salePost = salePostRepository.findByIdWithDetailsAndNotDeleted(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
+
+        return SalePostDetailResponse.from(salePost);
     }
 }
