@@ -6,10 +6,8 @@ import org.example.ootoutfitoftoday.common.response.ApiPageResponse;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetSaveRequest;
-import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetMyResponse;
-import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetPublicResponse;
-import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetResponse;
-import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetSaveResponse;
+import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetUpdateRequest;
+import org.example.ootoutfitoftoday.domain.closet.dto.response.*;
 import org.example.ootoutfitoftoday.domain.closet.exception.ClosetSuccessCode;
 import org.example.ootoutfitoftoday.domain.closet.service.command.ClosetCommandServiceImpl;
 import org.example.ootoutfitoftoday.domain.closet.service.query.ClosetQueryServiceImpl;
@@ -116,5 +114,29 @@ public class ClosetController {
         );
 
         return ApiPageResponse.success(closetGetMyResponses, ClosetSuccessCode.CLOSETS_GET_MY_OK);
+    }
+
+    /**
+     * 옷장 정보 수정
+     *
+     * @param authUser:            인증된 사용자 정보
+     * @param closetId:            조회할 옷장의 ID
+     * @param closetUpdateRequest: 옷장 수정 요청 객체 (이름, 설명 등 포함)
+     * @return closetUpdateResponse: 수정된 옷장 정보와 성공 응답 코드
+     */
+    @PutMapping("/{closetId}")
+    public ResponseEntity<ApiResponse<ClosetUpdateResponse>> updateCloset(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long closetId,
+            @Valid @RequestBody ClosetUpdateRequest closetUpdateRequest
+    ) {
+
+        ClosetUpdateResponse closetUpdateResponse = closetCommandService.updateCloset(
+                authUser.getUserId(),
+                closetId,
+                closetUpdateRequest
+        );
+
+        return ApiResponse.success(closetUpdateResponse, ClosetSuccessCode.CLOSET_UPDATE_OK);
     }
 }
