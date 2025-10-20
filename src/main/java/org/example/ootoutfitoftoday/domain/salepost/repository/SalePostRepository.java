@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public interface SalePostRepository extends JpaRepository<SalePost, Long> {
 
+    Optional<SalePost> findByIdAndIsDeletedFalse(Long salePostId);
+
     @Query("""
         SELECT sp FROM SalePost sp
         JOIN FETCH sp.user u

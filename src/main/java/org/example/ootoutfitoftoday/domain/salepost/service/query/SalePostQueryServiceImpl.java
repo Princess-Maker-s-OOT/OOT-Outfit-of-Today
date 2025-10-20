@@ -19,7 +19,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
     @Override
     public SalePost findSalePostById(Long salePostId) {
 
-        return salePostRepository.findById(salePostId)
+        return salePostRepository.findByIdAndIsDeletedFalse(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
     }
 
