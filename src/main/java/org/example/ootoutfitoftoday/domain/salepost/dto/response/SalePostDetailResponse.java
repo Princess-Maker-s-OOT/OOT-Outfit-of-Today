@@ -14,22 +14,22 @@ import java.util.List;
 public class SalePostDetailResponse {
 
     // 판매글 정보
-    private Long salePostId;
-    private String title;
-    private String content;
-    private BigDecimal price;
-    private String status;
+    private final Long salePostId;
+    private final String title;
+    private final String content;
+    private final BigDecimal price;
+    private final String status;
 
     // 판매자 정보
-    private Long sellerId;
-    private String sellerNickname;
-    private String sellerImageUrl;
+    private final Long sellerId;
+    private final String sellerNickname;
+    private final String sellerImageUrl;
 
     // 카테고리 정보
-    private String categoryName;
+    private final String categoryName;
 
     // 이미지 리스트
-    private List<String> imageUrls;
+    private final List<String> imageUrls;
 
     // 시간 정보
     private final LocalDateTime createdAt;

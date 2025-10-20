@@ -13,14 +13,14 @@ import java.util.List;
 @Builder
 public class SalePostCreateResponse {
 
-    private Long salePostId;
-    private String title;
-    private String content;
-    private BigDecimal price;
-    private String status;
-    private Long userId;
-    private Long categoryId;
-    private List<String> imageUrls;
+    private final Long salePostId;
+    private final String title;
+    private final String content;
+    private final BigDecimal price;
+    private final String status;
+    private final Long userId;
+    private final Long categoryId;
+    private final List<String> imageUrls;
     private final LocalDateTime createdAt;
 
     public static SalePostCreateResponse from(SalePost salePost) {
