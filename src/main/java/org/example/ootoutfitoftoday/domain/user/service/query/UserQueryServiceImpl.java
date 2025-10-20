@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
-import org.example.ootoutfitoftoday.domain.user.dto.request.UserGetRequest;
+import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
@@ -71,7 +71,7 @@ public class UserQueryServiceImpl implements UserQueryService {
         return UserGetResponse.from(user);
     }
 
-    public void verifyPassword(UserGetRequest request, AuthUser authUser) {
+    public void verifyPassword(UserPasswordVerificationRequest request, AuthUser authUser) {
 
         User user = userRepository.findByIdAndIsDeletedFalse(authUser.getUserId()).orElseThrow(
                 () -> new UserException(UserErrorCode.USER_NOT_FOUND)

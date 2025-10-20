@@ -3,7 +3,7 @@ package org.example.ootoutfitoftoday.domain.user.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
-import org.example.ootoutfitoftoday.domain.user.dto.request.UserGetRequest;
+import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetResponse;
 import org.example.ootoutfitoftoday.domain.user.exception.UserSuccessCode;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
@@ -30,9 +30,9 @@ public class UserController {
     }
 
     // 회원정보 수정 전 비밀번호 검증
-    @PostMapping("/verifying")
+    @PostMapping("/password-verification")
     public ResponseEntity<ApiResponse<Void>> verifyPassword(
-            @RequestBody UserGetRequest request,
+            @RequestBody UserPasswordVerificationRequest request,
             @AuthenticationPrincipal AuthUser authUser) {
 
         userQueryService.verifyPassword(request, authUser);
