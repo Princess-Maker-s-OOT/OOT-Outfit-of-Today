@@ -1,6 +1,10 @@
 package org.example.ootoutfitoftoday.domain.user.service.query;
 
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
+import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
+import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
+import org.example.ootoutfitoftoday.domain.user.dto.request.UserGetRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
@@ -56,12 +60,23 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.findByIdAndIsDeletedFalse(id);
     }
 
-    public UserGetResponse getMyProfile(Long userId) {
+    public UserGetResponse getMyInfo(Long id) {
 
-        User user = userRepository.findByIdAndIsDeletedFalse(userId).orElseThrow(
+        User user = userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
                 () -> new UserException(UserErrorCode.USER_NOT_FOUND)
         );
 
         return UserGetResponse.from(user);
+    }
+
+    public void verifyPassword(UserGetRequest request, AuthUser authUser) {
+
+        User user = userRepository.findByIdAndIsDeletedFalse(authUser.getUserId()).orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
+        );
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
+        }
     }
 }
