@@ -86,4 +86,18 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
 
         return ClothesResponse.from(clothes);
     }
+
+    @Override
+    public void deleteClothes(Long userId, Long id) {
+
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
+        );
+
+        if (!Objects.equals(userId, clothes.getUser().getId())) {
+            throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
+        }
+
+        clothes.softDelete();
+    }
 }

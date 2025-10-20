@@ -12,4 +12,6 @@ public interface ClothesCommandService {
             Long id,
             ClothesRequest clothesRequest
     );
+
+    void deleteClothes(Long userId, Long id);
 }

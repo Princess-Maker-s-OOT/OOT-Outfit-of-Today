@@ -84,4 +84,14 @@ public class ClothesController {
 
         return ApiResponse.success(clothesResponse, ClothesSuccessCode.CLOTHES_UPDATE);
     }
+
+    @DeleteMapping("/{clothesId}")
+    public ResponseEntity<ApiResponse<Void>> deleteClothes(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long clothesId
+    ) {
+        clothesCommandService.deleteClothes(authUser.getUserId(), clothesId);
+
+        return ApiResponse.success(null, ClothesSuccessCode.CLOTHES_DELETE);
+    }
 }
