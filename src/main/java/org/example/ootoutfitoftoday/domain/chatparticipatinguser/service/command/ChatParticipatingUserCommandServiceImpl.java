@@ -34,7 +34,7 @@ public class ChatParticipatingUserCommandServiceImpl implements ChatParticipatin
 
         // 게시물 주인(게시물을 작성한 유저)
         // 복합키 생성
-        ChatParticipatingUserId chatParticipatingUserId2 = ChatParticipatingUserId.create(chatroom.getId(), salePost.getUser().getId);
+        ChatParticipatingUserId chatParticipatingUserId2 = ChatParticipatingUserId.create(chatroom.getId(), salePost.getUser().getId());
         // 중간테이블 엔티티 생성
         ChatParticipatingUser chatParticipatingUser2 = ChatParticipatingUser.create(chatParticipatingUserId2, chatroom, salePost.getUser());
         // 저장
