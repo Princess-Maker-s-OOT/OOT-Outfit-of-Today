@@ -11,6 +11,7 @@ import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.hibernate.annotations.BatchSize;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ public class SalePost extends BaseEntity {
 
     @OneToMany(mappedBy = "salePost", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
+    @BatchSize(size = 100)
     private List<SalePostImage> images = new ArrayList<>();
 
 //    @ManyToOne(fetch = FetchType.LAZY)
