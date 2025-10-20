@@ -139,4 +139,25 @@ public class ClosetController {
 
         return ApiResponse.success(closetUpdateResponse, ClosetSuccessCode.CLOSET_UPDATE_OK);
     }
+
+    /**
+     * 옷장 삭제
+     *
+     * @param authUser: 인증된 사용자 정보
+     * @param closetId: 삭제할 옷장의 ID
+     * @return ClosetDeleteResponse 삭제된 옷장 ID와 삭제 시간
+     */
+    @DeleteMapping("/{closetId}")
+    public ResponseEntity<ApiResponse<ClosetDeleteResponse>> deleteCloset(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long closetId
+    ) {
+
+        ClosetDeleteResponse response = closetCommandService.deleteCloset(
+                authUser.getUserId(),
+                closetId
+        );
+
+        return ApiResponse.success(response, ClosetSuccessCode.CLOSET_DELETE_OK);
+    }
 }
