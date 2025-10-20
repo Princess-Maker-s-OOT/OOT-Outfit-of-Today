@@ -218,7 +218,7 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
          *  - 추가로 사용자가 아이디의 값을 0 이하로 입력시 아이디의 값이 null로 처리되어 최상위 카테고리로 인식한다.
          */
         if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
-            parent = categoryRepository.findById(categoryRequest.getParentId())
+            parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId())
                     .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                     );
         }
@@ -232,14 +232,14 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
     @Override
     public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest) {
 
-        Category category = categoryRepository.findById(id)
+        Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                 );
 
         Category parent = null;
 
         if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
-            parent = categoryRepository.findById(categoryRequest.getParentId())
+            parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId())
                     .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                     );
         }
@@ -257,5 +257,15 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
         category.update(categoryRequest.getName(), parent);
 
         return CategoryResponse.from(category);
+    }
+
+    @Override
+    public void deleteCategory(Long id) {
+
+        Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
+                );
+
+        category.softDelete();
     }
 }
