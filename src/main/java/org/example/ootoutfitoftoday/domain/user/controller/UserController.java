@@ -26,7 +26,7 @@ public class UserController {
 
         UserGetResponse response = userQueryService.getMyInfo(authUser.getUserId());
 
-        return ApiResponse.success(response, UserSuccessCode.GET_MY_PROFILE);
+        return ApiResponse.success(response, UserSuccessCode.GET_MY_INFO);
     }
 
     // 회원정보 수정 전 비밀번호 검증
