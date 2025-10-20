@@ -12,8 +12,6 @@ import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
-import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
-import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.example.ootoutfitoftoday.security.jwt.JwtUtil;
@@ -90,9 +88,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     // 로그인
     public AuthLoginResponse login(AuthLoginRequest request) {
 
-        User user = userQueryService.findByLoginIdAndIsDeletedFalse(request.getLoginId()).orElseThrow(
-                () -> new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS)
-        );
+        User user = userQueryService.findByLoginIdAndIsDeletedFalse(request.getLoginId());
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
@@ -105,9 +101,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     // 회원탈퇴
     public void withdraw(AuthWithdrawRequest request, AuthUser authUser) {
 
-        User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId())
-                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND)
-                );
+        User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
