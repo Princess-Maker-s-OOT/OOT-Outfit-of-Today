@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.salepost.service.command;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryService;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -62,6 +64,8 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         SalePost salePost = salePostQueryService.findSalePostById(salePostId);
 
         if (!salePost.isOwnedBy(userId)) {
+            log.warn("Unauthorized access attempt to salePostId: {} by userId: {}", salePostId, userId);
+
             throw new SalePostException(SalePostErrorCode.UNAUTHORIZED_ACCESS);
         }
 
