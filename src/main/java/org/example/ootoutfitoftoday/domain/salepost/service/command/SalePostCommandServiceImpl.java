@@ -33,8 +33,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
             SalePostCreateRequest request,
             List<String> imageUrls
     ) {
-        User user = userQueryService.findByIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
         Category category = categoryQueryService.findById(request.getCategoryId())
                 .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND));
