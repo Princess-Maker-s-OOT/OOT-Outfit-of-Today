@@ -12,12 +12,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1/categories")
 public class CategoryController {
 
     private final CategoryCommandService categoryCommandService;
 
-    @PostMapping
+    @PostMapping("/admin/v1/categories")
     public ResponseEntity<ApiResponse<CategoryResponse>> create(
             @Valid @RequestBody CategoryRequest categoryRequest
     ) {
