@@ -47,4 +47,15 @@ public class CategoryController {
 
         return ApiPageResponse.success(categories, CategorySuccessCode.CATEGORY_OK);
     }
+
+    @PutMapping("/admin/v1/categories/{categoryId}")
+    public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
+            @PathVariable Long categoryId,
+            @Valid @RequestBody CategoryRequest categoryRequest
+    ) {
+
+        CategoryResponse categoryResponse = categoryCommandService.updateCategory(categoryId, categoryRequest);
+
+        return ApiResponse.success(categoryResponse, CategorySuccessCode.CATEGORY_UPDATE);
+    }
 }
