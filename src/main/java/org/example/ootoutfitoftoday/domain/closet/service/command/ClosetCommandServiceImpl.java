@@ -23,6 +23,7 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
     private final UserQueryService userQueryService;
 
     // 옷장 등록
+    @Override
     public ClosetSaveResponse createCloset(Long id, ClosetSaveRequest request) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(id);
