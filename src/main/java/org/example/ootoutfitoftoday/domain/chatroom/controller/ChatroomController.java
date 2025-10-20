@@ -5,8 +5,7 @@ import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.chatroom.dto.request.ChatroomRequest;
 import org.example.ootoutfitoftoday.domain.chatroom.exception.ChatroomSuccessCode;
-import org.example.ootoutfitoftoday.domain.chatroom.service.command.ChatroomCommandServiceImpl;
-import org.example.ootoutfitoftoday.domain.chatroom.service.query.ChatroomQueryServiceImpl;
+import org.example.ootoutfitoftoday.domain.chatroom.service.command.ChatroomCommandService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,8 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ChatroomController {
 
-    private final ChatroomCommandServiceImpl chatroomCommandServiceImpl;
-    private final ChatroomQueryServiceImpl chatroomQueryServiceImpl;
+    private final ChatroomCommandService chatroomCommandService;
 
     /**
      * 채팅방 생성 API
@@ -36,7 +34,7 @@ public class ChatroomController {
     ) {
         Long userId = authUser.getUserId();
 
-        chatroomCommandServiceImpl.createChatroom(ChatroomRequest, userId);
+        chatroomCommandService.createChatroom(ChatroomRequest, userId);
 
         return ApiResponse.success(null, ChatroomSuccessCode.CREATED_CHATROOM);
     }
