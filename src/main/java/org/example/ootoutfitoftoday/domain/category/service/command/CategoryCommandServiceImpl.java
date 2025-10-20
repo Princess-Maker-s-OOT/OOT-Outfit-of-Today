@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -224,6 +225,30 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
 
         Category category = Category.create(categoryRequest.getName(), parent);
         categoryRepository.save(category);
+
+        return CategoryResponse.from(category);
+    }
+
+    @Override
+    public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest) {
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
+                );
+
+        Category parent = null;
+
+        if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
+            parent = categoryRepository.findById(categoryRequest.getParentId())
+                    .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
+                    );
+        }
+
+        if (Objects.equals(categoryRequest.getParentId(), id)) {
+            throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
+        }
+
+        category.update(categoryRequest.getName(), parent);
 
         return CategoryResponse.from(category);
     }
