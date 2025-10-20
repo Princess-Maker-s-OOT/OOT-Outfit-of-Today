@@ -154,6 +154,6 @@ public class SalePost extends BaseEntity {
 
     public boolean isOwnedBy(Long userId) {
 
-        return Objects.equals(this.user.getId(), userId);
+        return this.user != null && Objects.equals(this.user.getId(), userId);
     }
 }
