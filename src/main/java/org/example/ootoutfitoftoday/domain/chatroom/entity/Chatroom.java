@@ -1,7 +1,6 @@
 package org.example.ootoutfitoftoday.domain.chatroom.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
@@ -17,7 +16,7 @@ import java.util.List;
 @Entity
 @Getter
 @Table(name = "chatrooms")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Chatroom {
 
@@ -25,6 +24,10 @@ public class Chatroom {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * OneToMany를 사용하는 이유: 디비에 접근하지 않고 해당 데이터를 이용하기 위함
+     * 주의할 점: 데이터베이스와의 일관성을 위해 리스트 내 데이터의 수정 x
+     */
     @OneToMany(mappedBy = "chatroom")
     private List<ChatParticipatingUser> chatParticipatingUsers = new ArrayList<>();
 

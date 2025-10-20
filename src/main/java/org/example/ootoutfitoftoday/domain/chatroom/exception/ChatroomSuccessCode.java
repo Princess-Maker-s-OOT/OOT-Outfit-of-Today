@@ -2,14 +2,14 @@ package org.example.ootoutfitoftoday.domain.chatroom.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.example.ootoutfitoftoday.common.exception.ErrorCode;
+import org.example.ootoutfitoftoday.common.exception.SuccessCode;
 import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
-public enum ChatroomErrorCode implements ErrorCode {
+public enum ChatroomSuccessCode implements SuccessCode {
 
-    EQUAL_SELLER_BUYER("EQUAL_SELLER_BUYER", HttpStatus.BAD_REQUEST, "판매자와 구매자가 동일합니다.");
+    CREATED_CHATROOM("CREATED_CHATROOM", HttpStatus.CREATED, "채팅창 생성에 성공하였습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
