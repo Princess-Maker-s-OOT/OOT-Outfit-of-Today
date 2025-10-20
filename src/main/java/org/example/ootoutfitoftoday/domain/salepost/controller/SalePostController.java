@@ -65,7 +65,7 @@ public class SalePostController {
                 pageable
         );
 
-        return ApiResponse.success(salePosts, SalePostSuccessCode.SALE_POST_FETCHED);
+        return ApiResponse.success(salePosts, SalePostSuccessCode.SALE_POST_RETRIEVED);
     }
 
     @PutMapping("{salePostId}")
