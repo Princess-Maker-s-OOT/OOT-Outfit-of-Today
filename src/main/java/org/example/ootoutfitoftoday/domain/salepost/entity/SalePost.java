@@ -14,8 +14,7 @@ import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.hibernate.annotations.BatchSize;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Entity
@@ -113,10 +112,48 @@ public class SalePost extends BaseEntity {
         if (imageUrls == null || imageUrls.isEmpty()) {
             throw new SalePostException(SalePostErrorCode.EMPTY_IMAGES);
         }
+
+        Set<String> uniqueUrls = new HashSet<>(imageUrls);
+        if (uniqueUrls.size() != imageUrls.size()) {
+            throw new SalePostException(SalePostErrorCode.DUPLICATE_IMAGE_URL);
+        }
     }
 
     public void addImage(SalePostImage image) {
         this.images.add(image);
         image.setSalePost(this);
+    }
+
+    public void update(
+            Category category,
+            String title,
+            String content,
+            BigDecimal price,
+            List<String> imageUrls
+    ) {
+        validatePrice(price);
+        validateImages(imageUrls);
+
+        this.category = category;
+        this.title = title;
+        this.content = content;
+        this.price = price;
+
+        updateImages(imageUrls);
+    }
+
+    private void updateImages(List<String> imageUrls) {
+
+        this.images.clear();
+
+        for(int i = 0; i < imageUrls.size(); i++) {
+            SalePostImage image = SalePostImage.create(imageUrls.get(i), i + 1);
+            this.addImage(image);
+        }
+    }
+
+    public boolean isOwnedBy(Long userId) {
+
+        return Objects.equals(this.user.getId(), userId);
     }
 }
