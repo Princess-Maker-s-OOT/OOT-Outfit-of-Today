@@ -8,30 +8,35 @@ import org.example.ootoutfitoftoday.domain.chatroom.exception.ChatroomErrorCode;
 import org.example.ootoutfitoftoday.domain.chatroom.exception.ChatroomException;
 import org.example.ootoutfitoftoday.domain.chatroom.repository.ChatroomRepository;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
+import org.example.ootoutfitoftoday.domain.salepost.service.query.SalePostQueryService;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ChatroomCommandServiceImpl {
+public class ChatroomCommandServiceImpl implements ChatroomCommandService {
 
     private final ChatroomRepository chatroomRepository;
-    // private final SalePostQueryService salePostQueryService;
-    // private final UserQueryService userQueryService;
+    private final SalePostQueryService salePostQueryService;
+    private final UserQueryService userQueryService;
     private final ChatParticipatingUserCommandService chatParticipatingUserCommandService;
 
     // 채팅방 생성
+    @Override
     public void createChatroom(ChatroomRequest chatroomRequest, Long userId) {
         Long salePostId = chatroomRequest.salePostId();
 
         // 게시판 주인을 찾기 위한 게시판 찾기
-        SalePost salePost = salePostQueryService.findById(salePostId);
-        User user = userQueryService.findById(userId);
+        SalePost salePost = salePostQueryService.findSalePostById(salePostId);
+        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
         // 판매자와 구매자가 일치하는 경우
-        if (salePost.getUser().equals(user)) {
+        if (Objects.equals(salePost.getUser(), user)) {
             // 예외 처리
             throw new ChatroomException(ChatroomErrorCode.EQUAL_SELLER_BUYER);
         }

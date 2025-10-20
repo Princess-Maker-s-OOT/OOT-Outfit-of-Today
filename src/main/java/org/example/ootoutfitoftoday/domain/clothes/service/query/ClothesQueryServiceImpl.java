@@ -21,6 +21,7 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
 
     private final ClothesRepository clothesRepository;
 
+    @Override
     public Page<ClothesResponse> getClothes(
             Long categoryId,
             Long userId,
@@ -46,6 +47,7 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
         return clothes.map(ClothesResponse::from);
     }
 
+    @Override
     public ClothesResponse getClothesById(Long userId, Long id) {
 
         Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
