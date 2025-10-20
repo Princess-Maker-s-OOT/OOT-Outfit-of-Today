@@ -10,13 +10,13 @@ import java.time.Duration;
 public class ChatroomResponse {
 
     //    - 상대방 이름 : user.getNickname();
-    private String otherUsername;
+    private final String otherUsername;
     //    - 마지막 채팅 : chat.getContent()
-    private String finalChat;
+    private final String finalChat;
     //    - 현재 시간 - 마지막 채팅 시간 : LocalDateTime.now() - chat.getCreatedAt() : 정렬의 기준
-    private Duration afterFinalChatTime;
+    private final Duration afterFinalChatTime;
     //    - 읽지 않은 채팅 개수
-    private int noReadChats;
+    private final int noReadChats;
 
     @Builder(access = AccessLevel.PROTECTED)
     private ChatroomResponse(
