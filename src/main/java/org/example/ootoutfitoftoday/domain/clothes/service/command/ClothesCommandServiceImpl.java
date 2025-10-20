@@ -12,8 +12,6 @@ import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesErrorCode;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesException;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
-import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
-import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,11 +27,10 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
     private final CategoryQueryServiceImpl categoryQueryService;
     private final UserQueryService userQueryService;
 
+    @Override
     public ClothesResponse createClothes(Long userId, ClothesRequest clothesRequest) {
 
-        User user = userQueryService.findByIdAndIsDeletedFalse(userId).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
-        );
+        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
         Category category = null;
 
@@ -57,6 +54,7 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         return ClothesResponse.from(clothes);
     }
 
+    @Override
     public ClothesResponse updateClothes(
             Long userId,
             Long id,
@@ -83,5 +81,19 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         );
 
         return ClothesResponse.from(clothes);
+    }
+
+    @Override
+    public void deleteClothes(Long userId, Long id) {
+
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
+        );
+
+        if (!Objects.equals(userId, clothes.getUser().getId())) {
+            throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
+        }
+
+        clothes.softDelete();
     }
 }

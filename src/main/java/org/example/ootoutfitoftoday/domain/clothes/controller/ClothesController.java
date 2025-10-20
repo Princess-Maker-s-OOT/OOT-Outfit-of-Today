@@ -10,8 +10,8 @@ import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesSuccessCode;
-import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandServiceImpl;
-import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryServiceImpl;
+import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandService;
+import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,8 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/clothes")
 public class ClothesController {
 
-    private final ClothesCommandServiceImpl clothesCommandService;
-    private final ClothesQueryServiceImpl clothesQueryService;
+    private final ClothesCommandService clothesCommandService;
+    private final ClothesQueryService clothesQueryService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<ClothesResponse>> createClothes(
@@ -47,6 +47,7 @@ public class ClothesController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
+
         Page<ClothesResponse> clothes = clothesQueryService.getClothes(
                 categoryId,
                 authUser.getUserId(),
@@ -67,7 +68,9 @@ public class ClothesController {
             @PathVariable Long clothesId
     ) {
 
-        return ApiResponse.success(clothesQueryService.getClothesById(authUser.getUserId(), clothesId), ClothesSuccessCode.CLOTHES_OK);
+        ClothesResponse clothesResponse = clothesQueryService.getClothesById(authUser.getUserId(), clothesId);
+
+        return ApiResponse.success(clothesResponse, ClothesSuccessCode.CLOTHES_OK);
     }
 
     @PutMapping("/{clothesId}")
@@ -77,6 +80,18 @@ public class ClothesController {
             @Valid @RequestBody ClothesRequest clothesRequest
     ) {
 
-        return ApiResponse.success(clothesCommandService.updateClothes(authUser.getUserId(), clothesId, clothesRequest), ClothesSuccessCode.CLOTHES_UPDATE);
+        ClothesResponse clothesResponse = clothesCommandService.updateClothes(authUser.getUserId(), clothesId, clothesRequest);
+
+        return ApiResponse.success(clothesResponse, ClothesSuccessCode.CLOTHES_UPDATE);
+    }
+
+    @DeleteMapping("/{clothesId}")
+    public ResponseEntity<ApiResponse<Void>> deleteClothes(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long clothesId
+    ) {
+        clothesCommandService.deleteClothes(authUser.getUserId(), clothesId);
+
+        return ApiResponse.success(null, ClothesSuccessCode.CLOTHES_DELETE);
     }
 }
