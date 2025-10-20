@@ -26,18 +26,17 @@ public class ChatParticipatingUserCommandServiceImpl implements ChatParticipatin
     public void saveKeys(Chatroom chatroom, SalePost salePost, User user) {
         // 거래 희망 유저(채팅하기 버튼을 누른 유저)
         // 복합키 생성
-        ChatParticipatingUserId chatParticipatingUserId1 = ChatParticipatingUserId.create(chatroom.getId(), user.getId());
+        ChatParticipatingUserId buyerId = ChatParticipatingUserId.create(chatroom.getId(), user.getId());
         // 중간테이블 엔티티 생성
-        ChatParticipatingUser chatParticipatingUser1 = ChatParticipatingUser.create(chatParticipatingUserId1, chatroom, user);
-        // 저장
-        chatParticipatingUserRepository.save(chatParticipatingUser1);
+        ChatParticipatingUser buyerParticipation = ChatParticipatingUser.create(buyerId, chatroom, user);
 
         // 게시물 주인(게시물을 작성한 유저)
         // 복합키 생성
-        ChatParticipatingUserId chatParticipatingUserId2 = ChatParticipatingUserId.create(chatroom.getId(), salePost.getUser().getId());
+        ChatParticipatingUserId sellerId = ChatParticipatingUserId.create(chatroom.getId(), salePost.getUser().getId());
         // 중간테이블 엔티티 생성
-        ChatParticipatingUser chatParticipatingUser2 = ChatParticipatingUser.create(chatParticipatingUserId2, chatroom, salePost.getUser());
-        // 저장
-        chatParticipatingUserRepository.save(chatParticipatingUser2);
+        ChatParticipatingUser sellerParticipation = ChatParticipatingUser.create(sellerId, chatroom, salePost.getUser());
+
+        // 전체 저장
+        chatParticipatingUserRepository.saveAll(java.util.List.of(buyerParticipation, sellerParticipation));
     }
 }

@@ -10,8 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -45,15 +43,19 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     @Override
-    public Optional<User> findByLoginIdAndIsDeletedFalse(String loginId) {
+    public User findByLoginIdAndIsDeletedFalse(String loginId) {
 
-        return userRepository.findByLoginIdAndIsDeletedFalse(loginId);
+        return userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
+        );
     }
 
     @Override
-    public Optional<User> findByIdAndIsDeletedFalse(Long id) {
+    public User findByIdAndIsDeletedFalse(Long id) {
 
-        return userRepository.findByIdAndIsDeletedFalse(id);
+        return userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
+        );
     }
 
     public UserGetResponse getMyProfile(Long userId) {

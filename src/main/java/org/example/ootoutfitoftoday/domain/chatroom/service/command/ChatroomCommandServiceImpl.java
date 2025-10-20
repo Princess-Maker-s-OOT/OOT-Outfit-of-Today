@@ -14,6 +14,8 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -31,10 +33,10 @@ public class ChatroomCommandServiceImpl implements ChatroomCommandService {
 
         // 게시판 주인을 찾기 위한 게시판 찾기
         SalePost salePost = salePostQueryService.findSalePostById(salePostId);
-        User user = userQueryService.findByIdAndIsDeletedFalse(userId).orElse(null);
+        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
         // 판매자와 구매자가 일치하는 경우
-        if (salePost.getUser().equals(user)) {
+        if (Objects.equals(salePost.getUser(), user)) {
             // 예외 처리
             throw new ChatroomException(ChatroomErrorCode.EQUAL_SELLER_BUYER);
         }

@@ -23,18 +23,18 @@ public class ChatroomController {
     /**
      * 채팅방 생성 API
      *
-     * @param ChatroomRequest 게시물의 id 정보
+     * @param chatroomRequest 게시물의 id 정보
      * @param authUser        토큰 정보
      * @return 값 x 공통 응답만
      */
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> createChatroom(
-            @RequestBody ChatroomRequest ChatroomRequest,
+            @RequestBody ChatroomRequest chatroomRequest,
             @AuthenticationPrincipal AuthUser authUser
     ) {
         Long userId = authUser.getUserId();
 
-        chatroomCommandService.createChatroom(ChatroomRequest, userId);
+        chatroomCommandService.createChatroom(chatroomRequest, userId);
 
         return ApiResponse.success(null, ChatroomSuccessCode.CREATED_CHATROOM);
     }
