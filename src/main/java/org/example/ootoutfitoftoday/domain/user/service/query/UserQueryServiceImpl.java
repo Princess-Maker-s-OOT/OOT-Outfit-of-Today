@@ -62,6 +62,7 @@ public class UserQueryServiceImpl implements UserQueryService {
         );
     }
 
+    @Override
     public UserGetResponse getMyInfo(Long id) {
 
         User user = findByIdAndIsDeletedFalse(id);
@@ -69,6 +70,7 @@ public class UserQueryServiceImpl implements UserQueryService {
         return UserGetResponse.from(user);
     }
 
+    @Override
     public void verifyPassword(UserPasswordVerificationRequest request, AuthUser authUser) {
 
         User user = findByIdAndIsDeletedFalse(authUser.getUserId());
