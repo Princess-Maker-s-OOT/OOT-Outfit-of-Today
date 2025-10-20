@@ -85,7 +85,7 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
                 .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
 
         if (closet.isDeleted()) {
-            throw new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND);
+            throw new ClosetException(ClosetErrorCode.CLOSET_DELETED);
         }
 
         if (!Objects.equals(closet.getUserId(), userId)) {
