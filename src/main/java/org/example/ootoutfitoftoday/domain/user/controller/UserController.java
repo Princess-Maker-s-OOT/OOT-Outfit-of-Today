@@ -3,28 +3,40 @@ package org.example.ootoutfitoftoday.domain.user.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
+import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetResponse;
 import org.example.ootoutfitoftoday.domain.user.exception.UserSuccessCode;
-import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryServiceImpl;
+import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
+import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1/user")
+@RequestMapping("/v1/user/me")
 public class UserController {
 
-    private final UserQueryServiceImpl userQueryService;
+    private final UserQueryService userQueryService;
+    private final UserCommandService userCommandService;
 
-    // 프로필 조회
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserGetResponse>> getMyProfile(@AuthenticationPrincipal AuthUser authUser) {
+    // 회원정보 조회
+    @GetMapping
+    public ResponseEntity<ApiResponse<UserGetResponse>> getMyInfo(@AuthenticationPrincipal AuthUser authUser) {
 
-        UserGetResponse response = userQueryService.getMyProfile(authUser.getUserId());
+        UserGetResponse response = userQueryService.getMyInfo(authUser.getUserId());
 
-        return ApiResponse.success(response, UserSuccessCode.GET_MY_PROFILE);
+        return ApiResponse.success(response, UserSuccessCode.GET_MY_INFO);
+    }
+
+    // 회원정보 수정 전 비밀번호 검증
+    @PostMapping("/password-verification")
+    public ResponseEntity<ApiResponse<Void>> verifyPassword(
+            @RequestBody UserPasswordVerificationRequest request,
+            @AuthenticationPrincipal AuthUser authUser) {
+
+        userQueryService.verifyPassword(request, authUser);
+
+        return ApiResponse.success(null, UserSuccessCode.PASSWORD_VERIFIED);
     }
 }

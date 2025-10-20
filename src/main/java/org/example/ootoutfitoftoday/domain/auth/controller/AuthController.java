@@ -9,7 +9,7 @@ import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthSuccessCode;
-import org.example.ootoutfitoftoday.domain.auth.service.command.AuthCommandServiceImpl;
+import org.example.ootoutfitoftoday.domain.auth.service.command.AuthCommandService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/auth")
 public class AuthController {
 
-    private final AuthCommandServiceImpl authCommandService;
+    private final AuthCommandService authCommandService;
 
     // 회원가입
     @PostMapping("/signup")
