@@ -25,7 +25,7 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
     Optional<SalePost> findByIdWithDetailsAndNotDeleted(@Param("salePostId") Long salePostId);
 
     @Query("""
-        SELECT DISTINCT sp FROM SalePost sp
+        SELECT sp FROM SalePost sp
         JOIN FETCH sp.user u
         JOIN FETCH sp.category c
         WHERE sp.isDeleted = false
@@ -34,7 +34,6 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
         AND (:keyword IS NULL OR 
             LOWER(sp.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR 
             LOWER(sp.content) LIKE LOWER(CONCAT('%', :keyword, '%')))
-        ORDER BY sp.createdAt DESC
         """)
     Slice<SalePost> findAllWithFilters(
             @Param("categoryId") Long categoryId,
