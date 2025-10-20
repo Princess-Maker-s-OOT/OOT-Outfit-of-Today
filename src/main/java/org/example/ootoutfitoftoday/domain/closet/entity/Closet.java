@@ -78,7 +78,19 @@ public class Closet extends BaseEntity {
 
     // userId를 반환하는 편의 메서드
     public Long getUserId() {
-        
+
         return this.user.getId();
+    }
+
+    public void update(
+            String name,
+            String description,
+            String imageUrl,
+            Boolean isPublic
+    ) {
+        this.name = name;
+        this.description = description;
+        this.imageUrl = imageUrl;
+        this.isPublic = isPublic;
     }
 }
