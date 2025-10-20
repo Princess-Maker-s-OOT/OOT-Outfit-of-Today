@@ -10,8 +10,8 @@ import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesSuccessCode;
-import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandServiceImpl;
-import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryServiceImpl;
+import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandService;
+import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,8 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/clothes")
 public class ClothesController {
 
-    private final ClothesCommandServiceImpl clothesCommandService;
-    private final ClothesQueryServiceImpl clothesQueryService;
+    private final ClothesCommandService clothesCommandService;
+    private final ClothesQueryService clothesQueryService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<ClothesResponse>> createClothes(

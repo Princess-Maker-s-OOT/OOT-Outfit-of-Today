@@ -29,6 +29,7 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
     private final CategoryQueryServiceImpl categoryQueryService;
     private final UserQueryService userQueryService;
 
+    @Override
     public ClothesResponse createClothes(Long userId, ClothesRequest clothesRequest) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(userId).orElseThrow(
@@ -57,6 +58,7 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         return ClothesResponse.from(clothes);
     }
 
+    @Override
     public ClothesResponse updateClothes(
             Long userId,
             Long id,
