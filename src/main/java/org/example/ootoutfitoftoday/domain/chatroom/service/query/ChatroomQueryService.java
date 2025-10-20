@@ -1,9 +1,10 @@
 package org.example.ootoutfitoftoday.domain.chatroom.service.query;
 
-import org.example.ootoutfitoftoday.domain.chat.entity.Chat;
-import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
+import org.example.ootoutfitoftoday.domain.chatroom.dto.response.ChatroomResponse;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 public interface ChatroomQueryService {
 
-    Chat getFinalChat(Chatroom chatroom);
+    Slice<ChatroomResponse> getChatrooms(Long userId, Pageable pageable);
 }

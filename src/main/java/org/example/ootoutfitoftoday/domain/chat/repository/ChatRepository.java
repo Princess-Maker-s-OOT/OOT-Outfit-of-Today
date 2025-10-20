@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface ChatRepository extends JpaRepository<Chat, Long> {
 
-    Optional<Chat> findFirstByChatroomAndDeletedIsFalseOrderByCreatedAtDesc(Chatroom chatroom);
+    Optional<Chat> findFirstByChatroomAndIsDeletedFalseOrderByCreatedAtDesc(Chatroom chatroom);
 
-    int countByChatroomAndDeletedIsFalseAndReadedIsFalse(Chatroom chatroom);
+    int countByChatroomAndIsDeletedFalseAndIsReadFalse(Chatroom chatroom);
 }

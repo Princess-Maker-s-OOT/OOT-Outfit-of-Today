@@ -17,12 +17,13 @@ public class ChatQueryServiceImpl implements ChatQueryService {
     @Override
     public Chat getFinalChat(Chatroom chatroom) {
 
-        return chatRepository.findFirstByChatroomAndDeletedIsFalseOrderByCreatedAtDesc(chatroom).orElse(null);
+        return chatRepository.findFirstByChatroomAndIsDeletedFalseOrderByCreatedAtDesc(chatroom).orElse(null);
     }
 
     @Override
     public int getCountNotReadChat(Chatroom chatroom) {
 
-        return chatRepository.countByChatroomAndDeletedIsFalseAndReadedIsFalse(chatroom);
+        return chatRepository.countByChatroomAndIsDeletedFalseAndIsReadFalse(chatroom);
+        // AndReadedIsFalse
     }
 }

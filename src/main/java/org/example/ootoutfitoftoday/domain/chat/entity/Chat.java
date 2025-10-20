@@ -22,7 +22,7 @@ public class Chat extends BaseEntity {
     private String content;
 
     @Column(name = "is_readed", nullable = false)
-    private boolean isReaded;
+    private boolean isRead;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Chatroom chatroom;
@@ -34,7 +34,7 @@ public class Chat extends BaseEntity {
     ) {
         this.content = content;
         this.chatroom = chatroom;
-        isReaded = false;
+        isRead = false;
     }
 
     public static Chat create(
