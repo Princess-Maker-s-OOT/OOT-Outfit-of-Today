@@ -4,11 +4,9 @@ import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryRespons
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.springframework.data.domain.Page;
 
-import java.util.Optional;
-
 public interface CategoryQueryService {
 
-    Optional<Category> findById(long id);
+    Category findById(long id);
 
     Page<CategoryResponse> getCategories(
             int page,
