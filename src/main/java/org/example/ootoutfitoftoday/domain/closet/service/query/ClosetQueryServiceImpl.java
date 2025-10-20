@@ -23,6 +23,7 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
     private final ClosetRepository closetRepository;
 
     // 공개 옷장 리스트 조회
+    @Override
     public Page<ClosetGetPublicResponse> getPublicClosets(
             int page,
             int size,
@@ -43,6 +44,7 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
     }
 
     // 옷장 상세 조회
+    @Override
     public ClosetGetResponse getCloset(Long closetId) {
 
         Closet closet = closetRepository.findById(closetId)
@@ -56,6 +58,7 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
     }
 
     // 내 옷장 리스트 조회
+    @Override
     public Page<ClosetGetMyResponse> getMyClosets(
             Long userId,
             int page,
