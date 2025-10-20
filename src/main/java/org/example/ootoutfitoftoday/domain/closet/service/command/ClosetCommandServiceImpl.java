@@ -10,8 +10,6 @@ import org.example.ootoutfitoftoday.domain.closet.exception.ClosetErrorCode;
 import org.example.ootoutfitoftoday.domain.closet.exception.ClosetException;
 import org.example.ootoutfitoftoday.domain.closet.repository.ClosetRepository;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
-import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
-import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,13 +25,13 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
     // 옷장 등록
     public ClosetSaveResponse createCloset(Long id, ClosetSaveRequest request) {
 
-        User user = userQueryService.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+        User user = userQueryService.findByIdAndIsDeletedFalse(id);
 
         Closet closet = Closet.create(
                 user,
                 request.name(),
                 request.description(),
+
                 request.imageUrl(),
                 request.isPublic()
         );
