@@ -35,8 +35,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
     ) {
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
-        Category category = categoryQueryService.findById(request.getCategoryId())
-                .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+        Category category = categoryQueryService.findById(request.getCategoryId());
 
         SalePost salePost = SalePost.create(
                 user,
