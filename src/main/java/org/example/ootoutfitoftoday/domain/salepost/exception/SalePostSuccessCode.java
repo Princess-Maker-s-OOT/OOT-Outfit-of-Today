@@ -10,7 +10,8 @@ import org.springframework.http.HttpStatus;
 public enum SalePostSuccessCode implements SuccessCode {
 
     SALE_POSTS_CREATED("SALE_POSTS_CREATED", HttpStatus.CREATED, "판매글이 성공적으로 생성되었습니다."),
-    SALE_POST_RETRIEVED("SALE_POST_RETRIEVED", HttpStatus.OK, "판매글 조회 성공"),
+    SALE_POST_RETRIEVED("SALE_POST_RETRIEVED", HttpStatus.OK, "판매글이 성공적으로 조회되었습니다."),
+    SALE_POSTS_FETCHED("SALE_POSTS_FETCHED", HttpStatus.OK, "판매글 목록이 성공적으로 조회되었습니다."),
     SALE_POSTS_UPDATED("SALE_POSTS_UPDATED", HttpStatus.OK, "판매글이 수정되었습니다."),
     SALE_POSTS_DELETED("SALE_POSTS_DELETED", HttpStatus.OK, "판매글이 삭제되었습니다.");
 
