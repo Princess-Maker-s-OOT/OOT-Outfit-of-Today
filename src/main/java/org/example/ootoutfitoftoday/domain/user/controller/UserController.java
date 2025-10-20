@@ -30,7 +30,7 @@ public class UserController {
     }
 
     // 회원정보 수정 전 비밀번호 검증
-    @PostMapping("/verifing")
+    @PostMapping("/verifying")
     public ResponseEntity<ApiResponse<Void>> verifyPassword(
             @RequestBody UserGetRequest request,
             @AuthenticationPrincipal AuthUser authUser) {
