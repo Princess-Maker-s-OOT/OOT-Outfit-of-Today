@@ -2,6 +2,8 @@ package org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.query;
 
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
+import org.example.ootoutfitoftoday.domain.chatparticipatinguser.exception.ChatParticipatingUserErrorCode;
+import org.example.ootoutfitoftoday.domain.chatparticipatinguser.exception.ChatParticipatingUserErrorCodeException;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.repository.ChatParticipatingUserRepository;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
@@ -27,5 +29,13 @@ public class ChatParticipatingUserQueryServiceImpl implements ChatParticipatingU
     public List<ChatParticipatingUser> getAllParticipatingUserByChatroom(Chatroom chatroom) {
 
         return chatParticipatingUserRepository.findAllByChatroom(chatroom);
+    }
+
+    @Override
+    public ChatParticipatingUser getChatroomAndUser(Chatroom chatroom, User user) {
+
+        return chatParticipatingUserRepository.findByChatroomAndUser(chatroom, user).orElseThrow(
+                () -> new ChatParticipatingUserErrorCodeException(ChatParticipatingUserErrorCode.NOT_MATCH_CHATROOM_AND_USER)
+        );
     }
 }
