@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum CategorySuccessCode implements SuccessCode {
 
-    CATEGORY_CREATED("CATEGORY_CREATED", HttpStatus.CREATED, "카테고리를 생성하였습니다!");
+    CATEGORY_CREATED("CATEGORY_CREATED", HttpStatus.CREATED, "카테고리를 생성 하였습니다!"),
+    CATEGORY_OK("CATEGORY_OK", HttpStatus.OK, "카테고리를 조회 하였습니다!");
 
     private final String code;
     private final HttpStatus httpStatus;

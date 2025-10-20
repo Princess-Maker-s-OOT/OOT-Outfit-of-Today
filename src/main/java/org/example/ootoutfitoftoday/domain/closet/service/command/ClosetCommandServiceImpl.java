@@ -3,6 +3,7 @@ package org.example.ootoutfitoftoday.domain.closet.service.command;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetSaveRequest;
 import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetUpdateRequest;
+import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetDeleteResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetSaveResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetUpdateResponse;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
@@ -13,6 +14,8 @@ import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -69,5 +72,28 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
         );
 
         return ClosetUpdateResponse.from(updatedCloset);
+    }
+
+    // 옷장 삭제
+    @Override
+    public ClosetDeleteResponse deleteCloset(
+            Long userId,
+            Long closetId
+    ) {
+
+        Closet closet = closetRepository.findById(closetId)
+                .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
+
+        if (closet.isDeleted()) {
+            throw new ClosetException(ClosetErrorCode.CLOSET_DELETED);
+        }
+
+        if (!Objects.equals(closet.getUserId(), userId)) {
+            throw new ClosetException(ClosetErrorCode.CLOSET_FORBIDDEN);
+        }
+
+        closet.softDelete();
+
+        return ClosetDeleteResponse.of(closet.getId(), closet.getDeletedAt());
     }
 }
