@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
+import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
@@ -39,7 +40,7 @@ public class SalePostController {
                 request.getImageUrls()
         );
 
-        return ApiResponse.success(response, SalePostSuccessCode.SALE_POSTS_CREATED);
+        return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_CREATED);
     }
 
     @GetMapping("/{salePostId}")
@@ -64,6 +65,21 @@ public class SalePostController {
                 pageable
         );
 
-        return ApiResponse.success(salePosts, SalePostSuccessCode.SALE_POSTS_FETCHED);
+        return ApiResponse.success(salePosts, SalePostSuccessCode.SALE_POST_FETCHED);
+    }
+
+    @PutMapping("{salePostId}")
+    public ResponseEntity<ApiResponse<SalePostDetailResponse>> updateSalePost(
+            @PathVariable Long salePostId,
+            @AuthenticationPrincipal AuthUser authUser,
+            @Valid @RequestBody SalePostUpdateRequest request
+    ) {
+        SalePostDetailResponse response = salePostCommandService.updateSalePost(
+                salePostId,
+                authUser.getUserId(),
+                request
+        );
+
+        return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_UPDATED);
     }
 }
