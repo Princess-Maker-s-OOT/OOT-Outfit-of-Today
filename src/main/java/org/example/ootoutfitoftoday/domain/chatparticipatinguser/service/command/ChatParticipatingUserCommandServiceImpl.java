@@ -39,4 +39,10 @@ public class ChatParticipatingUserCommandServiceImpl implements ChatParticipatin
         // 전체 저장
         chatParticipatingUserRepository.saveAll(java.util.List.of(buyerParticipation, sellerParticipation));
     }
+
+
+    @Override
+    public void softDeleteChatParticipatingUser(ChatParticipatingUser chatParticipatingUser) {
+        chatParticipatingUser.softDelete();
+    }
 }

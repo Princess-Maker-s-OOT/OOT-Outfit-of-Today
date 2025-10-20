@@ -28,4 +28,10 @@ public class ChatParticipatingUserQueryServiceImpl implements ChatParticipatingU
 
         return chatParticipatingUserRepository.findAllByChatroom(chatroom);
     }
+
+    @Override
+    public ChatParticipatingUser getChatroomAndUser(Chatroom chatroom, User user) {
+
+        return chatParticipatingUserRepository.findByChatroomAndUser(chatroom, user);
+    }
 }

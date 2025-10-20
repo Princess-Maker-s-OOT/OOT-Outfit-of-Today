@@ -29,7 +29,7 @@ public class ChatroomController {
      *
      * @param chatroomRequest 게시물의 id 정보
      * @param authUser        토큰 정보
-     * @return 값 x 공통 응답만
+     * @return 공통 응답만 반환
      */
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> createChatroom(
@@ -64,5 +64,23 @@ public class ChatroomController {
         Slice<ChatroomResponse> chatroomResponses = chatroomQueryService.getChatrooms(userId, pageable);
 
         return ApiSliceResponse.success(chatroomResponses, ChatroomSuccessCode.RETRIEVED_CHATROOMS);
+    }
+
+    /**
+     * 채팅방 삭제 API
+     *
+     * @param authUser   토큰 정보
+     * @param chatroomId 채팅방 아이디
+     * @return 공통 응답만 반환
+     */
+    @DeleteMapping("/{chatroomId}")
+    public ResponseEntity<ApiResponse<Void>> deleteChatroom(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long chatroomId
+    ) {
+        Long userId = authUser.getUserId();
+        chatroomCommandService.deleteChatroom(chatroomId, userId);
+
+        return ApiResponse.success(null, ChatroomSuccessCode.DELETED_CHATROOM);
     }
 }

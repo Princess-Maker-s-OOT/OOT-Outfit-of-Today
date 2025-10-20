@@ -13,4 +13,6 @@ public interface ChatParticipatingUserRepository extends JpaRepository<ChatParti
     List<ChatParticipatingUser> findByUserAndIsDeletedFalse(User user);
 
     List<ChatParticipatingUser> findAllByChatroom(Chatroom chatroom);
+
+    ChatParticipatingUser findByChatroomAndUser(Chatroom chatroom, User user);
 }
