@@ -4,6 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.closet.entity.QCloset;
+import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.QClosetClothesLink;
 import org.example.ootoutfitoftoday.domain.clothes.entity.QClothes;
 import org.example.ootoutfitoftoday.domain.salepost.entity.QSalePost;
 
@@ -20,23 +21,31 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 
         QClothes clothes = QClothes.clothes;
         QCloset closet = QCloset.closet;
+        QClosetClothesLink closetClothesLink = QClosetClothesLink.closetClothesLink;
         QSalePost salePost = QSalePost.salePost;
 
-        // Clothes 논리적 삭제
+        // Clothes 일괄 논리적 삭제
         queryFactory.update(clothes)
                 .set(clothes.isDeleted, true)
                 .set(clothes.deletedAt, deletedAt)
                 .where(clothes.user.id.eq(id), clothes.isDeleted.eq(false))
                 .execute();
 
-        // Closet 논리적 삭제
+        // Closet 일괄 논리적 삭제
         queryFactory.update(closet)
                 .set(closet.isDeleted, true)
                 .set(closet.deletedAt, deletedAt)
-                .where(closet.user.id.eq(id), clothes.isDeleted.eq(false))
+                .where(closet.user.id.eq(id), closet.isDeleted.eq(false))
                 .execute();
 
-        // SalePost 논리적 삭제
+        // ClosetClothesLink 일괄 논리적 삭제
+        queryFactory.update(closetClothesLink)
+                .set(closetClothesLink.isDeleted, true)
+                .set(closetClothesLink.deletedAt, deletedAt)
+                .where(closetClothesLink.closet.user.id.eq(id), closetClothesLink.isDeleted.eq(false))
+                .execute();
+
+        // SalePost 일괄 논리적 삭제
         queryFactory.update(salePost)
                 .set(salePost.isDeleted, true)
                 .set(salePost.deletedAt, deletedAt)
