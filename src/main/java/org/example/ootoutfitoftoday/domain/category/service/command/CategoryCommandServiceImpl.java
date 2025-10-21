@@ -7,9 +7,11 @@ import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.exception.CategoryErrorCode;
 import org.example.ootoutfitoftoday.domain.category.exception.CategoryException;
 import org.example.ootoutfitoftoday.domain.category.repository.CategoryRepository;
+import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,6 +21,7 @@ import java.util.Objects;
 public class CategoryCommandServiceImpl implements CategoryCommandService {
 
     private final CategoryRepository categoryRepository;
+    private final ClothesCommandService clothesCommandService;
 
     // 초기 세팅 카테고리 데이터 삽입
     @Override
@@ -262,10 +265,28 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
     @Override
     public void deleteCategory(Long id) {
 
-        Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
+        categoryRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                 );
 
-        category.softDelete();
+        List<Long> result = new ArrayList<>();
+        result.add(id);
+
+        List<Long> currentCategory = List.of(id);
+
+        while (!currentCategory.isEmpty()) {
+            List<Long> childCategory = categoryRepository.findIdsByParentIds(currentCategory);
+
+            if (childCategory.isEmpty()) {
+                break;
+            }
+
+            result.addAll(childCategory);
+            currentCategory = childCategory;
+        }
+
+        clothesCommandService.clearCategoryFromClothes(result);
+
+        categoryRepository.softDeleteCategories(result);
     }
 }
