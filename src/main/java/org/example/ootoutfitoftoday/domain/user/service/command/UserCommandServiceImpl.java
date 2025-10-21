@@ -9,12 +9,14 @@ import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
 import org.example.ootoutfitoftoday.domain.user.exception.UserException;
+import org.example.ootoutfitoftoday.domain.user.repository.CustomUserRepository;
 import org.example.ootoutfitoftoday.domain.user.repository.UserRepository;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Service
@@ -23,6 +25,7 @@ import java.util.Objects;
 public class UserCommandServiceImpl implements UserCommandService {
 
     private final UserRepository userRepository;
+    private final CustomUserRepository customUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserQueryService userQueryService;
 
@@ -38,6 +41,10 @@ public class UserCommandServiceImpl implements UserCommandService {
         if (user.isDeleted()) {
             throw new UserException(UserErrorCode.USER_ALREADY_WITHDRAWN);
         }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        customUserRepository.bulkSoftDeleteUserRelatedData(user.getId(), now);
 
         user.softDelete();
         userRepository.save(user);
