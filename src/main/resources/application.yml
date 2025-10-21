@@ -3,6 +3,8 @@ spring:
     url: jdbc:mysql://localhost:3306/${DB_NAME}
     username: ${USER_NAME}
     password: ${PASSWORD}
+  cors:
+    allowed-origins: "*"
   jpa:
     hibernate:
       ddl-auto: update
@@ -12,6 +14,11 @@ spring:
         format_sql: true
   jackson:
     default-property-inclusion: non_null
+
+logging:
+  level:
+    root: info
+    org.example: info
 
 # API
 server:

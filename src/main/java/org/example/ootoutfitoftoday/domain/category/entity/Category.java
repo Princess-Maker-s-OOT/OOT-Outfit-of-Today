@@ -51,6 +51,7 @@ public class Category extends BaseEntity {
         return category;
     }
 
+    // Todo: 추후 수정 메서드 리팩토링 - 부모가 바뀌는 경우에만 기존 부모 연관관계 제거 + 새로운 부모의 자식 목록에 자신 추가 (중복 방지)
     public void update(String name, Category parent) {
         this.name = name;
         this.parent = parent;

@@ -58,4 +58,14 @@ public class CategoryController {
 
         return ApiResponse.success(categoryResponse, CategorySuccessCode.CATEGORY_UPDATE);
     }
+
+    @DeleteMapping("/admin/v1/categories/{categoryId}")
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(
+            @PathVariable Long categoryId
+    ) {
+
+        categoryCommandService.deleteCategory(categoryId);
+
+        return ApiResponse.success(null, CategorySuccessCode.CATEGORY_DELETE);
+    }
 }

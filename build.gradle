@@ -69,6 +69,10 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
 
     testImplementation 'com.h2database:h2:2.3.232'
+
+    // WebSocket
+    implementation 'org.springframework.security:spring-security-messaging'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 
 tasks.named('test') {
