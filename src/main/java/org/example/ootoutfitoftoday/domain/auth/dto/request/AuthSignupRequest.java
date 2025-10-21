@@ -16,13 +16,14 @@ public class AuthSignupRequest {
     private static final String EMAIL_TLD = "\\.[A-Za-z]{2,}";
     private static final String EMAIL_REGEX = "^" + EMAIL_LOCAL_PART + EMAIL_DOMAIN + EMAIL_TLD + "$";
 
+    private static final String NICKNAME_REGEX = "^(?!\\s).*(?<!\\s)$";
+
+    private static final String USERNAME_REGEX = "^\\S+$";
+
     private static final String PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*(),.?\":{}|<>])[^\\s]+$";
 
     private static final String PHONE_NUMBER_REGEX = "^01[016789]\\d{7,8}$";
 
-    private static final String NICKNAME_REGEX = "^(?!\\s).*(?<!\\s)$";
-
-    private static final String USERNAME_REGEX = "^\\S+$";
 
     @NotBlank(message = "아이디는 필수 입력값입니다.")
     @Size(min = 4, max = 15, message = "아이디는 4~15자 사이여야 합니다.")
