@@ -44,6 +44,10 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     // 회원정보 수정
+
+    /**
+     * TODO: 리팩토링 고려
+     **/
     @Override
     public GetMyInfoResponse updateMyInfo(UserUpdateInfoRequest request, AuthUser authUser) {
 
