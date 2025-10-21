@@ -81,4 +81,11 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
 
         return closets.map(ClosetGetMyResponse::from);
     }
+
+    // 지정된 ID에 해당하는 옷장을 조회
+    @Override
+    public Closet findClosetById(Long closetId) {
+        return closetRepository.findById(closetId)
+                .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
+    }
 }
