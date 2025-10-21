@@ -1,0 +1,23 @@
+# Gemini AI Configuration
+# 간단하고 실용적인 설정
+
+# 코드 리뷰 설정
+code_review:
+  comment_severity_threshold: "MEDIUM"
+  disable: false
+  follow_conventions: true
+  suggest_improvements: true
+
+# AI 행동 설정
+behavior:
+  response_style: "professional"
+  explanation_level: "detailed"
+  include_examples: true
+
+# 기능 플래그
+features:
+  code_completion: true
+  code_review: true
+  documentation_generation: true
+  test_generation: true
+  refactoring_suggestions: true
