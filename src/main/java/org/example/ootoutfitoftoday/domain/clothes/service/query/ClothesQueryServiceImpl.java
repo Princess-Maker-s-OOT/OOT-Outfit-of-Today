@@ -60,4 +60,12 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
 
         return ClothesResponse.from(clothes);
     }
+
+    @Override
+    public Clothes findClothesById(Long id) {
+
+        return clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
+        );
+    }
 }

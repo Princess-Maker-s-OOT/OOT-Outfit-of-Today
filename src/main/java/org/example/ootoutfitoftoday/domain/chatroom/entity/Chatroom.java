@@ -35,11 +35,6 @@ public class Chatroom {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "deleted", nullable = false)
-    private boolean isDeleted;
-
-    private LocalDateTime deletedAt;
-
     // 헬퍼 메서드
     public void addChatParticipatingUser(User user) {
         // 사용자가 이미 채팅방에 참여하고 있는지 확인하여 중복 추가를 방지합니다.
@@ -59,16 +54,6 @@ public class Chatroom {
         );
         this.chatParticipatingUsers.add(chatParticipatingUser);
         user.getChatParticipatingUsers().add(chatParticipatingUser);
-    }
-
-    public void softDelete() {
-        this.isDeleted = true;
-        this.deletedAt = LocalDateTime.now();
-    }
-
-    public void restore() {
-        this.isDeleted = false;
-        this.deletedAt = null;
     }
 }
 
