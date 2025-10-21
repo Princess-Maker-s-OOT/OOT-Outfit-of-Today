@@ -57,7 +57,7 @@ public class ClosetClothesLinkController {
      * @param size      페이지 크기 (기본값: 10)
      * @param sort      정렬 기준 (기본값: createdAt)
      * @param direction 정렬 방향 (기본값: DESC)
-     * @return Page<ClothesInClosetResponse> 옷 목록
+     * @return ApiPageResponse<ClothesInClosetResponse> 옷 목록
      */
     @GetMapping
     public ResponseEntity<ApiPageResponse<ClosetClothesLinkGetResponse>> getClosetClothesLink(
