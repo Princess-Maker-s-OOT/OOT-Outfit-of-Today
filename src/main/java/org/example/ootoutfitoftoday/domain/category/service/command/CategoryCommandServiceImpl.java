@@ -232,6 +232,7 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
         return CategoryResponse.from(category);
     }
 
+    // Todo: BFS 탐색용 큐를 활용하여 구현할 수도 있다. 이건 추후에 공부하고 적용하기!
     @Override
     public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest) {
 
@@ -242,19 +243,29 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
         Category parent = null;
 
         if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
+
             parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId())
                     .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                     );
-        }
 
-        /**
-         * Todo: 현재 구현은 카테고리의 부모를 자기 자신으로 직접 설정하는 경우만 확인
-         * 하지만 카테고리의 부모를 자신의 자손 카테고리로 설정하는 경우(예: A -> B -> C 구조에서 A의 부모를 C로 설정)를 막지 못해 순환 참조가 발생
-         * 이는 카테고리 트리 구조를 깨뜨리고, 관련 기능을 사용할 때 무한 루프 등 심각한 오류를 유발
-         * 새로운 부모의 상위 카테고리들을 모두 확인하여 자기 자신이 포함되어 있는지 검사하는 로직으로 변경하여 순환 참조를 원천적으로 방지하도록 개선
-         */
-        if (Objects.equals(categoryRequest.getParentId(), id)) {
-            throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
+            /**
+             * 순환 참조 방지 코드
+             * 만약 parent가 category 자신의 하위카테고리거나 본인이라면, 자식을 상위 또는 자신을 상위 카테고리로 설정하는 것이다.
+             * 그래서 순환 참조가 발생할 수 있다.
+             * if(Objects.equals(current.getId(), category.getId())
+             * 관리자가 입력한 카테고리 아이디와 url에 입력된 아이디의 값을 비교 같다면 예외 처리
+             * current = current.getParent()로 상위 카테고리의 상위 카테고리까지 계속 올라가며 확인
+             */
+            Category current = parent;
+
+            while (current != null) {
+
+                if(Objects.equals(current.getId(), category.getId())) {
+                    throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
+                }
+
+                current = current.getParent();
+            }
         }
 
         category.update(categoryRequest.getName(), parent);
