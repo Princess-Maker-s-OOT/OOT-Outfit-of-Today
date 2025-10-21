@@ -37,8 +37,8 @@ public class ClosetClothesLinkCommandServiceImpl implements ClosetClothesLinkCom
 
         if (!Objects.equals(closet.getUserId(), userId)) {
             throw new ClosetClothesLinkException(ClosetClothesLinkErrorCode.CLOSET_CLOTHES_FORBIDDEN);
-            
         }
+
         Clothes clothes = clothesQueryService.findClothesById(request.clothesId());
 
         // 중복 연결 체크
