@@ -260,7 +260,7 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
 
             while (current != null) {
 
-                if(Objects.equals(current.getId(), category.getId())) {
+                if (Objects.equals(current.getId(), category.getId())) {
                     throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
                 }
 
@@ -296,7 +296,14 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
             currentCategory = childCategory;
         }
 
-        clothesCommandService.clearCategoryFromClothes(result);
+        // 삭제 대상 카테고리가 누락된 경우 대비
+        if (!result.contains(id)) {
+            result.add(id);
+        }
+
+        if (!result.isEmpty()) {
+            clothesCommandService.clearCategoryFromClothes(result);
+        }
 
         categoryRepository.softDeleteCategories(result);
     }
