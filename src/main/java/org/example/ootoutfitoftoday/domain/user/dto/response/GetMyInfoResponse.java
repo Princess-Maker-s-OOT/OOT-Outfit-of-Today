@@ -11,24 +11,24 @@ import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 @Getter
 @Builder
 @RequiredArgsConstructor
-public class UserGetResponse {
+public class GetMyInfoResponse {
 
     private final String imageUrl;
     private final String loginId;
     private final String email;
-    private final String username;
     private final String nickname;
+    private final String username;
     private final String phoneNumber;
     private final UserRole role;
 
-    public static UserGetResponse from(User user) {
+    public static GetMyInfoResponse from(User user) {
 
-        return UserGetResponse.builder()
+        return GetMyInfoResponse.builder()
                 .imageUrl(user.getImageUrl())
                 .loginId(user.getLoginId())
                 .email(user.getEmail())
-                .username(user.getUsername())
                 .nickname(user.getNickname())
+                .username(user.getUsername())
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole())
                 .build();

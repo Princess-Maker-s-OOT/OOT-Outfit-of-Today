@@ -5,7 +5,7 @@ import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
-import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
 import org.example.ootoutfitoftoday.domain.user.exception.UserException;
@@ -63,11 +63,11 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     @Override
-    public UserGetResponse getMyInfo(Long id) {
+    public GetMyInfoResponse getMyInfo(Long id) {
 
         User user = findByIdAndIsDeletedFalse(id);
 
-        return UserGetResponse.from(user);
+        return GetMyInfoResponse.from(user);
     }
 
     @Override
