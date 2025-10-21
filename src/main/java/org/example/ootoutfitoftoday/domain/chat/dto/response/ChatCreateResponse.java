@@ -20,7 +20,6 @@ public class ChatCreateResponse {
             Long chatroomId,
             Long userId,
             String content,
-            boolean isRead,
             LocalDateTime createdAt
     ) {
         this.chatId = chatId;
@@ -37,7 +36,7 @@ public class ChatCreateResponse {
             String content,
             LocalDateTime createdAt
     ) {
-        
+
         return ChatCreateResponse.builder()
                 .chatId(chatId)
                 .chatroomId(chatroomId)
