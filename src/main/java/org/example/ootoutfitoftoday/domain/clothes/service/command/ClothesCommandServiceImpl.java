@@ -14,6 +14,7 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -89,5 +90,10 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         }
 
         clothes.softDelete();
+    }
+
+    @Override
+    public void clearCategoryFromClothes(List<Long> categoryIds) {
+        clothesRepository.clearCategoryFromClothes(categoryIds);
     }
 }

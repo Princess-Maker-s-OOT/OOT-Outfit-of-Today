@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.clothes.service.query;
 
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
+import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.springframework.data.domain.Page;
@@ -19,4 +20,6 @@ public interface ClothesQueryService {
     );
 
     ClothesResponse getClothesById(Long userId, Long id);
+
+    Clothes findClothesById(Long id);
 }

@@ -56,6 +56,10 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     // 회원가입
+
+    /**
+     * TODO: 리팩토링 고려
+     **/
     @Override
     public void signup(AuthSignupRequest request) {
 
