@@ -6,5 +6,5 @@ import org.springframework.data.domain.Slice;
 
 public interface ChatQueryService {
 
-    Slice<ChatResponse> getChats(Long chatroomId, Long userId, Pageable pageable);
+    Slice<ChatResponse> getChats(Long chatroomId, Pageable pageable);
 }
