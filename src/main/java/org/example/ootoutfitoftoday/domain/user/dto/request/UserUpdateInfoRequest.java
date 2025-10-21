@@ -9,21 +9,20 @@ import lombok.Getter;
 public class UserUpdateInfoRequest {
 
     /**
-     * 회원가입 쪽 정규식과 상이함
-     *
-     * @NotBlank 제거하였기 때문에 정규식에 공백 처리 포함
+     * 부분 수정 허용을 위해 @NotBlank 제거 -> null 값 허용
      **/
     private static final String EMAIL_LOCAL_PART = "(?!\\.)[A-Za-z0-9._%+-]+(?<!\\.)";
     private static final String EMAIL_DOMAIN = "@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*";
     private static final String EMAIL_TLD = "\\.[A-Za-z]{2,}";
-    private static final String EMAIL_REGEX = "^$|^" + EMAIL_LOCAL_PART + EMAIL_DOMAIN + EMAIL_TLD + "$";
+    private static final String EMAIL_REGEX = "^" + EMAIL_LOCAL_PART + EMAIL_DOMAIN + EMAIL_TLD + "$";
 
     private static final String NICKNAME_REGEX = "^(?!\\s).*(?<!\\s)$";
-    private static final String USERNAME_REGEX = "^$|^\\S+$";
 
-    private static final String PASSWORD_REGEX = "^$|^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*(),.?\":{}|<>])[^\\s]+$";
+    private static final String USERNAME_REGEX = "^\\S+$";
 
-    private static final String PHONE_NUMBER_REGEX = "^$|^01[016789]\\d{7,8}$";
+    private static final String PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*(),.?\":{}|<>])[^\\s]+$";
+
+    private static final String PHONE_NUMBER_REGEX = "^01[016789]\\d{7,8}$";
 
     /**
      * TODO: 현재 제한 조건 부재(예: Blank 허용)
