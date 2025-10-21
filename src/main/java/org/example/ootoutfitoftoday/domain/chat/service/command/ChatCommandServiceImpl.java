@@ -2,7 +2,7 @@ package org.example.ootoutfitoftoday.domain.chat.service.command;
 
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.chat.dto.request.ChatRequest;
-import org.example.ootoutfitoftoday.domain.chat.dto.response.ChatCreateResponse;
+import org.example.ootoutfitoftoday.domain.chat.dto.response.ChatResponse;
 import org.example.ootoutfitoftoday.domain.chat.entity.Chat;
 import org.example.ootoutfitoftoday.domain.chat.repository.ChatRepository;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
@@ -22,7 +22,7 @@ public class ChatCommandServiceImpl implements ChatCommandService {
     private final UserQueryService userQueryService;
 
     @Override
-    public ChatCreateResponse createChat(ChatRequest chatRequest, Long chatroomId, Long userId) {
+    public ChatResponse createChat(ChatRequest chatRequest, Long chatroomId, Long userId) {
         Chatroom chatroom = chatroomQueryService.getChatroomById(chatroomId);
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
         Chat chat = Chat.create(
@@ -33,7 +33,7 @@ public class ChatCommandServiceImpl implements ChatCommandService {
 
         Chat savedChat = chatRepository.save(chat);
 
-        return ChatCreateResponse.of(
+        return ChatResponse.of(
                 savedChat.getId(),
                 savedChat.getChatroom().getId(),
                 savedChat.getUser().getId(),

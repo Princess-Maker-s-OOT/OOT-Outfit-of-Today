@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-public class ChatCreateResponse {
+public class ChatResponse {
 
     private final Long chatId;
     private final Long chatroomId;
@@ -15,7 +15,7 @@ public class ChatCreateResponse {
     private final LocalDateTime createdAt;
 
     @Builder
-    private ChatCreateResponse(
+    private ChatResponse(
             Long chatId,
             Long chatroomId,
             Long userId,
@@ -29,7 +29,7 @@ public class ChatCreateResponse {
         this.createdAt = createdAt;
     }
 
-    public static ChatCreateResponse of(
+    public static ChatResponse of(
             Long chatId,
             Long chatroomId,
             Long userId,
@@ -37,7 +37,7 @@ public class ChatCreateResponse {
             LocalDateTime createdAt
     ) {
 
-        return ChatCreateResponse.builder()
+        return ChatResponse.builder()
                 .chatId(chatId)
                 .chatroomId(chatroomId)
                 .userId(userId)
