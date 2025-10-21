@@ -7,9 +7,11 @@ import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.exception.CategoryErrorCode;
 import org.example.ootoutfitoftoday.domain.category.exception.CategoryException;
 import org.example.ootoutfitoftoday.domain.category.repository.CategoryRepository;
+import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,6 +21,7 @@ import java.util.Objects;
 public class CategoryCommandServiceImpl implements CategoryCommandService {
 
     private final CategoryRepository categoryRepository;
+    private final ClothesCommandService clothesCommandService;
 
     // 초기 세팅 카테고리 데이터 삽입
     @Override
@@ -229,27 +232,79 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
         return CategoryResponse.from(category);
     }
 
+    // Todo: BFS 탐색용 큐를 활용하여 구현할 수도 있다. 이건 추후에 공부하고 적용하기!
     @Override
     public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest) {
 
-        Category category = categoryRepository.findById(id)
+        Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                 );
 
         Category parent = null;
 
         if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
-            parent = categoryRepository.findById(categoryRequest.getParentId())
+
+            parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId())
                     .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                     );
-        }
 
-        if (Objects.equals(categoryRequest.getParentId(), id)) {
-            throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
+            /**
+             * 순환 참조 방지 코드
+             * 만약 parent가 category 자신의 하위카테고리거나 본인이라면, 자식을 상위 또는 자신을 상위 카테고리로 설정하는 것이다.
+             * 그래서 순환 참조가 발생할 수 있다.
+             * if(Objects.equals(current.getId(), category.getId())
+             * 관리자가 입력한 카테고리 아이디와 url에 입력된 아이디의 값을 비교 같다면 예외 처리
+             * current = current.getParent()로 상위 카테고리의 상위 카테고리까지 계속 올라가며 확인
+             */
+            Category current = parent;
+
+            while (current != null) {
+
+                if (Objects.equals(current.getId(), category.getId())) {
+                    throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
+                }
+
+                current = current.getParent();
+            }
         }
 
         category.update(categoryRequest.getName(), parent);
 
         return CategoryResponse.from(category);
+    }
+
+    @Override
+    public void deleteCategory(Long id) {
+
+        categoryRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
+                );
+
+        List<Long> result = new ArrayList<>();
+        result.add(id);
+
+        List<Long> currentCategory = List.of(id);
+
+        while (!currentCategory.isEmpty()) {
+            List<Long> childCategory = categoryRepository.findIdsByParentIds(currentCategory);
+
+            if (childCategory.isEmpty()) {
+                break;
+            }
+
+            result.addAll(childCategory);
+            currentCategory = childCategory;
+        }
+
+        // 삭제 대상 카테고리가 누락된 경우 대비
+        if (!result.contains(id)) {
+            result.add(id);
+        }
+
+        if (!result.isEmpty()) {
+            clothesCommandService.clearCategoryFromClothes(result);
+        }
+
+        categoryRepository.softDeleteCategories(result);
     }
 }
