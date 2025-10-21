@@ -53,7 +53,8 @@ public class SecurityConfig {
                                 "/v1/closets/public",
                                 "/v1/sale-posts",
                                 "/v1/sale-posts/{salePostId}",
-                                "/v1/categories").permitAll()
+                                "/v1/categories",
+                                "/ws/**").permitAll()
                         .requestMatchers("/admin/**").hasAuthority(UserRole.Authority.ADMIN)
                         .anyRequest().authenticated() // 다른 요청들은 authentication 필요
                 )

@@ -10,5 +10,5 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
 
     Optional<Chat> findFirstByChatroomAndIsDeletedFalseOrderByCreatedAtDesc(Chatroom chatroom);
 
-    int countByChatroomAndIsDeletedFalseAndIsReadFalse(Chatroom chatroom);
+
 }
