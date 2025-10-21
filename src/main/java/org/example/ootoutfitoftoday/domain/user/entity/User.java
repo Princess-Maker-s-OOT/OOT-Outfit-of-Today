@@ -145,4 +145,29 @@ public class User extends BaseEntity {
         this.chatParticipatingUsers.add(chatParticipatingUser);
         chatroom.getChatParticipatingUsers().add(chatParticipatingUser);
     }
+
+    // 회원정보 업데이트 관련 메서드
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateUsername(String username) {
+        this.username = username;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
+    public void updatePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 }

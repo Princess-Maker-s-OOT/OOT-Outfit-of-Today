@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
-import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
+import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.exception.UserSuccessCode;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
@@ -22,9 +23,9 @@ public class UserController {
 
     // 회원정보 조회
     @GetMapping
-    public ResponseEntity<ApiResponse<UserGetResponse>> getMyInfo(@AuthenticationPrincipal AuthUser authUser) {
+    public ResponseEntity<ApiResponse<GetMyInfoResponse>> getMyInfo(@AuthenticationPrincipal AuthUser authUser) {
 
-        UserGetResponse response = userQueryService.getMyInfo(authUser.getUserId());
+        GetMyInfoResponse response = userQueryService.getMyInfo(authUser.getUserId());
 
         return ApiResponse.success(response, UserSuccessCode.GET_MY_INFO);
     }
@@ -38,5 +39,16 @@ public class UserController {
         userQueryService.verifyPassword(request, authUser);
 
         return ApiResponse.success(null, UserSuccessCode.PASSWORD_VERIFIED);
+    }
+
+    // 회원정보 수정
+    @PatchMapping
+    public ResponseEntity<ApiResponse<GetMyInfoResponse>> updateUserInfo(
+            @RequestBody UserUpdateInfoRequest request,
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+
+        GetMyInfoResponse response = userCommandService.updateMyInfo(request, authUser);
+        return ApiResponse.success(response, UserSuccessCode.UPDATE_MY_INFO);
     }
 }
