@@ -56,7 +56,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
 
         // 이메일
-        if (hasTextNoSpace(request.getEmail())) {
+        if (request.getEmail() != null) {
             if (userQueryService.existsByEmail(request.getEmail()) &&
                     !Objects.equals(user.getEmail(), request.getEmail())) {
                 throw new AuthException(AuthErrorCode.DUPLICATE_EMAIL);
@@ -65,8 +65,8 @@ public class UserCommandServiceImpl implements UserCommandService {
         } else {
         }
 
-        // 닉네임 (띄어쓰기 허용)
-        if (hasTextAllowSpace(request.getNickname())) {
+        // 닉네임 (중간 띄어쓰기 허용, 앞뒤 공백 금지는 DTO에서 검증)
+        if (request.getNickname() != null) {
             if (userQueryService.existsByNickname(request.getNickname()) &&
                     !Objects.equals(user.getNickname(), request.getNickname())) {
                 throw new AuthException(AuthErrorCode.DUPLICATE_NICKNAME);
@@ -76,19 +76,19 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
 
         // 이름
-        if (hasTextNoSpace(request.getUsername())) {
+        if (request.getUsername() != null) {
             user.updateUsername(request.getUsername());
         } else {
         }
 
         // 비밀번호
-        if (hasTextNoSpace(request.getPassword())) {
+        if (request.getPassword() != null) {
             user.updatePassword(passwordEncoder.encode(request.getPassword()));
         } else {
         }
 
         // 전화번호
-        if (hasTextNoSpace(request.getPhoneNumber())) {
+        if (request.getPhoneNumber() != null) {
             if (userQueryService.existsByPhoneNumber(request.getPhoneNumber()) &&
                     !Objects.equals(user.getPhoneNumber(), request.getPhoneNumber())) {
                 throw new AuthException(AuthErrorCode.DUPLICATE_PHONE_NUMBER);
@@ -100,15 +100,5 @@ public class UserCommandServiceImpl implements UserCommandService {
         userRepository.save(user);
 
         return GetMyInfoResponse.from(user);
-    }
-
-    // 공백 비허용(이메일, 이름, 비밀번호, 전화번호용)
-    private boolean hasTextNoSpace(String value) {
-        return value != null && !value.isBlank() && !value.contains(" ");
-    }
-
-    // 중간 띄어쓰기 허용 & 앞뒤 공백 비허용(닉네임용)
-    private boolean hasTextAllowSpace(String value) {
-        return value != null && !value.isBlank() && value.trim().equals(value);
     }
 }

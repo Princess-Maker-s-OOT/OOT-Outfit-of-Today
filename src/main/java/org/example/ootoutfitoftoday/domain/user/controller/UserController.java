@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.domain.user.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
@@ -33,7 +34,7 @@ public class UserController {
     // 회원정보 수정 전 비밀번호 검증
     @PostMapping("/password-verification")
     public ResponseEntity<ApiResponse<Void>> verifyPassword(
-            @RequestBody UserPasswordVerificationRequest request,
+            @Valid @RequestBody UserPasswordVerificationRequest request,
             @AuthenticationPrincipal AuthUser authUser) {
 
         userQueryService.verifyPassword(request, authUser);
@@ -44,7 +45,7 @@ public class UserController {
     // 회원정보 수정
     @PatchMapping
     public ResponseEntity<ApiResponse<GetMyInfoResponse>> updateUserInfo(
-            @RequestBody UserUpdateInfoRequest request,
+            @Valid @RequestBody UserUpdateInfoRequest request,
             @AuthenticationPrincipal AuthUser authUser
     ) {
 
