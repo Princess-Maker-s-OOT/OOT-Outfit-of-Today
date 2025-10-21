@@ -54,6 +54,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        if (requestUri.startsWith("/ws") || requestUri.startsWith("/stomp")) {
+            log.info("STOMP 필터 로그 동작");
+            chain.doFilter(httpRequest, httpResponse);
+            return;
+        }
+
         // GET 요청에서 인증 불필요한 경로
         if ("GET".equalsIgnoreCase(method) &&
                 (requestUri.startsWith("/v1/closets/public") ||

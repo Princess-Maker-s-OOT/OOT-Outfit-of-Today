@@ -19,10 +19,4 @@ public class ChatQueryServiceImpl implements ChatQueryService {
 
         return chatRepository.findFirstByChatroomAndIsDeletedFalseOrderByCreatedAtDesc(chatroom).orElse(null);
     }
-
-    @Override
-    public int getCountNotReadChat(Chatroom chatroom) {
-
-        return chatRepository.countByChatroomAndIsDeletedFalseAndIsReadFalse(chatroom);
-    }
 }

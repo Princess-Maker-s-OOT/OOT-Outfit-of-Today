@@ -6,6 +6,4 @@ import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
 public interface ChatQueryService {
 
     Chat getFinalChat(Chatroom chatroom);
-
-    int getCountNotReadChat(Chatroom chatroom);
 }
