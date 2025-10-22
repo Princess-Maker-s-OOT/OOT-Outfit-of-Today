@@ -11,36 +11,41 @@ public class ChatResponse {
     private final Long chatId;
     private final Long chatroomId;
     private final Long userId;
+    private final String userNickname;
     private final String content;
     private final LocalDateTime createdAt;
 
     @Builder
     private ChatResponse(
-            Long chatId,
             Long chatroomId,
             Long userId,
+            String userNickname,
+            Long chatId,
             String content,
             LocalDateTime createdAt
     ) {
-        this.chatId = chatId;
         this.chatroomId = chatroomId;
         this.userId = userId;
+        this.userNickname = userNickname;
+        this.chatId = chatId;
         this.content = content;
         this.createdAt = createdAt;
     }
 
     public static ChatResponse of(
-            Long chatId,
             Long chatroomId,
             Long userId,
+            String userNickname,
+            Long chatId,
             String content,
             LocalDateTime createdAt
     ) {
 
         return ChatResponse.builder()
-                .chatId(chatId)
                 .chatroomId(chatroomId)
                 .userId(userId)
+                .userNickname(userNickname)
+                .chatId(chatId)
                 .content(content)
                 .createdAt(createdAt)
                 .build();
