@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
 import org.example.ootoutfitoftoday.domain.closet.service.query.ClosetQueryService;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.dto.request.ClosetClothesLinkRequest;
+import org.example.ootoutfitoftoday.domain.closetclotheslink.dto.response.ClosetClothesLinkDeleteResponse;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.dto.response.ClosetClothesLinkResponse;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.exception.ClosetClothesLinkErrorCode;
@@ -25,7 +26,7 @@ public class ClosetClothesLinkCommandServiceImpl implements ClosetClothesLinkCom
     private final ClothesQueryService clothesQueryService;
     private final ClosetClothesLinkRepository closetClothesLinkRepository;
 
-    // 해당 옷장에 옷 등록
+    // 특정 옷장에 옷 등록
     @Override
     public ClosetClothesLinkResponse createClosetClothesLink(
             Long userId,
@@ -51,5 +52,29 @@ public class ClosetClothesLinkCommandServiceImpl implements ClosetClothesLinkCom
         ClosetClothesLink savedLink = closetClothesLinkRepository.save(link);
 
         return ClosetClothesLinkResponse.from(savedLink);
+    }
+
+    // 특정 옷장의 옷 삭제
+    @Override
+    public ClosetClothesLinkDeleteResponse deleteClosetClothesLink(
+            Long userId,
+            Long closetId,
+            Long clothesId
+    ) {
+
+        Closet closet = closetQueryService.findClosetById(closetId);
+
+        if (!Objects.equals(closet.getUserId(), userId)) {
+            throw new ClosetClothesLinkException(ClosetClothesLinkErrorCode.CLOSET_CLOTHES_FORBIDDEN);
+        }
+
+        // 연결 조회 (삭제되지 않은 것만)
+        ClosetClothesLink link = closetClothesLinkRepository
+                .findByClosetIdAndClothesIdAndIsDeletedFalse(closetId, clothesId)
+                .orElseThrow(() -> new ClosetClothesLinkException(ClosetClothesLinkErrorCode.CLOTHES_NOT_LINKED));
+
+        link.softDelete();
+
+        return ClosetClothesLinkDeleteResponse.of(closetId, clothesId);
     }
 }
