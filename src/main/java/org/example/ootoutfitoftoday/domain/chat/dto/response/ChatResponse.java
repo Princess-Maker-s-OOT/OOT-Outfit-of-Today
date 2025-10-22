@@ -8,10 +8,10 @@ import java.time.LocalDateTime;
 @Getter
 public class ChatResponse {
 
-    private final Long chatId;
     private final Long chatroomId;
     private final Long userId;
     private final String userNickname;
+    private final Long chatId;
     private final String content;
     private final LocalDateTime createdAt;
 
