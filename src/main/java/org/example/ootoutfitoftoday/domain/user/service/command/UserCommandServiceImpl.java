@@ -45,7 +45,6 @@ public class UserCommandServiceImpl implements UserCommandService {
         userRepository.bulkSoftDeleteUserRelatedData(user.getId(), now);
 
         user.softDelete();
-        userRepository.save(user);
     }
 
     // 회원정보 수정
