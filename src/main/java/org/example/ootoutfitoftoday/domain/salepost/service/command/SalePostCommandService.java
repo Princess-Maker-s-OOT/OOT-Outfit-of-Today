@@ -4,6 +4,7 @@ import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRe
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
+import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 
 import java.util.List;
 
@@ -22,4 +23,10 @@ public interface SalePostCommandService {
     );
 
     void deleteSalePost(Long salePostId, Long userId);
+
+    SalePostDetailResponse updateSaleStatus(
+            Long salePostId,
+            Long userId,
+            SaleStatus newStatus
+    );
 }

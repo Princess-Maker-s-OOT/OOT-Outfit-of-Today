@@ -36,7 +36,7 @@ public class SalePost extends BaseEntity {
     private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private SaleStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -155,5 +155,9 @@ public class SalePost extends BaseEntity {
     public boolean isOwnedBy(Long userId) {
 
         return this.user != null && Objects.equals(this.user.getId(), userId);
+    }
+
+    public void updateStatus(SaleStatus newStatus) {
+        this.status = newStatus;
     }
 }
