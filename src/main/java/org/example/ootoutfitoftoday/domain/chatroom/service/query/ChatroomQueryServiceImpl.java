@@ -3,11 +3,14 @@ package org.example.ootoutfitoftoday.domain.chatroom.service.query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.chat.entity.Chat;
-import org.example.ootoutfitoftoday.domain.chat.service.query.ChatQueryService;
+import org.example.ootoutfitoftoday.domain.chat.service.query.ChatReferenceToChatroomService;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.query.ChatParticipatingUserQueryService;
 import org.example.ootoutfitoftoday.domain.chatroom.dto.response.ChatroomResponse;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
+import org.example.ootoutfitoftoday.domain.chatroom.exception.ChatroomErrorCode;
+import org.example.ootoutfitoftoday.domain.chatroom.exception.ChatroomException;
+import org.example.ootoutfitoftoday.domain.chatroom.repository.ChatroomRepository;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Pageable;
@@ -27,9 +30,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatroomQueryServiceImpl implements ChatroomQueryService {
 
+    private final ChatroomRepository chatroomRepository;
     private final ChatParticipatingUserQueryService chatParticipatingUserQueryService;
     private final UserQueryService userQueryService;
-    private final ChatQueryService chatQueryService;
+    private final ChatReferenceToChatroomService chatReferenceToChatroomService;
 
     // 채팅방 조회
     @Override
@@ -53,8 +57,7 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
                             .orElse("알 수 없는 사용자");
 
                     // 3. 마지막 채팅과 읽지 않은 채팅 수를 가져옵니다. (N+1 문제 개선 필요)
-                    Chat finalChat = chatQueryService.getFinalChat(chatroom);
-                    int unreadCount = chatQueryService.getCountNotReadChat(chatroom);
+                    Chat finalChat = chatReferenceToChatroomService.getFinalChat(chatroom);
 
                     String finalChatContent = (finalChat != null) ? finalChat.getContent() : null;
                     // 시간 계산 버그 수정
@@ -63,8 +66,7 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
                     return ChatroomResponse.of(
                             otherUsername,
                             finalChatContent,
-                            timeSinceFinalChat,
-                            unreadCount
+                            timeSinceFinalChat
                     );
                 })
                 // 정렬 NPE 버그 수정
@@ -78,5 +80,13 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
         boolean hasNext = end < chatroomResponses.size();
 
         return new SliceImpl<>(subList, pageable, hasNext);
+    }
+
+    @Override
+    public Chatroom getChatroomById(Long chatroomId) {
+
+        return chatroomRepository.findById(chatroomId).orElseThrow(
+                () -> new ChatroomException(ChatroomErrorCode.NOT_EXIST_CHATROOM)
+        );
     }
 }

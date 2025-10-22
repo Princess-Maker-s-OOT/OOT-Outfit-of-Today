@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "closet_clothes_links")
-public class ClosetClothesLink {
+public class ClosetClothesLink extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
