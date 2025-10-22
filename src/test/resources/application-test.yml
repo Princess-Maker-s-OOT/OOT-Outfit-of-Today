@@ -12,6 +12,8 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
+  config:
+    import: optional:file:.env[.properties]
 
   cache:
     type: none  # <- 이 부분 변경(기존: redis)
