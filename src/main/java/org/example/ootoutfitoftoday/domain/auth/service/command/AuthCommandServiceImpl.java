@@ -10,6 +10,9 @@ import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
+import org.example.ootoutfitoftoday.domain.chat.service.command.ChatReferenceToChatroomCommandService;
+import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
+import org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.query.ChatParticipatingUserQueryService;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
@@ -17,6 +20,9 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.example.ootoutfitoftoday.security.jwt.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -26,6 +32,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
+    private final ChatParticipatingUserQueryService chatParticipatingUserQueryService;
+    private final ChatReferenceToChatroomCommandService chatReferenceToChatroomCommandService;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
@@ -114,6 +122,20 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
         }
+
+        List<ChatParticipatingUser> chatParticipatingUsers = chatParticipatingUserQueryService.getChatParticipatingUsers(user);
+        
+        chatParticipatingUsers
+                .forEach(chatParticipatingUser1 -> {
+                    List<ChatParticipatingUser> usersInChatroom = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatParticipatingUser1.getChatroom());
+                    usersInChatroom
+                            .forEach(chatParticipatingUser2 -> {
+                                if (!Objects.equals(chatParticipatingUser2.getUser(), user) &&
+                                        chatParticipatingUser2.isDeleted()) {
+                                    chatReferenceToChatroomCommandService.deleteChats(chatParticipatingUser2.getChatroom().getId());
+                                }
+                            });
+                });
 
         userCommandService.softDeleteUser(user);
     }

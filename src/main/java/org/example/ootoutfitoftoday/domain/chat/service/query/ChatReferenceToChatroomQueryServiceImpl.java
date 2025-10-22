@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class ChatReferenceToChatroomServiceImpl implements ChatReferenceToChatroomService {
+public class ChatReferenceToChatroomQueryServiceImpl implements ChatReferenceToChatroomQueryService {
 
     private final ChatRepository chatRepository;
 

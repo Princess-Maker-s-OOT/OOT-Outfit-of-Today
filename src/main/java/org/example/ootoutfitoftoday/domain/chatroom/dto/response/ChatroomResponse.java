@@ -10,7 +10,7 @@ import java.time.Duration;
 public class ChatroomResponse {
 
     //    - 상대방 이름 : user.getNickname();
-    private final String otherUsername;
+    private final String otherUserNickname;
     //    - 마지막 채팅 : chat.getContent()
     private final String finalChat;
     //    - 현재 시간 - 마지막 채팅 시간 : LocalDateTime.now() - chat.getCreatedAt() : 정렬의 기준
@@ -18,23 +18,23 @@ public class ChatroomResponse {
 
     @Builder(access = AccessLevel.PROTECTED)
     private ChatroomResponse(
-            String otherUsername,
+            String otherUserNickname,
             String finalChat,
             Duration afterFinalChatTime
     ) {
-        this.otherUsername = otherUsername;
+        this.otherUserNickname = otherUserNickname;
         this.finalChat = finalChat;
         this.afterFinalChatTime = afterFinalChatTime;
     }
 
     public static ChatroomResponse of(
-            String otherUsername,
+            String otherUserNickname,
             String finalChat,
             Duration afterFinalChatTime
     ) {
 
         return ChatroomResponse.builder()
-                .otherUsername(otherUsername)
+                .otherUserNickname(otherUserNickname)
                 .finalChat(finalChat)
                 .afterFinalChatTime(afterFinalChatTime)
                 .build();
