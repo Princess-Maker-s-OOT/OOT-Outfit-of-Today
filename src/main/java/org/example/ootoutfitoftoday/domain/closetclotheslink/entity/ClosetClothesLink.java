@@ -9,8 +9,6 @@ import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -29,12 +27,6 @@ public class ClosetClothesLink extends BaseEntity {
     @JoinColumn(name = "clothes_id", nullable = false)
     private Clothes clothes;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
-    @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted;
-
     @Builder(access = AccessLevel.PROTECTED)
     private ClosetClothesLink(
             Closet closet,
@@ -42,8 +34,6 @@ public class ClosetClothesLink extends BaseEntity {
     ) {
         this.closet = closet;
         this.clothes = clothes;
-        deletedAt = null;
-        isDeleted = false;
     }
 
     public static ClosetClothesLink create(
@@ -55,10 +45,5 @@ public class ClosetClothesLink extends BaseEntity {
                 .closet(closet)
                 .clothes(clothes)
                 .build();
-    }
-
-    public void softDelete() {
-        this.isDeleted = true;
-        this.deletedAt = LocalDateTime.now();
     }
 }
