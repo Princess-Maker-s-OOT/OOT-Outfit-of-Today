@@ -48,7 +48,7 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
                     Chatroom chatroom = participation.getChatroom();
 
                     // 2. 채팅방의 다른 참여자 정보를 가져옵니다. (N+1 문제 개선 필요)
-                    String otherUsername = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatroom)
+                    String otherUserNickname = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatroom)
                             .stream()
                             .map(ChatParticipatingUser::getUser)
                             .filter(u -> !u.getId().equals(userId))
@@ -64,7 +64,7 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
                     Duration timeSinceFinalChat = (finalChat != null) ? Duration.between(finalChat.getCreatedAt(), LocalDateTime.now()) : null;
 
                     return ChatroomResponse.of(
-                            otherUsername,
+                            otherUserNickname,
                             finalChatContent,
                             timeSinceFinalChat
                     );
