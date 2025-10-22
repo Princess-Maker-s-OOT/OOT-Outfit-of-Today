@@ -19,7 +19,7 @@ public class S3ConnectionTest {
 
     @Test
     void s3BucketObjectsTest() {
-        // dotenv 관련 로직 제거 → application-test.yml에서 환경 변수 주입
+
         ListObjectsV2Request request = ListObjectsV2Request.builder()
                 .bucket(BUCKET_NAME)
                 .maxKeys(10)
