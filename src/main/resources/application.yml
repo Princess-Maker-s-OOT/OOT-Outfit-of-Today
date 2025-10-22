@@ -14,18 +14,28 @@ spring:
         format_sql: true
   jackson:
     default-property-inclusion: non_null
+  config:
+    import: optional:file:.env[.properties]
 
 logging:
   level:
     root: info
     org.example: info
 
-# API
 server:
   servlet:
     context-path: /api
 
-# JWT
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
+
+cloud:
+  aws:
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+    region:
+      static: ${AWS_REGION}
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}

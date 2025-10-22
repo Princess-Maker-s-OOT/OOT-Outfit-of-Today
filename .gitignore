@@ -35,3 +35,12 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### .env ###
+.env
+*.env/
+
+### QueryDSL ###
+**/Q*.java
+build/
+out/
