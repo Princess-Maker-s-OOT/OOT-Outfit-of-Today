@@ -68,7 +68,7 @@ public class SalePostController {
         return ApiResponse.success(salePosts, SalePostSuccessCode.SALE_POST_RETRIEVED);
     }
 
-    @PutMapping("{salePostId}")
+    @PutMapping("/{salePostId}")
     public ResponseEntity<ApiResponse<SalePostDetailResponse>> updateSalePost(
             @PathVariable Long salePostId,
             @AuthenticationPrincipal AuthUser authUser,
@@ -81,5 +81,15 @@ public class SalePostController {
         );
 
         return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_UPDATED);
+    }
+
+    @DeleteMapping("/{salePostId}")
+    public ResponseEntity<ApiResponse<Void>> deleteSalePost(
+            @PathVariable Long salePostId,
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+        salePostCommandService.deleteSalePost(salePostId, authUser.getUserId());
+
+        return ApiResponse.success(null,  SalePostSuccessCode.SALE_POST_DELETED);
     }
 }
