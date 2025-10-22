@@ -28,8 +28,8 @@ public class ChatQueryServiceImpl implements ChatQueryService {
 
         return chats.map(chat -> ChatResponse.of(
                 chat.getChatroom().getId(),
-                chat.getUser().getId(),
-                chat.getUser().getNickname(),
+                (chat.getUser().getId() != null) ? chat.getUser().getId() : null,
+                (chat.getUser().getNickname() != null) ? chat.getUser().getNickname() : null,
                 chat.getId(),
                 chat.getContent(),
                 chat.getCreatedAt()
