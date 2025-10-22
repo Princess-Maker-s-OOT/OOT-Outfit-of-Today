@@ -6,6 +6,7 @@ import org.example.ootoutfitoftoday.common.response.ApiPageResponse;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.dto.request.ClosetClothesLinkRequest;
+import org.example.ootoutfitoftoday.domain.closetclotheslink.dto.response.ClosetClothesLinkDeleteResponse;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.dto.response.ClosetClothesLinkGetResponse;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.dto.response.ClosetClothesLinkResponse;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.exception.ClosetClothesLinkSuccessCode;
@@ -68,6 +69,7 @@ public class ClosetClothesLinkController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
+
         Page<ClosetClothesLinkGetResponse> closetClothesLinkGetResponses = closetClothesLinkQueryService.getClothesInCloset(
                 authUser.getUserId(),
                 closetId,
@@ -78,5 +80,22 @@ public class ClosetClothesLinkController {
         );
 
         return ApiPageResponse.success(closetClothesLinkGetResponses, ClosetClothesLinkSuccessCode.CLOSET_CLOTHES_LIST_OK);
+    }
+
+    // 옷장에서 옷 삭제
+    @DeleteMapping("/{clothesId}")
+    public ResponseEntity<ApiResponse<ClosetClothesLinkDeleteResponse>> deleteClosetClothesLink(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long closetId,
+            @PathVariable Long clothesId
+    ) {
+
+        ClosetClothesLinkDeleteResponse closetClothesLinkDeleteResponse = closetClothesLinkCommandService.deleteClosetClothesLink(
+                authUser.getUserId(),
+                closetId,
+                clothesId
+        );
+
+        return ApiResponse.success(closetClothesLinkDeleteResponse, ClosetClothesLinkSuccessCode.CLOSET_CLOTHES_DELETED);
     }
 }
