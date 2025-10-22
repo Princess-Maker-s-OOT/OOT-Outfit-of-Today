@@ -39,3 +39,8 @@ out/
 ### .env ###
 .env
 *.env/
+
+### QueryDSL ###
+**/Q*.java
+build/
+out/
