@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.command;
 
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.chat.service.command.ChatCommandService;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.repository.ChatParticipatingUserRepository;
@@ -10,12 +11,16 @@ import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Objects;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class ChatParticipatingUserCommandServiceImpl implements ChatParticipatingUserCommandService {
 
     private final ChatParticipatingUserRepository chatParticipatingUserRepository;
+    private final ChatCommandService chatCommandService;
 
     /**
      * 복합 키 생성 및 저장
@@ -39,9 +44,21 @@ public class ChatParticipatingUserCommandServiceImpl implements ChatParticipatin
         // 전체 저장
         chatParticipatingUserRepository.saveAll(java.util.List.of(buyerParticipation, sellerParticipation));
     }
-    
+
     @Override
     public void softDeleteChatParticipatingUser(ChatParticipatingUser chatParticipatingUser) {
         chatParticipatingUser.softDelete();
+
+        List<ChatParticipatingUser> chatParticipatingUsers = chatParticipatingUserRepository.findAllByChatroom(chatParticipatingUser.getChatroom());
+
+        // 채팅방 내 다른 유저의 채팅방 소프트 딜리트가 true일 시 채팅방 내 채팅 일괄 삭제
+        chatParticipatingUsers
+                .forEach(chatParticipatingUser1 -> {
+                    if (!Objects.equals(chatParticipatingUser1.getUser().getId(), chatParticipatingUser.getUser().getId()) &&
+                            chatParticipatingUser1.isDeleted()
+                    ) {
+                        chatCommandService.deleteChats(chatParticipatingUser1.getChatroom().getId());
+                    }
+                });
     }
 }
