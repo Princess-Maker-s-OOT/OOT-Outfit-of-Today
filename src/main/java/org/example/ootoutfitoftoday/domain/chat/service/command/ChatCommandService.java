@@ -6,4 +6,6 @@ import org.example.ootoutfitoftoday.domain.chat.dto.response.ChatResponse;
 public interface ChatCommandService {
 
     ChatResponse createChat(ChatRequest chatRequest, Long chatroomId, Long userId);
+
+    void deleteChats(Long chatroomId);
 }

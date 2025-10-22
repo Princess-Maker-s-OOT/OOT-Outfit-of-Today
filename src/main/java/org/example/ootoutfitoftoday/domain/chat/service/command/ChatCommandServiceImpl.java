@@ -12,6 +12,8 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -34,11 +36,18 @@ public class ChatCommandServiceImpl implements ChatCommandService {
         Chat savedChat = chatRepository.save(chat);
 
         return ChatResponse.of(
-                savedChat.getId(),
                 savedChat.getChatroom().getId(),
                 savedChat.getUser().getId(),
+                savedChat.getUser().getNickname(),
+                savedChat.getId(),
                 savedChat.getContent(),
                 savedChat.getCreatedAt()
         );
+    }
+
+
+    @Override
+    public void deleteChats(Long chatroomId) {
+        chatRepository.bulkSoftDeleteChatData(chatroomId, LocalDateTime.now());
     }
 }
