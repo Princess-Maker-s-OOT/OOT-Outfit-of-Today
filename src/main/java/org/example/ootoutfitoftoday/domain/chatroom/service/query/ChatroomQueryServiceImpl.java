@@ -3,7 +3,7 @@ package org.example.ootoutfitoftoday.domain.chatroom.service.query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.chat.entity.Chat;
-import org.example.ootoutfitoftoday.domain.chat.service.query.ChatReferenceToChatroomService;
+import org.example.ootoutfitoftoday.domain.chat.service.query.ChatReferenceToChatroomQueryService;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.query.ChatParticipatingUserQueryService;
 import org.example.ootoutfitoftoday.domain.chatroom.dto.response.ChatroomResponse;
@@ -33,7 +33,7 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
     private final ChatroomRepository chatroomRepository;
     private final ChatParticipatingUserQueryService chatParticipatingUserQueryService;
     private final UserQueryService userQueryService;
-    private final ChatReferenceToChatroomService chatReferenceToChatroomService;
+    private final ChatReferenceToChatroomQueryService chatReferenceToChatroomQueryService;
 
     // 채팅방 조회
     @Override
@@ -48,7 +48,7 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
                     Chatroom chatroom = participation.getChatroom();
 
                     // 2. 채팅방의 다른 참여자 정보를 가져옵니다. (N+1 문제 개선 필요)
-                    String otherUsername = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatroom)
+                    String otherUserNickname = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatroom)
                             .stream()
                             .map(ChatParticipatingUser::getUser)
                             .filter(u -> !u.getId().equals(userId))
@@ -57,14 +57,14 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
                             .orElse("알 수 없는 사용자");
 
                     // 3. 마지막 채팅과 읽지 않은 채팅 수를 가져옵니다. (N+1 문제 개선 필요)
-                    Chat finalChat = chatReferenceToChatroomService.getFinalChat(chatroom);
+                    Chat finalChat = chatReferenceToChatroomQueryService.getFinalChat(chatroom);
 
                     String finalChatContent = (finalChat != null) ? finalChat.getContent() : null;
                     // 시간 계산 버그 수정
                     Duration timeSinceFinalChat = (finalChat != null) ? Duration.between(finalChat.getCreatedAt(), LocalDateTime.now()) : null;
 
                     return ChatroomResponse.of(
-                            otherUsername,
+                            otherUserNickname,
                             finalChatContent,
                             timeSinceFinalChat
                     );
