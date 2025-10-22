@@ -1,6 +1,6 @@
 package org.example.ootoutfitoftoday.common.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -11,14 +11,26 @@ import software.amazon.awssdk.services.s3.S3Client;
 @Configuration
 public class S3Config {
 
-    @Value("${cloud.aws.region.static}")
-    private String region;
+    private final String region;
+    private final String accessKey;
+    private final String secretKey;
 
-    @Value("${cloud.aws.credentials.access-key}")
-    private String accessKey;
+    public S3Config() {
+        // .env 파일 로드
+        Dotenv dotenv = Dotenv.configure()
+                .directory("./") // .env가 프로젝트 루트에 있을 경우
+                .filename(".env")
+                .load();
 
-    @Value("${cloud.aws.credentials.secret-key}")
-    private String secretKey;
+        this.region = dotenv.get("AWS_REGION").trim();
+        this.accessKey = dotenv.get("AWS_ACCESS_KEY_ID").trim();
+        this.secretKey = dotenv.get("AWS_SECRET_ACCESS_KEY").trim();
+
+        // AWS SDK에서 읽도록 시스템 프로퍼티 세팅
+        System.setProperty("aws.region", this.region);
+        System.setProperty("aws.accessKeyId", this.accessKey);
+        System.setProperty("aws.secretAccessKey", this.secretKey);
+    }
 
     @Bean
     public S3Client s3Client() {
