@@ -16,6 +16,7 @@ public class ChatReferenceToChatroomCommandServiceImpl implements ChatReferenceT
 
     @Override
     public void deleteChats(Long chatroomId) {
+
         chatRepository.bulkSoftDeleteChatData(chatroomId, LocalDateTime.now());
     }
 }
