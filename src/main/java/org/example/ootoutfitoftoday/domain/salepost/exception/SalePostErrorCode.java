@@ -17,7 +17,8 @@ public enum SalePostErrorCode implements ErrorCode {
 
     // === 비즈니스 검증 (서비스 레이어) ===
     SALE_POST_NOT_FOUND("SALE_POST_NOT_FOUND", HttpStatus.NOT_FOUND, "판매글을 찾을 수 없습니다."),
-    UNAUTHORIZED_ACCESS("UNAUTHORIZED_ACCESS", HttpStatus.FORBIDDEN, "해당 판매글에 대한 권한이 없습니다.");
+    UNAUTHORIZED_ACCESS("UNAUTHORIZED_ACCESS", HttpStatus.FORBIDDEN, "해당 판매글에 대한 권한이 없습니다."),
+    CANNOT_DELETE_RESERVED_POST("CANNOT_DELETE_RESERVED_POST", HttpStatus.BAD_REQUEST, "예약 중인 판매글은 삭제할 수 없습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
