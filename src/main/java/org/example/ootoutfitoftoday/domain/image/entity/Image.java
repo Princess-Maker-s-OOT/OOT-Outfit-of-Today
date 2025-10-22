@@ -34,7 +34,13 @@ public class Image extends BaseEntity {
     private ImageType type;
 
     @Builder(access = AccessLevel.PROTECTED)
-    public Image(String url, String fileName, String contentType, Long size, ImageType type) {
+    public Image(
+            String url,
+            String fileName,
+            String contentType,
+            Long size,
+            ImageType type
+    ) {
         this.url = url;
         this.fileName = fileName;
         this.contentType = contentType;
