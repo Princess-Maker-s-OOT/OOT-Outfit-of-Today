@@ -73,6 +73,10 @@ dependencies {
     // WebSocket
     implementation 'org.springframework.security:spring-security-messaging'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // AWS SDK for Java v2 (S3)
+    implementation 'software.amazon.awssdk:s3:2.35.10'
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 }
 
 tasks.named('test') {
