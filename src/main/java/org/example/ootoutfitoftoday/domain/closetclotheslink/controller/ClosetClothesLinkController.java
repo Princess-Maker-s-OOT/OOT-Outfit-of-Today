@@ -69,6 +69,7 @@ public class ClosetClothesLinkController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
+
         Page<ClosetClothesLinkGetResponse> closetClothesLinkGetResponses = closetClothesLinkQueryService.getClothesInCloset(
                 authUser.getUserId(),
                 closetId,
@@ -88,6 +89,7 @@ public class ClosetClothesLinkController {
             @PathVariable Long closetId,
             @PathVariable Long clothesId
     ) {
+
         ClosetClothesLinkDeleteResponse closetClothesLinkDeleteResponse = closetClothesLinkCommandService.deleteClosetClothesLink(
                 authUser.getUserId(),
                 closetId,
