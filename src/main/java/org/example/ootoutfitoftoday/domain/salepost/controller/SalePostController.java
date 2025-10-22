@@ -6,6 +6,7 @@ import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
+import org.example.ootoutfitoftoday.domain.salepost.dto.request.SaleStatusUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
@@ -91,5 +92,20 @@ public class SalePostController {
         salePostCommandService.deleteSalePost(salePostId, authUser.getUserId());
 
         return ApiResponse.success(null,  SalePostSuccessCode.SALE_POST_DELETED);
+    }
+
+    @PatchMapping("/{salePostId}/status")
+    public ResponseEntity<ApiResponse<SalePostDetailResponse>> updateSaleStatus(
+            @PathVariable Long salePostId,
+            @AuthenticationPrincipal AuthUser authUser,
+            @Valid @RequestBody SaleStatusUpdateRequest request
+    ) {
+        SalePostDetailResponse response = salePostCommandService.updateSaleStatus(
+                salePostId,
+                authUser.getUserId(),
+                request.getStatus()
+        );
+
+        return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_STATUS_UPDATED);
     }
 }
