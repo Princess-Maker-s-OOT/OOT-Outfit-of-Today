@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -78,5 +80,23 @@ public class UserQueryServiceImpl implements UserQueryService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
         }
+    }
+
+    @Override
+    public int countAllUsers() {
+
+        return userRepository.countAllUsers();
+    }
+
+    @Override
+    public int countByIsDeleted(Boolean isDeleted) {
+
+        return userRepository.countByIsDeleted(isDeleted);
+    }
+
+    @Override
+    public int countUsersRegisteredSince(LocalDateTime start, LocalDateTime end) {
+
+        return userRepository.countUsersRegisteredSince(start, end);
     }
 }

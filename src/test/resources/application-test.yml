@@ -2,8 +2,8 @@ spring:
   datasource:
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
+    username: ${USER_NAME:sa}
+    password: ${PASSWORD:}
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -12,10 +12,22 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
+  config:
+    import: optional:file:.env[.properties]
 
   cache:
     type: none  # <- 이 부분 변경(기존: redis)
 
 jwt:
   secret:
-    key: VGhpc0lzQUR1bW15S2V5Rm9yVGVzdGluZ1BsdXNQcm9qZWN0RG9Ob3RVc2VJblByb2R1Y3Rpb24xMjMh
+    key: JUeuMQYOTYa1zq2TSHmzZz5BnHf8hHQnkGeT9aRuAAr05a32bspdCHH8B+3sNcfOV5tYe5yfyypgF9lWV68zEA==
+
+cloud:
+  aws:
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+    region:
+      static: ${AWS_REGION}
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}

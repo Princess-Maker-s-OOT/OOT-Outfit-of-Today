@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Service
@@ -39,7 +40,12 @@ public class UserCommandServiceImpl implements UserCommandService {
             throw new UserException(UserErrorCode.USER_ALREADY_WITHDRAWN);
         }
 
+        LocalDateTime now = LocalDateTime.now();
+
+        userRepository.bulkSoftDeleteUserRelatedData(user.getId(), now);
+
         user.softDelete();
+
         userRepository.save(user);
     }
 
