@@ -27,9 +27,10 @@ public class ChatQueryServiceImpl implements ChatQueryService {
         Slice<Chat> chats = chatRepository.findByChatroomAndIsDeletedFalseOrderByCreatedAtDesc(chatroom, pageable);
 
         return chats.map(chat -> ChatResponse.of(
-                chat.getId(),
                 chat.getChatroom().getId(),
                 chat.getUser().getId(),
+                chat.getUser().getNickname(),
+                chat.getId(),
                 chat.getContent(),
                 chat.getCreatedAt()
         ));
