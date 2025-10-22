@@ -83,4 +83,17 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         return SalePostDetailResponse.from(saved);
     }
+
+    @Override
+    public void deleteSalePost(Long salePostId, Long userId) {
+
+        SalePost  salePost = salePostQueryService.findSalePostById(salePostId);
+
+        if (!salePost.isOwnedBy(userId)) {
+            log.warn("Unauthorized delete attempt to salePostId: {} by userId: {}", salePostId, userId);
+            throw new SalePostException(SalePostErrorCode.UNAUTHORIZED_ACCESS);
+        }
+
+        salePost.softDelete();
+    }
 }

@@ -25,6 +25,7 @@ public class BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
+    @Column(name = "deleted_at", nullable = true)
     private LocalDateTime deletedAt;
 
     public void softDelete() {
