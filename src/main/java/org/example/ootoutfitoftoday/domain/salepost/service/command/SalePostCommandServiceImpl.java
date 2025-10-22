@@ -9,6 +9,7 @@ import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRe
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
+import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
@@ -87,7 +88,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
     @Override
     public void deleteSalePost(Long salePostId, Long userId) {
 
-        SalePost  salePost = salePostQueryService.findSalePostById(salePostId);
+        SalePost salePost = salePostQueryService.findSalePostById(salePostId);
 
         if (!salePost.isOwnedBy(userId)) {
             log.warn("Unauthorized delete attempt to salePostId: {} by userId: {}", salePostId, userId);
@@ -95,5 +96,25 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         }
 
         salePost.softDelete();
+    }
+
+    @Override
+    public SalePostDetailResponse updateSaleStatus(
+            Long salePostId,
+            Long userId,
+            SaleStatus newStatus
+    ) {
+        SalePost salePost = salePostRepository.findByIdWithDetailsAndNotDeleted(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
+
+        if (!salePost.isOwnedBy(userId)) {
+            log.warn("Unauthorized status update attempt - salePostId: {} by userId: {}, requestedStatus: {}",
+                    salePostId, userId, newStatus);
+            throw new SalePostException(SalePostErrorCode.UNAUTHORIZED_ACCESS);
+        }
+
+        salePost.updateStatus(newStatus);
+
+        return SalePostDetailResponse.from(salePost);
     }
 }

@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePostImage;
+import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,7 +19,7 @@ public class SalePostDetailResponse {
     private final String title;
     private final String content;
     private final BigDecimal price;
-    private final String status;
+    private final SaleStatus status;
 
     // 판매자 정보
     private final Long sellerId;
@@ -42,7 +43,7 @@ public class SalePostDetailResponse {
                 .title(salePost.getTitle())
                 .content(salePost.getContent())
                 .price(salePost.getPrice())
-                .status(salePost.getStatus().name())
+                .status(salePost.getStatus())
                 .sellerId(salePost.getUser().getId())
                 .sellerNickname(salePost.getUser().getNickname())
                 .sellerImageUrl(salePost.getUser().getImageUrl())
