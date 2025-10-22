@@ -1,0 +1,41 @@
+package org.example.ootoutfitoftoday.common.config;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+
+@ActiveProfiles("test")
+@SpringBootTest(classes = {S3Config.class})
+@ExtendWith(SpringExtension.class)
+public class S3ConnectionTest {
+
+    private static final String BUCKET_NAME = "oot-dev-image";
+
+    @Autowired
+    private S3Client s3Client;
+
+    @Test
+    void s3BucketObjectsTest() {
+        // 버킷 내 최대 10개 객체 가져오기
+        ListObjectsV2Request request = ListObjectsV2Request.builder()
+                .bucket(BUCKET_NAME)
+                .maxKeys(10)
+                .build();
+
+        ListObjectsV2Response response = s3Client.listObjectsV2(request);
+
+        if (response.contents().isEmpty()) {
+            System.out.println("⚠️ 버킷이 비어있습니다.");
+        } else {
+            response.contents().forEach(obj ->
+                    System.out.println("✅ Object: " + obj.key())
+            );
+        }
+    }
+}
