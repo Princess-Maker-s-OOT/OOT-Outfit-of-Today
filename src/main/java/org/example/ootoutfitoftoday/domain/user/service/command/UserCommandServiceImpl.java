@@ -43,6 +43,10 @@ public class UserCommandServiceImpl implements UserCommandService {
         LocalDateTime now = LocalDateTime.now();
 
         userRepository.bulkSoftDeleteUserRelatedData(user.getId(), now);
+
+        user.softDelete();
+
+        userRepository.save(user);
     }
 
     // 회원정보 수정

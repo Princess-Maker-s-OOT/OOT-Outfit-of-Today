@@ -8,7 +8,6 @@ import org.example.ootoutfitoftoday.domain.closet.entity.QCloset;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.QClosetClothesLink;
 import org.example.ootoutfitoftoday.domain.clothes.entity.QClothes;
 import org.example.ootoutfitoftoday.domain.salepost.entity.QSalePost;
-import org.example.ootoutfitoftoday.domain.user.entity.QUser;
 
 import java.time.LocalDateTime;
 
@@ -21,19 +20,11 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     @Override
     public void bulkSoftDeleteUserRelatedData(Long id, LocalDateTime deletedAt) {
 
-        QUser user = QUser.user;
         QClothes clothes = QClothes.clothes;
         QCloset closet = QCloset.closet;
         QClosetClothesLink closetClothesLink = QClosetClothesLink.closetClothesLink;
         QSalePost salePost = QSalePost.salePost;
         QChatParticipatingUser chatParticipatingUser = QChatParticipatingUser.chatParticipatingUser;
-
-        // User 삭제
-        queryFactory.update(user)
-                .set(user.isDeleted, true)
-                .set(user.deletedAt, deletedAt)
-                .where(user.id.eq(id), user.isDeleted.eq(false))
-                .execute();
 
         // Clothes 일괄 논리적 삭제
         queryFactory.update(clothes)
