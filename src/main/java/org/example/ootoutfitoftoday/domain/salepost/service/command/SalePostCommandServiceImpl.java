@@ -95,6 +95,12 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
             throw new SalePostException(SalePostErrorCode.UNAUTHORIZED_ACCESS);
         }
 
+        if (salePost.getStatus() == SaleStatus.RESERVED) {
+            log.warn("Cannot delete reserved sale post - salePostId: {}, status: {}",
+                    salePostId, salePost.getStatus());
+            throw new SalePostException(SalePostErrorCode.CANNOT_DELETE_RESERVED_POST);
+        }
+
         salePost.softDelete();
     }
 
