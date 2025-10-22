@@ -6,7 +6,6 @@ import org.example.ootoutfitoftoday.domain.chat.dto.response.ChatResponse;
 import org.example.ootoutfitoftoday.domain.chat.entity.Chat;
 import org.example.ootoutfitoftoday.domain.chat.repository.ChatRepository;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
-import org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.command.ChatParticipatingUserCommandService;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.query.ChatParticipatingUserQueryService;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
 import org.example.ootoutfitoftoday.domain.chatroom.service.query.ChatroomQueryService;
@@ -28,7 +27,6 @@ public class ChatCommandServiceImpl implements ChatCommandService {
     private final ChatroomQueryService chatroomQueryService;
     private final UserQueryService userQueryService;
     private final ChatParticipatingUserQueryService chatParticipatingUserQueryService;
-    private final ChatParticipatingUserCommandService chatParticipatingUserCommandService;
 
     @Override
     public ChatResponse createChat(ChatRequest chatRequest, Long chatroomId, Long userId) {

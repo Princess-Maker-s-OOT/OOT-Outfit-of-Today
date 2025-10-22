@@ -1,7 +1,7 @@
 package org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.command;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.domain.chat.service.command.ChatCommandService;
+import org.example.ootoutfitoftoday.domain.chat.service.command.ChatReferenceToChatroomCommandService;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.repository.ChatParticipatingUserRepository;
@@ -20,7 +20,7 @@ import java.util.Objects;
 public class ChatParticipatingUserCommandServiceImpl implements ChatParticipatingUserCommandService {
 
     private final ChatParticipatingUserRepository chatParticipatingUserRepository;
-    private final ChatCommandService chatCommandService;
+    private final ChatReferenceToChatroomCommandService chatReferenceToChatroomCommandService;
 
     /**
      * 복합 키 생성 및 저장
@@ -57,7 +57,7 @@ public class ChatParticipatingUserCommandServiceImpl implements ChatParticipatin
                     if (!Objects.equals(chatParticipatingUser1.getUser().getId(), chatParticipatingUser.getUser().getId()) &&
                             chatParticipatingUser1.isDeleted()
                     ) {
-                        chatCommandService.deleteChats(chatParticipatingUser1.getChatroom().getId());
+                        chatReferenceToChatroomCommandService.deleteChats(chatParticipatingUser1.getChatroom().getId());
                     }
                 });
     }
