@@ -20,4 +20,6 @@ public interface SalePostCommandService {
             Long userId,
             SalePostUpdateRequest request
     );
+
+    void deleteSalePost(Long salePostId, Long userId);
 }
