@@ -30,7 +30,7 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/clothes/statistics")
-    public ResponseEntity<ApiResponse<AdminClothesStatisticsResponse>> adminUserStatistics() {
+    public ResponseEntity<ApiResponse<AdminClothesStatisticsResponse>> adminClothesStatistics() {
 
         return ApiResponse.success(adminDashboardQueryService.adminClothesStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_CLOTHES_STATISTICS_OK);
     }
