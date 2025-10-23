@@ -21,4 +21,7 @@ public interface ClothesRepository extends JpaRepository<Clothes, Long>, CustomC
             WHERE c.category.id IN :categoryIds
             """)
     void clearCategoryFromClothes(@Param("categoryIds") List<Long> categoryIds);
+
+    // 삭제되지 않은 옷 카운터
+    int countAllClothesByIsDeletedFalse();
 }
