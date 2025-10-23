@@ -3,6 +3,7 @@ package org.example.ootoutfitoftoday.domain.salepost.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
+import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,7 +16,7 @@ public class SalePostListResponse {
     private final Long salePostId;
     private final String title;
     private final BigDecimal price;
-    private final String status;
+    private final SaleStatus status;
 
     // 썸네일 (첫 번째 이미지)
     private final String thumbnailUrl;
@@ -34,7 +35,7 @@ public class SalePostListResponse {
                 .salePostId(salePost.getId())
                 .title(salePost.getTitle())
                 .price(salePost.getPrice())
-                .status(salePost.getStatus().name())
+                .status(salePost.getStatus())
                 .thumbnailUrl(salePost.getImages().isEmpty()
                         ? null
                         : salePost.getImages().get(0).getImageUrl())
