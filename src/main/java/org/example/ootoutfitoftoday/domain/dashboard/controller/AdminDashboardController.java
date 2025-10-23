@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminClothesStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminSalePostStatisticsResponse;
+import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminTopCategoryStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminUserStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.exception.DashboardSuccessCode;
 import org.example.ootoutfitoftoday.domain.dashboard.service.query.admin.AdminDashboardQueryService;
@@ -42,5 +43,11 @@ public class AdminDashboardController {
     ) {
 
         return ApiResponse.success(adminDashboardQueryService.adminSalePostStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_SALE_POST_STATISTICS_OK);
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<ApiResponse<AdminTopCategoryStatisticsResponse>> adminTopCategoryStatistics() {
+
+        return ApiResponse.success(adminDashboardQueryService.adminTopCategoryStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_TOP10_CATEGORY_STATISTICS_OK);
     }
 }
