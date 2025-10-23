@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class AdminClothesStatisticsResponse {
 
-    private final int totalClothes;
+    private final long totalClothes;
     private final List<CategoryStat> categoryStats;
     private final List<CountClothesColor> colorStats;
     private final List<CountClothesSize> sizeStats;
