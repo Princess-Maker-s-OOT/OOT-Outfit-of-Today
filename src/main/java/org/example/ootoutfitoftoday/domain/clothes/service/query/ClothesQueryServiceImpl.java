@@ -96,4 +96,10 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
 
         return clothesRepository.clothesSizesCount();
     }
+
+    @Override
+    public List<CategoryStat> findTopCategoryStats() {
+
+        return clothesRepository.findTopCategoryStats();
+    }
 }

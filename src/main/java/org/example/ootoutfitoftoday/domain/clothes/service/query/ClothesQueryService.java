@@ -38,4 +38,7 @@ public interface ClothesQueryService {
 
     // 사이즈 기준 옷 통계
     List<ClothesSizeCount> clothesSizesCount();
+
+    // 카테고리 인기 순위
+    List<CategoryStat> findTopCategoryStats();
 }

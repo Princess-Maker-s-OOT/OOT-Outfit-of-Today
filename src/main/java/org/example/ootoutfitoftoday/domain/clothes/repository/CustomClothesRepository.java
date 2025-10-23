@@ -31,4 +31,6 @@ public interface CustomClothesRepository {
 
     // 사이즈 기준 옷 통계
     List<ClothesSizeCount> clothesSizesCount();
+
+    List<CategoryStat> findTopCategoryStats();
 }

@@ -7,6 +7,7 @@ import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount
 import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminClothesStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminSalePostStatisticsResponse;
+import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminTopCategoryStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminUserStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.NewSalePost;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SaleStatusCount;
@@ -127,5 +128,11 @@ public class AdminDashboardQueryServiceImpl implements AdminDashboardQueryServic
                 orderBySaleStatus,
                 newSalePost
         );
+    }
+
+    @Override
+    public AdminTopCategoryStatisticsResponse adminTopCategoryStatistics() {
+
+        return new AdminTopCategoryStatisticsResponse(clothesQueryService.findTopCategoryStats());
     }
 }

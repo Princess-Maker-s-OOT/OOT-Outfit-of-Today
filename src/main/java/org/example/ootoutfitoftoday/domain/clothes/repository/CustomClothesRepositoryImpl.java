@@ -24,6 +24,8 @@ import java.util.List;
 public class CustomClothesRepositoryImpl implements CustomClothesRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
+    private final QClothes clothes = QClothes.clothes;
+    private final QCategory category = QCategory.category;
 
     /**
      * 옷 리스트 조회 쿼리
@@ -48,8 +50,6 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
             String sort,
             String direction
     ) {
-        // QueryDSL 에서 사용되는 객체 생성
-        QClothes clothes = QClothes.clothes;
 
         // BooleanBuilder를 사용하여 동적으로 필터링
         BooleanBuilder builder = new BooleanBuilder();
@@ -99,8 +99,6 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
     @Override
     public List<CategoryStat> countTopCategoryStats() {
 
-        QClothes clothes = QClothes.clothes;
-        QCategory category = QCategory.category;
         QCategory parent = new QCategory("parent");
         QCategory grandParent = new QCategory("grandParent");
 
@@ -126,8 +124,6 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
     @Override
     public List<ClothesColorCount> clothesColorsCount() {
 
-        QClothes clothes = QClothes.clothes;
-
         return jpaQueryFactory
                 .select(new QClothesColorCount(
                         clothes.clothesColor,
@@ -143,8 +139,6 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
     @Override
     public List<ClothesSizeCount> clothesSizesCount() {
 
-        QClothes clothes = QClothes.clothes;
-
         return jpaQueryFactory
                 .select(new QClothesSizeCount(
                         clothes.clothesSize,
@@ -154,6 +148,23 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
                 .where(clothes.isDeleted.isFalse())
                 .groupBy(clothes.clothesSize)
                 .orderBy(clothes.count().desc())
+                .fetch();
+    }
+
+    @Override
+    public List<CategoryStat> findTopCategoryStats() {
+
+        return jpaQueryFactory
+                .select(new QCategoryStat(
+                        category.name,
+                        clothes.count()
+                ))
+                .from(clothes)
+                .join(clothes.category, category)
+                .where(clothes.isDeleted.isFalse())
+                .groupBy(category.id, category.name)
+                .orderBy(clothes.count().desc())
+                .limit(10)
                 .fetch();
     }
 }
