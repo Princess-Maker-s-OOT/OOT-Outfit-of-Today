@@ -10,7 +10,6 @@ import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
-import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -88,7 +87,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
             SaleStatus status,
             Pageable pageable
     ) {
-        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
+        userQueryService.findByIdAndIsDeletedFalse(userId);
 
         Slice<SalePost> salePosts = salePostRepository.findMyPosts(
                 userId,
