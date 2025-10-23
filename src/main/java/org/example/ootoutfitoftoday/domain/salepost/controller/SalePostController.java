@@ -10,6 +10,7 @@ import org.example.ootoutfitoftoday.domain.salepost.dto.request.SaleStatusUpdate
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostSuccessCode;
 import org.example.ootoutfitoftoday.domain.salepost.service.command.SalePostCommandService;
@@ -107,5 +108,20 @@ public class SalePostController {
         );
 
         return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_STATUS_UPDATED);
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<Slice<SalePostSummaryResponse>>> getMySalePosts(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(required = false) SaleStatus status,
+            Pageable pageable
+    ) {
+        Slice<SalePostSummaryResponse> response = salePostQueryService.findMySalePosts(
+                authUser.getUserId(),
+                status,
+                pageable
+        );
+
+        return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_RETRIEVED);
     }
 }
