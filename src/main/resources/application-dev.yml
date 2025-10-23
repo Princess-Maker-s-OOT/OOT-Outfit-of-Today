@@ -1,24 +1,23 @@
 spring:
+  config:
+    import:
+      - "aws-parameterstore:/config/dev/"
   datasource:
-    # 개발 서버(RDS) 접속 정보 (환경 변수 사용)
     url: jdbc:mysql://${db.host}:${db.port:3306}/${db.name}?useSSL=false&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
     username: ${db.username}
     password: ${db.password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: validate # 개발 서버 안정성을 위해 validate로 설정 변경
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
 
 springdoc:
-  # Swagger 활성화
-  api-docs:
-    enabled: true
+  api-docs.enabled: true
   swagger-ui:
     enabled: true
     path: /swagger-ui/index.html
     display-request-duration: true
     tryItOutEnabled: true
-
-# 개발 서버 Swagger IP 화이트리스트 설정 (보안 강화 이슈용)
-security:
-  swagger:
-    whitelist-ips: ${SWAGGER_WHITELIST_IPS}
