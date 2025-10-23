@@ -13,7 +13,7 @@ import java.util.List;
 public class AdminClothesStatisticsResponse {
 
     private final int totalClothes;
-    private final List<CategoryStat> categoryStat;
+    private final List<CategoryStat> categoryStats;
     private final List<CountClothesColor> colorStats;
     private final List<CountClothesSize> sizeStats;
 }

@@ -61,15 +61,15 @@ public class AdminDashboardQueryServiceImpl implements AdminDashboardQueryServic
 
         List<CategoryStat> categoryStats = clothesQueryService.countTopCategoryStats(); // 카테고리별 옷 수량
 
-        List<CountClothesColor> ClothesColors = clothesQueryService.countClothesColors(); // 색상별 옷 수량
+        List<CountClothesColor>clothesColors = clothesQueryService.countClothesColors(); // 색상별 옷 수량
 
-        List<CountClothesSize> ClothesSizes = clothesQueryService.countClothesSizes(); // 사이즈별 옷 수량
+        List<CountClothesSize> clothesSizes = clothesQueryService.countClothesSizes(); // 사이즈별 옷 수량
 
         return new AdminClothesStatisticsResponse(
                 totalClothes,
                 categoryStats,
-                ClothesColors,
-                ClothesSizes
+                clothesColors,
+                clothesSizes
         );
     }
 }
