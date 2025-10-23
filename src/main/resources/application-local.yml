@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/${DB_NAME}
+    username: ${USER_NAME}
+    password: ${PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update # 로컬 개발 시 DDL 자동 업데이트 허용
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui/index.html
+    display-request-duration: true
+    tryItOutEnabled: true
