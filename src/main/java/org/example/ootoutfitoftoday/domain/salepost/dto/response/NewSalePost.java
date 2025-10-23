@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class NewSalePost {
 
-    private final long dailySales;
-    private final long weeklySales;
-    private final long monthlySales;
+    private final long daily;
+    private final long weekly;
+    private final long monthly;
 }
