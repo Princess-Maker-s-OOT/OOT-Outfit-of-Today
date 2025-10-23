@@ -119,8 +119,13 @@ public class SalePostController {
     public ResponseEntity<ApiResponse<Slice<SalePostSummaryResponse>>> getMySalePosts(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) SaleStatus status,
-            Pageable pageable
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "DESC") Sort.Direction direction
     ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
+
         Slice<SalePostSummaryResponse> response = salePostQueryService.findMySalePosts(
                 authUser.getUserId(),
                 status,
