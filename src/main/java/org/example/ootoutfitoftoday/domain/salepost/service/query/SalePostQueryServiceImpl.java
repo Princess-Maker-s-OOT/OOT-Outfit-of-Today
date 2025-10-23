@@ -3,6 +3,7 @@ package org.example.ootoutfitoftoday.domain.salepost.service.query;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SaleStatusCount;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
@@ -15,6 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +62,24 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
         );
 
         return salePosts.map(SalePostListResponse::from);
+    }
+
+    @Override
+    public long countByIsDeletedFalse() {
+
+        return salePostRepository.countByIsDeletedFalse();
+    }
+
+    @Override
+    public List<SaleStatusCount> saleStatusCounts() {
+
+        return salePostRepository.saleStatusCounts();
+    }
+
+    @Override
+    public int countSalePostsRegisteredSince(LocalDateTime start, LocalDateTime end) {
+
+        return salePostRepository.countSalePostsRegisteredSince(start, end);
     }
 
     @Override

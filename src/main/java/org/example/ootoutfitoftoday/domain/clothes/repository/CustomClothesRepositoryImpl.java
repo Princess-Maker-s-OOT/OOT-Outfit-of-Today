@@ -6,10 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
 import org.example.ootoutfitoftoday.domain.category.dto.response.QCategoryStat;
 import org.example.ootoutfitoftoday.domain.category.entity.QCategory;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesSize;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.QCountClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.QCountClothesSize;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.QClothesColorCount;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.QClothesSizeCount;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.entity.QClothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
@@ -124,12 +124,12 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
     }
 
     @Override
-    public List<CountClothesColor> countClothesColors() {
+    public List<ClothesColorCount> clothesColorsCount() {
 
         QClothes clothes = QClothes.clothes;
 
         return jpaQueryFactory
-                .select(new QCountClothesColor(
+                .select(new QClothesColorCount(
                         clothes.clothesColor,
                         clothes.count()
                 ))
@@ -141,12 +141,12 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
     }
 
     @Override
-    public List<CountClothesSize> countClothesSizes() {
+    public List<ClothesSizeCount> clothesSizesCount() {
 
         QClothes clothes = QClothes.clothes;
 
         return jpaQueryFactory
-                .select(new QCountClothesSize(
+                .select(new QClothesSizeCount(
                         clothes.clothesSize,
                         clothes.count()
                 ))

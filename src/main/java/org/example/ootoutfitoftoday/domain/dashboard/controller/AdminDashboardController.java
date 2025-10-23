@@ -3,6 +3,7 @@ package org.example.ootoutfitoftoday.domain.dashboard.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.ApiResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminClothesStatisticsResponse;
+import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminSalePostStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminUserStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.exception.DashboardSuccessCode;
 import org.example.ootoutfitoftoday.domain.dashboard.service.query.admin.AdminDashboardQueryService;
@@ -33,5 +34,13 @@ public class AdminDashboardController {
     public ResponseEntity<ApiResponse<AdminClothesStatisticsResponse>> adminClothesStatistics() {
 
         return ApiResponse.success(adminDashboardQueryService.adminClothesStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_CLOTHES_STATISTICS_OK);
+    }
+
+    @GetMapping("/sale-posts/statistics")
+    public ResponseEntity<ApiResponse<AdminSalePostStatisticsResponse>> adminSalePostStatistics(
+            @RequestParam(required = false) LocalDate baseDate
+    ) {
+
+        return ApiResponse.success(adminDashboardQueryService.adminSalePostStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_SALE_POST_STATISTICS_OK);
     }
 }
