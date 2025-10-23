@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePostImage;
+import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,7 +18,7 @@ public class SalePostCreateResponse {
     private final String title;
     private final String content;
     private final BigDecimal price;
-    private final String status;
+    private final SaleStatus status;
     private final Long userId;
     private final Long categoryId;
     private final List<String> imageUrls;
@@ -30,7 +31,7 @@ public class SalePostCreateResponse {
                 .title(salePost.getTitle())
                 .content(salePost.getContent())
                 .price(salePost.getPrice())
-                .status(salePost.getStatus().name())
+                .status(salePost.getStatus())
                 .userId(salePost.getUser().getId())
                 .categoryId(salePost.getCategory().getId())
                 .imageUrls(salePost.getImages().stream()
