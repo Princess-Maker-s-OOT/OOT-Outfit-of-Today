@@ -1,7 +1,10 @@
 package org.example.ootoutfitoftoday.domain.clothes.service.query;
 
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesColor;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
@@ -12,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -67,5 +71,29 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
         return clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
                 () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
         );
+    }
+
+    @Override
+    public int countClothesByIsDeletedFalse() {
+
+        return clothesRepository.countAllClothesByIsDeletedFalse();
+    }
+
+    @Override
+    public List<CategoryStat> countTopCategoryStats() {
+
+        return clothesRepository.countTopCategoryStats();
+    }
+
+    @Override
+    public List<CountClothesColor> countClothesColors() {
+
+        return clothesRepository.countClothesColors();
+    }
+
+    @Override
+    public List<CountClothesSize> countClothesSizes() {
+
+        return clothesRepository.countClothesSizes();
     }
 }

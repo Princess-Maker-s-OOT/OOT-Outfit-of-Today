@@ -3,6 +3,13 @@ package org.example.ootoutfitoftoday.domain.clothes.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
+import org.example.ootoutfitoftoday.domain.category.dto.response.QCategoryStat;
+import org.example.ootoutfitoftoday.domain.category.entity.QCategory;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesColor;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesSize;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.QCountClothesColor;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.QCountClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.entity.QClothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
@@ -87,6 +94,67 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
                 PageRequest.of(page, size),  // 여기도 수정 필요
                 totalCount
         );
+    }
+
+    @Override
+    public List<CategoryStat> countTopCategoryStats() {
+
+        QClothes clothes = QClothes.clothes;
+        QCategory category = QCategory.category;
+        QCategory parent = new QCategory("parent");
+        QCategory grandParent = new QCategory("grandParent");
+
+        var rootName = grandParent.name
+                .coalesce(parent.name)
+                .coalesce(category.name);
+
+        return jpaQueryFactory
+                .select(new QCategoryStat(
+                        rootName,
+                        clothes.count()
+                ))
+                .from(clothes)
+                .join(clothes.category, category)
+                .leftJoin(category.parent, parent)
+                .leftJoin(parent.parent, grandParent)
+                .where(clothes.isDeleted.isFalse())
+                .groupBy(rootName)
+                .orderBy(clothes.count().desc())
+                .fetch();
+    }
+
+    @Override
+    public List<CountClothesColor> countClothesColors() {
+
+        QClothes clothes = QClothes.clothes;
+
+        return jpaQueryFactory
+                .select(new QCountClothesColor(
+                        clothes.clothesColor,
+                        clothes.count()
+                ))
+                .from(clothes)
+                .where(clothes.isDeleted.isFalse())
+                .groupBy(clothes.clothesColor)
+                .orderBy(clothes.count().desc())
+                .fetch();
+    }
+
+    @Override
+    public List<CountClothesSize> countClothesSizes() {
+
+        QClothes clothes = QClothes.clothes;
+
+        return jpaQueryFactory
+                .select(new QCountClothesSize(
+                        clothes.clothesSize,
+                        clothes.count()
+                ))
+                .from(clothes)
+                .where(clothes.isDeleted.isFalse())
+                .groupBy(clothes.clothesSize)
+                .orderBy(clothes.count().desc())
+                .fetch();
     }
 }
 

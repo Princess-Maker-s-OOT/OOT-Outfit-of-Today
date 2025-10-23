@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum DashboardSuccessCode implements SuccessCode {
 
-    DASHBOARD_ADMIN_USER_STATISTICS_OK("DASHBOARD_ADMIN_USER_STATISTICS_OK", HttpStatus.OK, "사용자들에 대한 정보를 성공적으로 조회하였습니다!");
+    DASHBOARD_ADMIN_USER_STATISTICS_OK("DASHBOARD_ADMIN_USER_STATISTICS_OK", HttpStatus.OK, "사용자들에 대한 정보를 성공적으로 조회하였습니다!"),
+    DASHBOARD_ADMIN_CLOTHES_STATISTICS_OK("DASHBOARD_ADMIN_CLOTHES_STATISTICS_OK", HttpStatus.OK, "옷에 대한 정보를 성공적으로 조회하였습니다!");
 
     private final String code;
     private final HttpStatus httpStatus;
