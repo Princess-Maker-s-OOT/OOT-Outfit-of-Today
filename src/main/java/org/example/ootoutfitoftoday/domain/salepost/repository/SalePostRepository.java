@@ -66,4 +66,19 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
               AND sp.createdAt < :end
             """)
     int countSalePostsRegisteredSince(LocalDateTime start, LocalDateTime end);
+
+    @Query("""
+        SELECT sp FROM SalePost sp
+        JOIN FETCH sp.user u
+        JOIN FETCH sp.category c
+        WHERE sp.user.id = :userId
+        AND sp.isDeleted = false
+        AND (:status IS NULL OR sp.status = :status)
+        ORDER BY sp.createdAt DESC
+        """)
+    Slice<SalePost> findMyPosts(
+            @Param("userId") Long userId,
+            @Param("status") SaleStatus status,
+            Pageable pageable
+    );
 }

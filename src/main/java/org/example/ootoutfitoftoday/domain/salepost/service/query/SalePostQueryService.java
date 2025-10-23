@@ -3,6 +3,7 @@ package org.example.ootoutfitoftoday.domain.salepost.service.query;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SaleStatusCount;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.springframework.data.domain.Pageable;
@@ -29,4 +30,10 @@ public interface SalePostQueryService {
     List<SaleStatusCount> saleStatusCounts();
 
     int countSalePostsRegisteredSince(LocalDateTime start, LocalDateTime end);
+
+    Slice<SalePostSummaryResponse> findMySalePosts(
+            Long userId,
+            SaleStatus status,
+            Pageable pageable
+    );
 }

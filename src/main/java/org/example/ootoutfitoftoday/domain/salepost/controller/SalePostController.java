@@ -10,14 +10,15 @@ import org.example.ootoutfitoftoday.domain.salepost.dto.request.SaleStatusUpdate
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostSuccessCode;
 import org.example.ootoutfitoftoday.domain.salepost.service.command.SalePostCommandService;
 import org.example.ootoutfitoftoday.domain.salepost.service.query.SalePostQueryService;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -57,8 +58,13 @@ public class SalePostController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) SaleStatus status,
             @RequestParam(required = false) String keyword,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "DESC") Sort.Direction direction
     ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
+
         Slice<SalePostListResponse> salePosts = salePostQueryService.getSalePostList(
                 categoryId,
                 status,
@@ -66,7 +72,7 @@ public class SalePostController {
                 pageable
         );
 
-        return ApiResponse.success(salePosts, SalePostSuccessCode.SALE_POST_RETRIEVED);
+        return ApiResponse.success(salePosts, SalePostSuccessCode.SALE_POSTS_RETRIEVED);
     }
 
     @PutMapping("/{salePostId}")
@@ -107,5 +113,25 @@ public class SalePostController {
         );
 
         return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_STATUS_UPDATED);
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<Slice<SalePostSummaryResponse>>> getMySalePosts(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(required = false) SaleStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "DESC") Sort.Direction direction
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
+
+        Slice<SalePostSummaryResponse> response = salePostQueryService.findMySalePosts(
+                authUser.getUserId(),
+                status,
+                pageable
+        );
+
+        return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_RETRIEVED);
     }
 }

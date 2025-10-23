@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SaleStatusCount;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
+import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import java.util.List;
 public class SalePostQueryServiceImpl implements SalePostQueryService {
 
     private final SalePostRepository salePostRepository;
+    private final UserQueryService userQueryService;
 
     @Override
     public SalePost findSalePostById(Long salePostId) {
@@ -76,5 +79,22 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
     public int countSalePostsRegisteredSince(LocalDateTime start, LocalDateTime end) {
 
         return salePostRepository.countSalePostsRegisteredSince(start, end);
+    }
+
+    @Override
+    public Slice<SalePostSummaryResponse> findMySalePosts(
+            Long userId,
+            SaleStatus status,
+            Pageable pageable
+    ) {
+        userQueryService.findByIdAndIsDeletedFalse(userId);
+
+        Slice<SalePost> salePosts = salePostRepository.findMyPosts(
+                userId,
+                status,
+                pageable
+        );
+
+        return salePosts.map(SalePostSummaryResponse::from);
     }
 }
