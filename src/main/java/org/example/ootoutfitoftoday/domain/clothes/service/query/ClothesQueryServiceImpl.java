@@ -2,9 +2,9 @@ package org.example.ootoutfitoftoday.domain.clothes.service.query;
 
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesSize;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
@@ -86,14 +86,14 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
     }
 
     @Override
-    public List<CountClothesColor> countClothesColors() {
+    public List<ClothesColorCount> clothesColorsCount() {
 
-        return clothesRepository.countClothesColors();
+        return clothesRepository.clothesColorsCount();
     }
 
     @Override
-    public List<CountClothesSize> countClothesSizes() {
+    public List<ClothesSizeCount> clothesSizesCount() {
 
-        return clothesRepository.countClothesSizes();
+        return clothesRepository.clothesSizesCount();
     }
 }

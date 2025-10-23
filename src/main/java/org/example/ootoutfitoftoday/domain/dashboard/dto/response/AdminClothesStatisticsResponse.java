@@ -3,8 +3,8 @@ package org.example.ootoutfitoftoday.domain.dashboard.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesSize;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
 
 import java.util.List;
 
@@ -12,8 +12,8 @@ import java.util.List;
 @AllArgsConstructor
 public class AdminClothesStatisticsResponse {
 
-    private final int totalClothes;
+    private final long totalClothes;
     private final List<CategoryStat> categoryStats;
-    private final List<CountClothesColor> colorStats;
-    private final List<CountClothesSize> sizeStats;
+    private final List<ClothesColorCount> colorStats;
+    private final List<ClothesSizeCount> sizeStats;
 }

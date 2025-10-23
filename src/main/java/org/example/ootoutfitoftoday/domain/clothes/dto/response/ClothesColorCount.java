@@ -5,13 +5,13 @@ import lombok.Getter;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 
 @Getter
-public class CountClothesColor {
+public class ClothesColorCount {
 
     private final ClothesColor clothesColor;
     private final long count;
 
     @QueryProjection
-    public CountClothesColor(ClothesColor clothesColor, long count) {
+    public ClothesColorCount(ClothesColor clothesColor, long count) {
         this.clothesColor = clothesColor;
         this.count = count;
     }
