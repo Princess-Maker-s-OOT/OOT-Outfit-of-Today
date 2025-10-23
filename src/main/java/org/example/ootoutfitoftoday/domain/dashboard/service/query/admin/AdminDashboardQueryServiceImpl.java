@@ -1,6 +1,11 @@
 package org.example.ootoutfitoftoday.domain.dashboard.service.query.admin;
 
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesColor;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesSize;
+import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
+import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminClothesStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminUserStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
@@ -9,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +22,7 @@ import java.time.LocalDateTime;
 public class AdminDashboardQueryServiceImpl implements AdminDashboardQueryService {
 
     private final UserQueryService userQueryService;
+    private final ClothesQueryService clothesQueryService;
 
     @Override
     public AdminUserStatisticsResponse adminUserStatistics(LocalDate baseDate) {
@@ -45,5 +52,24 @@ public class AdminDashboardQueryServiceImpl implements AdminDashboardQueryServic
         AdminUserStatisticsResponse.NewUsers newUsers = new AdminUserStatisticsResponse.NewUsers(daily, weekly, monthly);
 
         return new AdminUserStatisticsResponse(totalUsers, activeUsers, deletedUsers, newUsers);
+    }
+
+    @Override
+    public AdminClothesStatisticsResponse adminClothesStatistics() {
+
+        int totalClothes = clothesQueryService.countClothesByIsDeletedFalse(); // 전체 옷 수량
+
+        List<CategoryStat> categoryStats = clothesQueryService.countTopCategoryStats(); // 카테고리별 옷 수량
+
+        List<CountClothesColor> ClothesColors = clothesQueryService.countClothesColors(); // 색상별 옷 수량
+
+        List<CountClothesSize> ClothesSizes = clothesQueryService.countClothesSizes(); // 사이즈별 옷 수량
+
+        return new AdminClothesStatisticsResponse(
+                totalClothes,
+                categoryStats,
+                ClothesColors,
+                ClothesSizes
+        );
     }
 }
