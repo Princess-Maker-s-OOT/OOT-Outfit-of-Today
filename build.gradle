@@ -75,9 +75,19 @@ dependencies {
     implementation 'org.springframework.security:spring-security-messaging'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
+    // AWS Parameter Store
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+
     // AWS SDK for Java v2 (S3)
     implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.1.1")
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+}
+
+// Spring Cloud AWS BOM (버전 통합 관리)
+dependencyManagement {
+    imports {
+        mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:3.4.0"
+    }
 }
 
 tasks.named('test') {
