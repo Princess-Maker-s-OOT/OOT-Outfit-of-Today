@@ -1,8 +1,8 @@
 package org.example.ootoutfitoftoday.domain.clothes.repository;
 
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.CountClothesSize;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
+import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
@@ -27,8 +27,8 @@ public interface CustomClothesRepository {
     List<CategoryStat> countTopCategoryStats();
 
     // 색상 기준 옷 통계
-    List<CountClothesColor> countClothesColors();
+    List<ClothesColorCount> clothesColorsCount();
 
     // 사이즈 기준 옷 통계
-    List<CountClothesSize> countClothesSizes();
+    List<ClothesSizeCount> clothesSizesCount();
 }
