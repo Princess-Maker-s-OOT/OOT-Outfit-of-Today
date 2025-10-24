@@ -14,25 +14,16 @@ import java.util.List;
 @Builder
 public class SalePostDetailResponse {
 
-    // 판매글 정보
     private final Long salePostId;
     private final String title;
     private final String content;
     private final BigDecimal price;
     private final SaleStatus status;
-
-    // 판매자 정보
     private final Long sellerId;
     private final String sellerNickname;
     private final String sellerImageUrl;
-
-    // 카테고리 정보
     private final String categoryName;
-
-    // 이미지 리스트
     private final List<String> imageUrls;
-
-    // 시간 정보
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
