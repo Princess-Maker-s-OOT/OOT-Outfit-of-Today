@@ -8,8 +8,8 @@ set -euo pipefail
 : "${IMAGE_TAG:?IMAGE_TAG required}"
 
 # ECR 저장소 이름과 태그는 소문자여야 하므로, 변환을 강제합니다.
-ECR_REPO=$(echo "${ECR_REPO}" | tr '[:upper:]' '[:lower:]')
-IMAGE_TAG=$(echo "${IMAGE_TAG}" | tr '[:upper:]' '[:lower:]')
+EECR_REPO=${ECR_REPO,,}
+IMAGE_TAG=${IMAGE_TAG,,}
 
 REG_URI="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 FULL_URI="${REG_URI}/${ECR_REPO}:${IMAGE_TAG}"
