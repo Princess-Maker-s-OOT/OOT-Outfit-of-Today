@@ -6,9 +6,12 @@ import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -68,17 +71,43 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
     int countSalePostsRegisteredSince(LocalDateTime start, LocalDateTime end);
 
     @Query("""
-        SELECT sp FROM SalePost sp
-        JOIN FETCH sp.user u
-        JOIN FETCH sp.category c
-        WHERE sp.user.id = :userId
-        AND sp.isDeleted = false
-        AND (:status IS NULL OR sp.status = :status)
-        ORDER BY sp.createdAt DESC
-        """)
+            SELECT sp FROM SalePost sp
+            JOIN FETCH sp.user u
+            JOIN FETCH sp.category c
+            WHERE sp.user.id = :userId
+            AND sp.isDeleted = false
+            AND (:status IS NULL OR sp.status = :status)
+            ORDER BY sp.createdAt DESC
+            """)
     Slice<SalePost> findMyPosts(
             @Param("userId") Long userId,
             @Param("status") SaleStatus status,
             Pageable pageable
     );
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            INSERT INTO sale_posts 
+            (title, content, price, status, 
+            trade_address, trade_location, user_id, 
+            category_id, is_deleted, created_at, updated_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ST_GeomFromText(?6, 4326), ?7, ?8, ?9, NOW(), NOW())
+            """, nativeQuery = true)
+    void saveAsNativeQuery(
+            String title,
+            String content,
+            BigDecimal price,
+            String status,
+            String tradeAddress,
+            String tradeLocation,
+            Long userId,
+            Long categoryId,
+            boolean isDeleted
+    );
+
+    @Query(value = """
+            SELECT LAST_INSERT_ID()
+            """, nativeQuery = true)
+    Long findLastInsertId();
 }
