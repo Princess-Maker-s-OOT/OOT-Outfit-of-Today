@@ -1,6 +1,7 @@
 spring:
   config:
     import:
+      - "aws-parameterstore:/config/common/"
       - "aws-parameterstore:/config/dev/"
   datasource:
     url: jdbc:mysql://${db.host}:${db.port:3306}/${db.name}?useSSL=false&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
