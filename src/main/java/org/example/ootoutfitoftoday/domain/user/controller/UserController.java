@@ -20,14 +20,16 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/user/me")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
     private final UserQueryService userQueryService;
     private final UserCommandService userCommandService;
 
     // 회원정보 조회
-    @Operation(summary = "내 정보 조회", description = "토큰을 기반으로 회원 자신의 상세 정보를 조회합니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
+    @Operation(
+            summary = "내 정보 조회",
+            description = "토큰을 기반으로 회원 자신의 상세 정보를 조회합니다.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "성공"),
             })
@@ -40,8 +42,9 @@ public class UserController {
     }
 
     // 회원정보 수정 전 비밀번호 검증
-    @Operation(summary = "회원정보 수정 전 비밀번호 검증", description = "회원정보 수정 전 비밀번호를 검증합니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
+    @Operation(
+            summary = "회원정보 수정 전 비밀번호 검증",
+            description = "회원정보 수정 전 비밀번호를 검증합니다.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "성공"),
                     @ApiResponse(responseCode = "401", description = "인증 실패"),
@@ -58,8 +61,9 @@ public class UserController {
     }
 
     // 회원정보 수정
-    @Operation(summary = "회원 정보 수정", description = "기존 회원의 정보를 업데이트합니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
+    @Operation(
+            summary = "회원 정보 수정",
+            description = "기존 회원의 정보를 업데이트합니다.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "수정 성공"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청"),
