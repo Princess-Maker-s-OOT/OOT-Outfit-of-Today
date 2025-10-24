@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.dashboard.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,7 +39,7 @@ public class AdminDashboardController {
             })
     @GetMapping("/users/statistics")
     public ResponseEntity<Response<AdminUserStatisticsResponse>> adminUserStatistics(
-            @RequestParam(required = false) LocalDate baseDate
+            @Parameter(description = "기준 날짜 (기본값: 오늘)") @RequestParam(required = false) LocalDate baseDate
     ) {
 
         return Response.success(adminDashboardQueryService.adminUserStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_USER_STATISTICS_OK);
@@ -66,7 +67,7 @@ public class AdminDashboardController {
             })
     @GetMapping("/sale-posts/statistics")
     public ResponseEntity<Response<AdminSalePostStatisticsResponse>> adminSalePostStatistics(
-            @RequestParam(required = false) LocalDate baseDate
+            @Parameter(description = "기준 날짜 (기본값: 오늘)") @RequestParam(required = false) LocalDate baseDate
     ) {
 
         return Response.success(adminDashboardQueryService.adminSalePostStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_SALE_POST_STATISTICS_OK);
