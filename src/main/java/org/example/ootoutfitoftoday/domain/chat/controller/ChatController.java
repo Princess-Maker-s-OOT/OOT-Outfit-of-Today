@@ -1,7 +1,7 @@
 package org.example.ootoutfitoftoday.domain.chat.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.ApiSliceResponse;
+import org.example.ootoutfitoftoday.common.response.SliceResponse;
 import org.example.ootoutfitoftoday.domain.chat.dto.response.ChatResponse;
 import org.example.ootoutfitoftoday.domain.chat.exception.ChatSuccessCode;
 import org.example.ootoutfitoftoday.domain.chat.service.query.ChatQueryService;
@@ -28,7 +28,7 @@ public class ChatController {
      * @return 채팅 리스트
      */
     @GetMapping
-    public ResponseEntity<ApiSliceResponse<ChatResponse>> getChats(
+    public ResponseEntity<SliceResponse<ChatResponse>> getChats(
             @PathVariable Long chatroomId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -37,6 +37,6 @@ public class ChatController {
 
         Slice<ChatResponse> chatResponses = chatQueryService.getChats(chatroomId, pageable);
 
-        return ApiSliceResponse.success(chatResponses, ChatSuccessCode.RETRIEVED_CHATS);
+        return SliceResponse.success(chatResponses, ChatSuccessCode.RETRIEVED_CHATS);
     }
 }

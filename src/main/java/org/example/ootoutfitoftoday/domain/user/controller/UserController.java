@@ -2,7 +2,7 @@ package org.example.ootoutfitoftoday.domain.user.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
@@ -24,32 +24,32 @@ public class UserController {
 
     // 회원정보 조회
     @GetMapping
-    public ResponseEntity<ApiResponse<GetMyInfoResponse>> getMyInfo(@AuthenticationPrincipal AuthUser authUser) {
+    public ResponseEntity<Response<GetMyInfoResponse>> getMyInfo(@AuthenticationPrincipal AuthUser authUser) {
 
         GetMyInfoResponse response = userQueryService.getMyInfo(authUser.getUserId());
 
-        return ApiResponse.success(response, UserSuccessCode.GET_MY_INFO);
+        return Response.success(response, UserSuccessCode.GET_MY_INFO);
     }
 
     // 회원정보 수정 전 비밀번호 검증
     @PostMapping("/password-verification")
-    public ResponseEntity<ApiResponse<Void>> verifyPassword(
+    public ResponseEntity<Response<Void>> verifyPassword(
             @Valid @RequestBody UserPasswordVerificationRequest request,
             @AuthenticationPrincipal AuthUser authUser) {
 
         userQueryService.verifyPassword(request, authUser);
 
-        return ApiResponse.success(null, UserSuccessCode.PASSWORD_VERIFIED);
+        return Response.success(null, UserSuccessCode.PASSWORD_VERIFIED);
     }
 
     // 회원정보 수정
     @PatchMapping
-    public ResponseEntity<ApiResponse<GetMyInfoResponse>> updateUserInfo(
+    public ResponseEntity<Response<GetMyInfoResponse>> updateUserInfo(
             @Valid @RequestBody UserUpdateInfoRequest request,
             @AuthenticationPrincipal AuthUser authUser
     ) {
 
         GetMyInfoResponse response = userCommandService.updateMyInfo(request, authUser);
-        return ApiResponse.success(response, UserSuccessCode.UPDATE_MY_INFO);
+        return Response.success(response, UserSuccessCode.UPDATE_MY_INFO);
     }
 }

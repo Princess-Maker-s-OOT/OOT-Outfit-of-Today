@@ -2,8 +2,8 @@ package org.example.ootoutfitoftoday.domain.closetclotheslink.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.ApiPageResponse;
-import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.common.response.PageResponse;
+import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.dto.request.ClosetClothesLinkRequest;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.dto.response.ClosetClothesLinkDeleteResponse;
@@ -34,7 +34,7 @@ public class ClosetClothesLinkController {
      * @return ClosetClothesLinkResponse 연결 정보
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<ClosetClothesLinkResponse>> createClosetClothesLink(
+    public ResponseEntity<Response<ClosetClothesLinkResponse>> createClosetClothesLink(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long closetId,
             @Valid @RequestBody ClosetClothesLinkRequest closetClothesLinkRequest
@@ -46,7 +46,7 @@ public class ClosetClothesLinkController {
                 closetClothesLinkRequest
         );
 
-        return ApiResponse.success(closetClothesLinkResponse, ClosetClothesLinkSuccessCode.CLOSET_CLOTHES_LINKED);
+        return Response.success(closetClothesLinkResponse, ClosetClothesLinkSuccessCode.CLOSET_CLOTHES_LINKED);
     }
 
     /**
@@ -61,7 +61,7 @@ public class ClosetClothesLinkController {
      * @return ApiPageResponse<ClothesInClosetResponse> 옷 목록
      */
     @GetMapping
-    public ResponseEntity<ApiPageResponse<ClosetClothesLinkGetResponse>> getClosetClothesLink(
+    public ResponseEntity<PageResponse<ClosetClothesLinkGetResponse>> getClosetClothesLink(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long closetId,
             @RequestParam(defaultValue = "0") int page,
@@ -79,12 +79,12 @@ public class ClosetClothesLinkController {
                 direction
         );
 
-        return ApiPageResponse.success(closetClothesLinkGetResponses, ClosetClothesLinkSuccessCode.CLOSET_CLOTHES_LIST_OK);
+        return PageResponse.success(closetClothesLinkGetResponses, ClosetClothesLinkSuccessCode.CLOSET_CLOTHES_LIST_OK);
     }
 
     // 옷장에서 옷 삭제
     @DeleteMapping("/{clothesId}")
-    public ResponseEntity<ApiResponse<ClosetClothesLinkDeleteResponse>> deleteClosetClothesLink(
+    public ResponseEntity<Response<ClosetClothesLinkDeleteResponse>> deleteClosetClothesLink(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long closetId,
             @PathVariable Long clothesId
@@ -96,6 +96,6 @@ public class ClosetClothesLinkController {
                 clothesId
         );
 
-        return ApiResponse.success(closetClothesLinkDeleteResponse, ClosetClothesLinkSuccessCode.CLOSET_CLOTHES_DELETED);
+        return Response.success(closetClothesLinkDeleteResponse, ClosetClothesLinkSuccessCode.CLOSET_CLOTHES_DELETED);
     }
 }
