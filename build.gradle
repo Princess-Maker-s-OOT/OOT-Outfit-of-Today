@@ -80,6 +80,10 @@ dependencies {
 
     // AWS SDK for Java v2 (S3)
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
 }
 
 // Spring Cloud AWS BOM (버전 통합 관리)
