@@ -7,7 +7,7 @@ import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminUserStati
 
 import java.time.LocalDate;
 
-public interface AdminDashboardQueryService {
+public interface DashboardAdminQueryService {
 
     AdminUserStatisticsResponse adminUserStatistics(LocalDate baseDate);
 
