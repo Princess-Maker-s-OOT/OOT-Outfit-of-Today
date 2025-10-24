@@ -20,6 +20,7 @@ aws ecr get-login-password --region "${AWS_REGION}" \
   | docker login --username AWS --password-stdin "${REG_URI}"
 
 echo "[ECR] Build ${ECR_REPO}:${IMAGE_TAG}"
+# 이제 ECR_REPO와 IMAGE_TAG는 소문자 값을 가집니다.
 docker build -t "${ECR_REPO}:${IMAGE_TAG}" .
 
 echo "[ECR] Tag -> ${FULL_URI}"

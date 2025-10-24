@@ -42,7 +42,6 @@ jobs:
         id: push
         run: |
           ./scripts/ecr-push.sh
-        # ecr-push.sh가 FULL_URI를 $GITHUB_OUTPUT에 기록함
 
       - name: Deploy on EC2 via SSM
         env:
