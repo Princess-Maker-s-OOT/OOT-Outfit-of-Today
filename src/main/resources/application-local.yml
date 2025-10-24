@@ -1,4 +1,10 @@
 spring:
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      parameter-store:
+        enabled: false
   datasource:
     url: jdbc:mysql://localhost:3306/${DB_NAME}
     username: ${USER_NAME}
@@ -12,6 +18,5 @@ springdoc:
     enabled: true
   swagger-ui:
     enabled: true
-    path: /swagger-ui/index.html
     display-request-duration: true
     tryItOutEnabled: true
