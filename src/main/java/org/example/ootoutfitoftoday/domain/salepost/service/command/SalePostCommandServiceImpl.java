@@ -2,6 +2,7 @@ package org.example.ootoutfitoftoday.domain.salepost.service.command;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.ootoutfitoftoday.common.util.PointFormater;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryService;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
@@ -40,16 +41,39 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         Category category = categoryQueryService.findById(request.getCategoryId());
 
+        String tradeLocation = PointFormater.format(request.getTradeLatitude(), request.getTradeLongitude());
+
         SalePost salePost = SalePost.create(
                 user,
                 category,
                 request.getTitle(),
                 request.getContent(),
                 request.getPrice(),
+                request.getTradeAddress(),
+                tradeLocation,
                 imageUrls
         );
 
-        SalePost savedSalePost = salePostRepository.save(salePost);
+        String status = salePost.getStatus().name();
+
+        salePostRepository.saveAsNativeQuery(
+                salePost.getTitle(),
+                salePost.getContent(),
+                salePost.getPrice(),
+                status,
+                salePost.getTradeAddress(),
+                salePost.getTradeLocation(),
+                user.getId(),
+                category.getId(),
+                false
+        );
+
+        // 다중 쓰레드 환경에서는 불안감이 있음 - 해결 방법 없음
+        Long salePostId = salePostRepository.findLastInsertId();
+
+        SalePost savedSalePost = salePostRepository.findById(salePostId).orElseThrow(
+                () -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND)
+        );
 
         return SalePostCreateResponse.from(savedSalePost);
     }
@@ -76,11 +100,16 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         Category category = categoryQueryService.findById(request.getCategoryId());
 
+        String tradeLocation = PointFormater.format(request.getTradeLatitude(), request.getTradeLongitude());
+
+        // 여기 네이티브 쿼리 들어가야 함
         salePost.update(
                 category,
                 request.getTitle(),
                 request.getContent(),
                 request.getPrice(),
+                request.getTradeAddress(),
+                tradeLocation,
                 request.getImageUrls()
         );
 
