@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 public enum SalePostErrorCode implements ErrorCode {
 
     // === 도메인 검증 (엔티티 내부) ===
-    INVALID_PRICE("INVALID_PRICE", HttpStatus.BAD_REQUEST, "가격은 0보다 커야 합니다."),
+    INVALID_PRICE("INVALID_PRICE", HttpStatus.BAD_REQUEST, "가격은 0원 이상이어야 합니다."),
     EMPTY_IMAGES("EMPTY_IMAGES", HttpStatus.BAD_REQUEST, "이미지를 최소 1개 이상 등록해주세요."),
     EMPTY_IMAGE_URL("EMPTY_IMAGE_URL", HttpStatus.BAD_REQUEST, "일부 이미지가 제대로 업로드되지 않았습니다."),
     DUPLICATE_IMAGE_URL("DUPLICATE_IMAGE_URL", HttpStatus.BAD_REQUEST, "중복된 이미지입니다."),
