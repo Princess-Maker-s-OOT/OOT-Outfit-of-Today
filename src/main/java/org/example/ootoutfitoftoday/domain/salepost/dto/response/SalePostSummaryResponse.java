@@ -35,6 +35,7 @@ public class SalePostSummaryResponse {
         if (salePost.getImages() == null || salePost.getImages().isEmpty()) {
             return null;
         }
+
         return salePost.getImages().get(0).getImageUrl();
     }
 }
