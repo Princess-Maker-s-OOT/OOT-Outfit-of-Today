@@ -3,6 +3,7 @@ package org.example.ootoutfitoftoday.domain.auth.service.command;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.ootoutfitoftoday.common.util.LocationConstants;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
@@ -94,6 +95,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                 .password(encodedPassword)
                 .phoneNumber(request.getPhoneNumber())
                 .role(UserRole.ROLE_USER)
+                .tradeAddress(LocationConstants.DEFAULT_TRADE_ADDRESS)
+                .tradeLocation(LocationConstants.DEFAULT_TRADE_LOCATION)
                 .build();
 
         userCommandService.save(user);
@@ -124,7 +127,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         }
 
         List<ChatParticipatingUser> chatParticipatingUsers = chatParticipatingUserQueryService.getChatParticipatingUsers(user);
-        
+
         chatParticipatingUsers
                 .forEach(chatParticipatingUser1 -> {
                     List<ChatParticipatingUser> usersInChatroom = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatParticipatingUser1.getChatroom());
