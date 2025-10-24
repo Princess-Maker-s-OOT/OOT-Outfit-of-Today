@@ -68,6 +68,12 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
             throw new SalePostException(SalePostErrorCode.UNAUTHORIZED_ACCESS);
         }
 
+        if (salePost.getStatus() == SaleStatus.RESERVED || salePost.getStatus() == SaleStatus.SOLD) {
+            log.warn("Cannot update sale post - salePostId: {}, status: {}",
+                    salePostId, salePost.getStatus());
+            throw new SalePostException(SalePostErrorCode.CANNOT_UPDATE_NON_SELLING_POST);
+        }
+
         Category category = categoryQueryService.findById(request.getCategoryId());
 
         salePost.update(
