@@ -2,8 +2,8 @@ package org.example.ootoutfitoftoday.domain.category.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.ApiPageResponse;
-import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.common.response.PageResponse;
+import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.category.dto.request.CategoryRequest;
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryResponse;
 import org.example.ootoutfitoftoday.domain.category.exception.CategorySuccessCode;
@@ -21,17 +21,17 @@ public class CategoryController {
     private final CategoryQueryService categoryQueryService;
 
     @PostMapping("/admin/v1/categories")
-    public ResponseEntity<ApiResponse<CategoryResponse>> create(
+    public ResponseEntity<Response<CategoryResponse>> create(
             @Valid @RequestBody CategoryRequest categoryRequest
     ) {
 
         CategoryResponse response = categoryCommandService.createCategory(categoryRequest);
 
-        return ApiResponse.success(response, CategorySuccessCode.CATEGORY_CREATED);
+        return Response.success(response, CategorySuccessCode.CATEGORY_CREATED);
     }
 
     @GetMapping("/v1/categories")
-    public ResponseEntity<ApiPageResponse<CategoryResponse>> getAllCategories(
+    public ResponseEntity<PageResponse<CategoryResponse>> getAllCategories(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
@@ -45,27 +45,27 @@ public class CategoryController {
                 direction
         );
 
-        return ApiPageResponse.success(categories, CategorySuccessCode.CATEGORY_OK);
+        return PageResponse.success(categories, CategorySuccessCode.CATEGORY_OK);
     }
 
     @PutMapping("/admin/v1/categories/{categoryId}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
+    public ResponseEntity<Response<CategoryResponse>> updateCategory(
             @PathVariable Long categoryId,
             @Valid @RequestBody CategoryRequest categoryRequest
     ) {
 
         CategoryResponse categoryResponse = categoryCommandService.updateCategory(categoryId, categoryRequest);
 
-        return ApiResponse.success(categoryResponse, CategorySuccessCode.CATEGORY_UPDATE);
+        return Response.success(categoryResponse, CategorySuccessCode.CATEGORY_UPDATE);
     }
 
     @DeleteMapping("/admin/v1/categories/{categoryId}")
-    public ResponseEntity<ApiResponse<Void>> deleteCategory(
+    public ResponseEntity<Response<Void>> deleteCategory(
             @PathVariable Long categoryId
     ) {
 
         categoryCommandService.deleteCategory(categoryId);
 
-        return ApiResponse.success(null, CategorySuccessCode.CATEGORY_DELETE);
+        return Response.success(null, CategorySuccessCode.CATEGORY_DELETE);
     }
 }

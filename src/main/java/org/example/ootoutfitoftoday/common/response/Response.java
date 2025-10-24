@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import java.time.LocalDateTime;
 
 @Builder
-public record ApiResponse<T>(
+public record Response<T>(
         HttpStatus httpStatus,
         int statusValue,
         boolean success,
@@ -26,10 +26,10 @@ public record ApiResponse<T>(
      * @param data 요청 성공 시 반환할 데이터
      * @return HTTP 상태코드 성공 응답과 함께 성공 데이터가 포함된 ApiResponseDto
      */
-    public static <T> ResponseEntity<ApiResponse<T>> success(T data, SuccessCode successCode) {
+    public static <T> ResponseEntity<Response<T>> success(T data, SuccessCode successCode) {
 
         return ResponseEntity.status(successCode.getHttpStatus()).body(
-                ApiResponse.<T>builder()
+                Response.<T>builder()
                         .httpStatus(successCode.getHttpStatus())
                         .statusValue(successCode.getHttpStatus().value())
                         .success(true)
@@ -48,10 +48,10 @@ public record ApiResponse<T>(
      * @return HTTP 에러 응답 코드와 함께 메시지가 포함된 ApiResponseDto
      */
     // 빌더를 통해서 생성하지 않은 필드는 null 값이 들어가는지 궁금
-    public static <T> ApiResponse<T> error(T data, ErrorCode errorCode) {
+    public static <T> Response<T> error(T data, ErrorCode errorCode) {
 
         return
-                ApiResponse.<T>builder()
+                Response.<T>builder()
                         .httpStatus(errorCode.getHttpStatus())
                         .statusValue(errorCode.getHttpStatus().value())
                         .success(false)

@@ -1,7 +1,7 @@
 package org.example.ootoutfitoftoday.domain.dashboard.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminClothesStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminSalePostStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminTopCategoryStatisticsResponse;
@@ -24,30 +24,30 @@ public class AdminDashboardController {
     private final AdminDashboardQueryService adminDashboardQueryService;
 
     @GetMapping("/users/statistics")
-    public ResponseEntity<ApiResponse<AdminUserStatisticsResponse>> adminUserStatistics(
+    public ResponseEntity<Response<AdminUserStatisticsResponse>> adminUserStatistics(
             @RequestParam(required = false) LocalDate baseDate
     ) {
 
-        return ApiResponse.success(adminDashboardQueryService.adminUserStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_USER_STATISTICS_OK);
+        return Response.success(adminDashboardQueryService.adminUserStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_USER_STATISTICS_OK);
     }
 
     @GetMapping("/clothes/statistics")
-    public ResponseEntity<ApiResponse<AdminClothesStatisticsResponse>> adminClothesStatistics() {
+    public ResponseEntity<Response<AdminClothesStatisticsResponse>> adminClothesStatistics() {
 
-        return ApiResponse.success(adminDashboardQueryService.adminClothesStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_CLOTHES_STATISTICS_OK);
+        return Response.success(adminDashboardQueryService.adminClothesStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_CLOTHES_STATISTICS_OK);
     }
 
     @GetMapping("/sale-posts/statistics")
-    public ResponseEntity<ApiResponse<AdminSalePostStatisticsResponse>> adminSalePostStatistics(
+    public ResponseEntity<Response<AdminSalePostStatisticsResponse>> adminSalePostStatistics(
             @RequestParam(required = false) LocalDate baseDate
     ) {
 
-        return ApiResponse.success(adminDashboardQueryService.adminSalePostStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_SALE_POST_STATISTICS_OK);
+        return Response.success(adminDashboardQueryService.adminSalePostStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_SALE_POST_STATISTICS_OK);
     }
 
     @GetMapping("/popular")
-    public ResponseEntity<ApiResponse<AdminTopCategoryStatisticsResponse>> adminTopCategoryStatistics() {
+    public ResponseEntity<Response<AdminTopCategoryStatisticsResponse>> adminTopCategoryStatistics() {
 
-        return ApiResponse.success(adminDashboardQueryService.adminTopCategoryStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_TOP10_CATEGORY_STATISTICS_OK);
+        return Response.success(adminDashboardQueryService.adminTopCategoryStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_TOP10_CATEGORY_STATISTICS_OK);
     }
 }

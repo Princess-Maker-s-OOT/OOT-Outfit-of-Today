@@ -2,8 +2,8 @@ package org.example.ootoutfitoftoday.domain.clothes.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.ApiPageResponse;
-import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.common.response.PageResponse;
+import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
@@ -26,18 +26,18 @@ public class ClothesController {
     private final ClothesQueryService clothesQueryService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ClothesResponse>> createClothes(
+    public ResponseEntity<Response<ClothesResponse>> createClothes(
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody ClothesRequest clothesRequest
     ) {
 
         ClothesResponse clothesResponse = clothesCommandService.createClothes(authUser.getUserId(), clothesRequest);
 
-        return ApiResponse.success(clothesResponse, ClothesSuccessCode.CLOTHES_CREATED);
+        return Response.success(clothesResponse, ClothesSuccessCode.CLOTHES_CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<ApiPageResponse<ClothesResponse>> getClothes(
+    public ResponseEntity<PageResponse<ClothesResponse>> getClothes(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) ClothesColor clothesColor,
@@ -59,22 +59,22 @@ public class ClothesController {
                 direction
         );
 
-        return ApiPageResponse.success(clothes, ClothesSuccessCode.CLOTHES_OK);
+        return PageResponse.success(clothes, ClothesSuccessCode.CLOTHES_OK);
     }
 
     @GetMapping("/{clothesId}")
-    public ResponseEntity<ApiResponse<ClothesResponse>> getClothesById(
+    public ResponseEntity<Response<ClothesResponse>> getClothesById(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long clothesId
     ) {
 
         ClothesResponse clothesResponse = clothesQueryService.getClothesById(authUser.getUserId(), clothesId);
 
-        return ApiResponse.success(clothesResponse, ClothesSuccessCode.CLOTHES_OK);
+        return Response.success(clothesResponse, ClothesSuccessCode.CLOTHES_OK);
     }
 
     @PutMapping("/{clothesId}")
-    public ResponseEntity<ApiResponse<ClothesResponse>> updateClothes(
+    public ResponseEntity<Response<ClothesResponse>> updateClothes(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long clothesId,
             @Valid @RequestBody ClothesRequest clothesRequest
@@ -82,16 +82,16 @@ public class ClothesController {
 
         ClothesResponse clothesResponse = clothesCommandService.updateClothes(authUser.getUserId(), clothesId, clothesRequest);
 
-        return ApiResponse.success(clothesResponse, ClothesSuccessCode.CLOTHES_UPDATE);
+        return Response.success(clothesResponse, ClothesSuccessCode.CLOTHES_UPDATE);
     }
 
     @DeleteMapping("/{clothesId}")
-    public ResponseEntity<ApiResponse<Void>> deleteClothes(
+    public ResponseEntity<Response<Void>> deleteClothes(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long clothesId
     ) {
         clothesCommandService.deleteClothes(authUser.getUserId(), clothesId);
 
-        return ApiResponse.success(null, ClothesSuccessCode.CLOTHES_DELETE);
+        return Response.success(null, ClothesSuccessCode.CLOTHES_DELETE);
     }
 }

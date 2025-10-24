@@ -2,8 +2,8 @@ package org.example.ootoutfitoftoday.domain.closet.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.ApiPageResponse;
-import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.common.response.PageResponse;
+import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetSaveRequest;
 import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetUpdateRequest;
@@ -31,7 +31,7 @@ public class ClosetController {
      * @return ClosetSaveResponse: 등록된 옷장 정보와 성공 응답 코드
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<ClosetSaveResponse>> createCloset(
+    public ResponseEntity<Response<ClosetSaveResponse>> createCloset(
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody ClosetSaveRequest closetSaveRequest
     ) {
@@ -40,7 +40,7 @@ public class ClosetController {
                 closetSaveRequest
         );
 
-        return ApiResponse.success(closetSaveResponse, ClosetSuccessCode.CLOSET_CREATED);
+        return Response.success(closetSaveResponse, ClosetSuccessCode.CLOSET_CREATED);
     }
 
     /**
@@ -53,7 +53,7 @@ public class ClosetController {
      * @return Page<ClosetGetPublicResponse>: 공개 옷장 리스트
      */
     @GetMapping("/public")
-    public ResponseEntity<ApiPageResponse<ClosetGetPublicResponse>> getPublicClosets(
+    public ResponseEntity<PageResponse<ClosetGetPublicResponse>> getPublicClosets(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
@@ -67,7 +67,7 @@ public class ClosetController {
                 direction
         );
 
-        return ApiPageResponse.success(closetGetPublicResponses, ClosetSuccessCode.CLOSETS_GET_PUBLIC_OK);
+        return PageResponse.success(closetGetPublicResponses, ClosetSuccessCode.CLOSETS_GET_PUBLIC_OK);
     }
 
     /**
@@ -78,12 +78,12 @@ public class ClosetController {
      * @throws ClosetException: 옷장이 존재하지 않거나 삭제된 경우 (CLOSET_NOT_FOUND)
      */
     @GetMapping("/{closetId}")
-    public ResponseEntity<ApiResponse<ClosetGetResponse>> getCloset(
+    public ResponseEntity<Response<ClosetGetResponse>> getCloset(
             @PathVariable Long closetId
     ) {
         ClosetGetResponse closetGetResponse = closetQueryService.getCloset(closetId);
 
-        return ApiResponse.success(closetGetResponse, ClosetSuccessCode.CLOSET_GET_OK);
+        return Response.success(closetGetResponse, ClosetSuccessCode.CLOSET_GET_OK);
     }
 
     /**
@@ -97,7 +97,7 @@ public class ClosetController {
      * @return Page<ClosetGetMyResponse>: 내 옷장 리스트
      */
     @GetMapping("/me")
-    public ResponseEntity<ApiPageResponse<ClosetGetMyResponse>> getClosetByMe(
+    public ResponseEntity<PageResponse<ClosetGetMyResponse>> getClosetByMe(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -113,7 +113,7 @@ public class ClosetController {
                 direction
         );
 
-        return ApiPageResponse.success(closetGetMyResponses, ClosetSuccessCode.CLOSETS_GET_MY_OK);
+        return PageResponse.success(closetGetMyResponses, ClosetSuccessCode.CLOSETS_GET_MY_OK);
     }
 
     /**
@@ -125,7 +125,7 @@ public class ClosetController {
      * @return closetUpdateResponse: 수정된 옷장 정보와 성공 응답 코드
      */
     @PutMapping("/{closetId}")
-    public ResponseEntity<ApiResponse<ClosetUpdateResponse>> updateCloset(
+    public ResponseEntity<Response<ClosetUpdateResponse>> updateCloset(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long closetId,
             @Valid @RequestBody ClosetUpdateRequest closetUpdateRequest
@@ -137,7 +137,7 @@ public class ClosetController {
                 closetUpdateRequest
         );
 
-        return ApiResponse.success(closetUpdateResponse, ClosetSuccessCode.CLOSET_UPDATE_OK);
+        return Response.success(closetUpdateResponse, ClosetSuccessCode.CLOSET_UPDATE_OK);
     }
 
     /**
@@ -148,7 +148,7 @@ public class ClosetController {
      * @return ClosetDeleteResponse 삭제된 옷장 ID와 삭제 시간
      */
     @DeleteMapping("/{closetId}")
-    public ResponseEntity<ApiResponse<ClosetDeleteResponse>> deleteCloset(
+    public ResponseEntity<Response<ClosetDeleteResponse>> deleteCloset(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long closetId
     ) {
@@ -158,6 +158,6 @@ public class ClosetController {
                 closetId
         );
 
-        return ApiResponse.success(response, ClosetSuccessCode.CLOSET_DELETE_OK);
+        return Response.success(response, ClosetSuccessCode.CLOSET_DELETE_OK);
     }
 }

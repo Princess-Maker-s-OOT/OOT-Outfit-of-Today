@@ -2,7 +2,7 @@ package org.example.ootoutfitoftoday.domain.auth.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
@@ -23,32 +23,32 @@ public class AuthController {
 
     // 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<Void>> signup(
+    public ResponseEntity<Response<Void>> signup(
             @Valid @RequestBody AuthSignupRequest request
     ) {
         authCommandService.signup(request);
 
-        return ApiResponse.success(null, AuthSuccessCode.USER_SIGNUP);
+        return Response.success(null, AuthSuccessCode.USER_SIGNUP);
     }
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthLoginResponse>> login(
+    public ResponseEntity<Response<AuthLoginResponse>> login(
             @Valid @RequestBody AuthLoginRequest request
     ) {
         AuthLoginResponse response = authCommandService.login(request);
 
-        return ApiResponse.success(response, AuthSuccessCode.USER_LOGIN);
+        return Response.success(response, AuthSuccessCode.USER_LOGIN);
     }
 
     // 회원탈퇴
     @DeleteMapping("/withdraw")
-    public ResponseEntity<ApiResponse<Void>> withdraw(
+    public ResponseEntity<Response<Void>> withdraw(
             @Valid @RequestBody AuthWithdrawRequest request,
             @AuthenticationPrincipal AuthUser authUser
     ) {
         authCommandService.withdraw(request, authUser);
 
-        return ApiResponse.success(null, AuthSuccessCode.USER_WITHDRAW);
+        return Response.success(null, AuthSuccessCode.USER_WITHDRAW);
     }
 }

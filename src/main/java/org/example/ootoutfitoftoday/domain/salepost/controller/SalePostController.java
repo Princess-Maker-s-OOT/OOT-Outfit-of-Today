@@ -2,7 +2,7 @@ package org.example.ootoutfitoftoday.domain.salepost.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
@@ -32,7 +32,7 @@ public class SalePostController {
     private final SalePostQueryService salePostQueryService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<SalePostCreateResponse>> createSalePost(
+    public ResponseEntity<Response<SalePostCreateResponse>> createSalePost(
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody SalePostCreateRequest request
     ) {
@@ -42,19 +42,19 @@ public class SalePostController {
                 request.getImageUrls()
         );
 
-        return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_CREATED);
+        return Response.success(response, SalePostSuccessCode.SALE_POST_CREATED);
     }
 
     @GetMapping("/{salePostId}")
-    public ResponseEntity<ApiResponse<SalePostDetailResponse>> getSalePostDetail(@PathVariable Long salePostId) {
+    public ResponseEntity<Response<SalePostDetailResponse>> getSalePostDetail(@PathVariable Long salePostId) {
 
         SalePostDetailResponse response = salePostQueryService.getSalePostDetail(salePostId);
 
-        return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_RETRIEVED);
+        return Response.success(response, SalePostSuccessCode.SALE_POST_RETRIEVED);
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Slice<SalePostListResponse>>> getSalePosts(
+    public ResponseEntity<Response<Slice<SalePostListResponse>>> getSalePosts(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) SaleStatus status,
             @RequestParam(required = false) String keyword,
@@ -72,11 +72,11 @@ public class SalePostController {
                 pageable
         );
 
-        return ApiResponse.success(salePosts, SalePostSuccessCode.SALE_POSTS_RETRIEVED);
+        return Response.success(salePosts, SalePostSuccessCode.SALE_POSTS_RETRIEVED);
     }
 
     @PutMapping("/{salePostId}")
-    public ResponseEntity<ApiResponse<SalePostDetailResponse>> updateSalePost(
+    public ResponseEntity<Response<SalePostDetailResponse>> updateSalePost(
             @PathVariable Long salePostId,
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody SalePostUpdateRequest request
@@ -87,21 +87,21 @@ public class SalePostController {
                 request
         );
 
-        return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_UPDATED);
+        return Response.success(response, SalePostSuccessCode.SALE_POST_UPDATED);
     }
 
     @DeleteMapping("/{salePostId}")
-    public ResponseEntity<ApiResponse<Void>> deleteSalePost(
+    public ResponseEntity<Response<Void>> deleteSalePost(
             @PathVariable Long salePostId,
             @AuthenticationPrincipal AuthUser authUser
     ) {
         salePostCommandService.deleteSalePost(salePostId, authUser.getUserId());
 
-        return ApiResponse.success(null,  SalePostSuccessCode.SALE_POST_DELETED);
+        return Response.success(null, SalePostSuccessCode.SALE_POST_DELETED);
     }
 
     @PatchMapping("/{salePostId}/status")
-    public ResponseEntity<ApiResponse<SalePostDetailResponse>> updateSaleStatus(
+    public ResponseEntity<Response<SalePostDetailResponse>> updateSaleStatus(
             @PathVariable Long salePostId,
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody SaleStatusUpdateRequest request
@@ -112,11 +112,11 @@ public class SalePostController {
                 request.getStatus()
         );
 
-        return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_STATUS_UPDATED);
+        return Response.success(response, SalePostSuccessCode.SALE_POST_STATUS_UPDATED);
     }
 
     @GetMapping("/my")
-    public ResponseEntity<ApiResponse<Slice<SalePostSummaryResponse>>> getMySalePosts(
+    public ResponseEntity<Response<Slice<SalePostSummaryResponse>>> getMySalePosts(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) SaleStatus status,
             @RequestParam(defaultValue = "0") int page,
@@ -132,6 +132,6 @@ public class SalePostController {
                 pageable
         );
 
-        return ApiResponse.success(response, SalePostSuccessCode.SALE_POST_RETRIEVED);
+        return Response.success(response, SalePostSuccessCode.SALE_POST_RETRIEVED);
     }
 }
