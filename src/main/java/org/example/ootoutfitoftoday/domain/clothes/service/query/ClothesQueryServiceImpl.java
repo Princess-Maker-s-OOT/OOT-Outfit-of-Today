@@ -110,9 +110,7 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
     }
 
     @Override
-    public List<CategoryStat> countUserTopCategoryStats(
-            Long userId
-    ) {
+    public List<CategoryStat> countUserTopCategoryStats(Long userId) {
 
         return clothesRepository.countUserTopCategoryStats(userId);
     }
