@@ -55,8 +55,9 @@ public interface UserRepository extends JpaRepository<User, Long>, CustomUserRep
     @Query(value = """
             INSERT INTO users 
                 (login_id, email, nickname, username, password, 
-                 phone_number, role, trade_address, trade_location, image_url, is_deleted)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ST_GeomFromText(?9, 4326), ?10, ?11)
+                 phone_number, role, trade_address, trade_location, 
+                             image_url, is_deleted, created_at, updated_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ST_GeomFromText(?9, 4326), ?10, ?11, NOW(), NOW())
             """, nativeQuery = true
     )
     void saveAsNativeQuery(
