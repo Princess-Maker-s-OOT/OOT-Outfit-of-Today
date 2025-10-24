@@ -35,10 +35,10 @@ public class SalePostController {
     private final SalePostCommandService salePostCommandService;
     private final SalePostQueryService salePostQueryService;
 
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(
             summary = "판매글 생성",
             description = "새로운 판매글을 등록합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "201", description = "판매글이 성공적으로 생성되었습니다."),
                     @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없습니다."),
@@ -114,10 +114,10 @@ public class SalePostController {
         return Response.success(salePosts, SalePostSuccessCode.SALE_POSTS_RETRIEVED);
     }
 
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(
             summary = "판매글 수정",
             description = "기존 판매글을 수정합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "판매글이 수정되었습니다."),
                     @ApiResponse(responseCode = "404", description = "판매글을 찾을 수 없습니다."),
@@ -145,10 +145,10 @@ public class SalePostController {
         return Response.success(response, SalePostSuccessCode.SALE_POST_UPDATED);
     }
 
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(
             summary = "판매글 삭제",
             description = "판매글을 삭제합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "판매글이 삭제되었습니다."),
                     @ApiResponse(responseCode = "404", description = "판매글을 찾을 수 없습니다."),
@@ -166,10 +166,10 @@ public class SalePostController {
         return Response.success(null, SalePostSuccessCode.SALE_POST_DELETED);
     }
 
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(
             summary = "판매글 상태 변경",
             description = "판매글의 판매 상태를 변경합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "판매글의 상태가 수정되었습니다."),
                     @ApiResponse(responseCode = "404", description = "판매글을 찾을 수 없습니다."),
@@ -191,10 +191,10 @@ public class SalePostController {
         return Response.success(response, SalePostSuccessCode.SALE_POST_STATUS_UPDATED);
     }
 
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(
             summary = "내 판매글 조회",
             description = "내가 작성한 판매글들을 조회합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "판매글이 성공적으로 조회되었습니다."),
                     @ApiResponse(responseCode = "404", description = "존재하지 않는 사용자입니다.")
