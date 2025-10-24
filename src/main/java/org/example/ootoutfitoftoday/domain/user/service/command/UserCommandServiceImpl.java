@@ -35,6 +35,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         String roleString = user.getRole().name();
 
+        // .save 메서드 대신 POINT 타입 컬럼의 값을 정상적으로 넣기 위한 Native Query를 이용하여 작성
         userRepository.saveAsNativeQuery(
                 user.getLoginId(),
                 user.getEmail(),
