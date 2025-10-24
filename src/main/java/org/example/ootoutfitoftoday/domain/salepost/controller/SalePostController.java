@@ -43,7 +43,7 @@ public class SalePostController {
                     @ApiResponse(responseCode = "201", description = "판매글이 성공적으로 생성되었습니다."),
                     @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없습니다."),
                     @ApiResponse(responseCode = "404", description = "존재하지 않는 사용자입니다."),
-                    @ApiResponse(responseCode = "400", description = "가격은 0보다 커야 합니다."),
+                    @ApiResponse(responseCode = "400", description = "가격은 0원 이상이어야 합니다."),
                     @ApiResponse(responseCode = "400", description = "이미지를 최소 1개 이상 등록해주세요."),
                     @ApiResponse(responseCode = "400", description = "일부 이미지가 제대로 업로드되지 않았습니다."),
                     @ApiResponse(responseCode = "400", description = "중복된 이미지입니다.")
@@ -121,8 +121,10 @@ public class SalePostController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "판매글이 수정되었습니다."),
                     @ApiResponse(responseCode = "404", description = "판매글을 찾을 수 없습니다."),
+                    @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없습니다."),
                     @ApiResponse(responseCode = "403", description = "해당 판매글에 대한 권한이 없습니다."),
-                    @ApiResponse(responseCode = "400", description = "카테고리를 찾을 수 없습니다."),
+                    @ApiResponse(responseCode = "400", description = "판매 중인 글만 수정할 수 있습니다."),
+                    @ApiResponse(responseCode = "400", description = "가격은 0원 이상이어야 합니다."),
                     @ApiResponse(responseCode = "400", description = "이미지를 최소 1개 이상 등록해주세요."),
                     @ApiResponse(responseCode = "400", description = "일부 이미지가 제대로 업로드되지 않았습니다."),
                     @ApiResponse(responseCode = "400", description = "중복된 이미지입니다.")
