@@ -26,10 +26,10 @@ public class CategoryController {
     private final CategoryCommandService categoryCommandService;
     private final CategoryQueryService categoryQueryService;
 
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(
             summary = "카테고리 생성",
             description = "새로운 카테고리를 등록합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "201", description = "생성 성공"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -72,10 +72,10 @@ public class CategoryController {
         return PageResponse.success(categories, CategorySuccessCode.CATEGORY_OK);
     }
 
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(
             summary = "카테고리 수정",
             description = "등록된 카테고리를 수정합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "수정 성공"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청"),
@@ -94,10 +94,10 @@ public class CategoryController {
         return Response.success(categoryResponse, CategorySuccessCode.CATEGORY_UPDATE);
     }
 
-    @SecurityRequirement(name = "bearerAuth")
     @Operation(
             summary = "카테고리 삭제",
             description = "등록된 카테고리를 삭제합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "삭제 성공"),
                     @ApiResponse(responseCode = "401", description = "인증 실패"),
