@@ -103,7 +103,7 @@ public class SalePost extends BaseEntity {
     }
 
     private static void validatePrice(BigDecimal price) {
-        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+        if (price == null || price.compareTo(BigDecimal.ZERO) < 0) {
             throw new SalePostException(SalePostErrorCode.INVALID_PRICE);
         }
     }
