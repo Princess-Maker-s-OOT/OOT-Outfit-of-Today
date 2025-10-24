@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.exception.CommonErrorCode;
 import org.example.ootoutfitoftoday.common.exception.ErrorCode;
 import org.example.ootoutfitoftoday.common.exception.GlobalException;
-import org.example.ootoutfitoftoday.common.response.ApiResponse;
+import org.example.ootoutfitoftoday.common.response.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,33 +15,33 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleException(Exception ex) {
+    public ResponseEntity<Response<Void>> handleException(Exception ex) {
         log.error("알 수 없는 서버 오류 발생 ", ex);
         return ResponseEntity
                 .status(CommonErrorCode.UNEXPECTED_SERVER_ERROR.getHttpStatus())
-                .body(ApiResponse.error(null, CommonErrorCode.UNEXPECTED_SERVER_ERROR));
+                .body(Response.error(null, CommonErrorCode.UNEXPECTED_SERVER_ERROR));
     }
 
     @ExceptionHandler(GlobalException.class)
-    public ResponseEntity<ApiResponse<Void>> handleGlobalException(GlobalException ex) {
+    public ResponseEntity<Response<Void>> handleGlobalException(GlobalException ex) {
         log.error("비즈니스 오류 발생 ", ex);
         return handleExceptionInternal(ex.getErrorCode());
     }
 
-    private ResponseEntity<ApiResponse<Void>> handleExceptionInternal(ErrorCode errorCode) {
+    private ResponseEntity<Response<Void>> handleExceptionInternal(ErrorCode errorCode) {
         return ResponseEntity
                 .status(errorCode.getHttpStatus())
-                .body(ApiResponse.error(null, errorCode));
+                .body(Response.error(null, errorCode));
     }
 
     // Validation Exception은 BAD_REQUEST로 통일
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Response<String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         // 첫 번째 에러 메시지 가져오기
         String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
 
         return ResponseEntity
                 .status(CommonErrorCode.VALIDATION_ERROR.getHttpStatus())
-                .body(ApiResponse.error(errorMessage, CommonErrorCode.VALIDATION_ERROR));
+                .body(Response.error(errorMessage, CommonErrorCode.VALIDATION_ERROR));
     }
 }

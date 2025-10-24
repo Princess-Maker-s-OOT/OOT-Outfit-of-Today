@@ -1,8 +1,8 @@
 package org.example.ootoutfitoftoday.domain.chatroom.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.ApiResponse;
-import org.example.ootoutfitoftoday.common.response.ApiSliceResponse;
+import org.example.ootoutfitoftoday.common.response.Response;
+import org.example.ootoutfitoftoday.common.response.SliceResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.chatroom.dto.request.ChatroomRequest;
 import org.example.ootoutfitoftoday.domain.chatroom.dto.response.ChatroomResponse;
@@ -32,7 +32,7 @@ public class ChatroomController {
      * @return 공통 응답만 반환
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> createChatroom(
+    public ResponseEntity<Response<Void>> createChatroom(
             @RequestBody ChatroomRequest chatroomRequest,
             @AuthenticationPrincipal AuthUser authUser
     ) {
@@ -40,7 +40,7 @@ public class ChatroomController {
 
         chatroomCommandService.createChatroom(chatroomRequest, userId);
 
-        return ApiResponse.success(null, ChatroomSuccessCode.CREATED_CHATROOM);
+        return Response.success(null, ChatroomSuccessCode.CREATED_CHATROOM);
     }
 
     /**
@@ -52,7 +52,7 @@ public class ChatroomController {
      * @return 채팅방 리스트
      */
     @GetMapping
-    public ResponseEntity<ApiSliceResponse<ChatroomResponse>> getChatrooms(
+    public ResponseEntity<SliceResponse<ChatroomResponse>> getChatrooms(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -63,7 +63,7 @@ public class ChatroomController {
 
         Slice<ChatroomResponse> chatroomResponses = chatroomQueryService.getChatrooms(userId, pageable);
 
-        return ApiSliceResponse.success(chatroomResponses, ChatroomSuccessCode.RETRIEVED_CHATROOMS);
+        return SliceResponse.success(chatroomResponses, ChatroomSuccessCode.RETRIEVED_CHATROOMS);
     }
 
     /**
@@ -74,13 +74,13 @@ public class ChatroomController {
      * @return 공통 응답만 반환
      */
     @DeleteMapping("/{chatroomId}")
-    public ResponseEntity<ApiResponse<Void>> deleteChatroom(
+    public ResponseEntity<Response<Void>> deleteChatroom(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long chatroomId
     ) {
         Long userId = authUser.getUserId();
         chatroomCommandService.deleteChatroom(chatroomId, userId);
 
-        return ApiResponse.success(null, ChatroomSuccessCode.DELETED_CHATROOM);
+        return Response.success(null, ChatroomSuccessCode.DELETED_CHATROOM);
     }
 }
