@@ -13,7 +13,6 @@ import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
-import org.example.ootoutfitoftoday.domain.salepost.service.query.SalePostQueryService;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,6 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
     private final UserQueryService userQueryService;
     private final CategoryQueryService categoryQueryService;
     private final SalePostRepository salePostRepository;
-    private final SalePostQueryService salePostQueryService;
 
     @Override
     public SalePostCreateResponse createSalePost(
@@ -62,11 +60,11 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
             Long userId,
             SalePostUpdateRequest request
     ) {
-        SalePost salePost = salePostQueryService.findSalePostById(salePostId);
+        SalePost salePost = salePostRepository.findByIdWithDetailsAndNotDeleted(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
         if (!salePost.isOwnedBy(userId)) {
             log.warn("Unauthorized access attempt to salePostId: {} by userId: {}", salePostId, userId);
-
             throw new SalePostException(SalePostErrorCode.UNAUTHORIZED_ACCESS);
         }
 
@@ -80,15 +78,14 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 request.getImageUrls()
         );
 
-        SalePost saved = salePostRepository.save(salePost);
-
-        return SalePostDetailResponse.from(saved);
+        return SalePostDetailResponse.from(salePost);
     }
 
     @Override
     public void deleteSalePost(Long salePostId, Long userId) {
 
-        SalePost salePost = salePostQueryService.findSalePostById(salePostId);
+        SalePost salePost = salePostRepository.findByIdAndIsDeletedFalse(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
         if (!salePost.isOwnedBy(userId)) {
             log.warn("Unauthorized delete attempt to salePostId: {} by userId: {}", salePostId, userId);
