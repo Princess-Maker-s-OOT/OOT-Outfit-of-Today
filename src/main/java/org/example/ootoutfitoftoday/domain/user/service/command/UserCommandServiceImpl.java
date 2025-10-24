@@ -2,6 +2,7 @@ package org.example.ootoutfitoftoday.domain.user.service.command;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.common.util.PointFormater;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
@@ -129,7 +130,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 () -> new UserException(UserErrorCode.USER_NOT_FOUND)
         );
 
-        String tradeLocation = String.format("POINT(%s %s)", request.tradeLongitude(), request.tradeLatitude());
+        String tradeLocation = PointFormater.format(request.tradeLongitude(), request.tradeLatitude());
 
         user.updateTradeLocation(request.tradeAddress(), tradeLocation);
 
