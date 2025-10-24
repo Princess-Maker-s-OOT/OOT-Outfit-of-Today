@@ -1,0 +1,61 @@
+name: Deploy (dev)
+
+on:
+  push:
+    branches: [ "dev" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+  ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+  ECR_REPO: ${{ secrets.ECR_REPO }}
+  IMAGE_TAG: ${{ github.sha }}
+  EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+  CONTAINER_NAME: app
+  APP_PORT: "8080"
+  SPRING_PROFILE: dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-dev
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/github-oidc-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build & Push to ECR
+        id: push
+        run: |
+          ./scripts/ecr-push.sh
+        # ecr-push.sh가 FULL_URI를 $GITHUB_OUTPUT에 기록함
+
+      - name: Deploy on EC2 via SSM
+        env:
+          FULL_URI: ${{ steps.push.outputs.FULL_URI }}
+        run: |
+          ./scripts/deploy.sh
+
+      - name: Verify container
+        run: |
+          aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
+            --parameters commands="[
+              \"docker ps --format 'table {{.Names}}\\t{{.Image}}\\t{{.Status}}'\"
+            ]" \
+            --region $AWS_REGION --output json
