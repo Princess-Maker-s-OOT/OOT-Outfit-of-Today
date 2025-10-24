@@ -12,7 +12,7 @@ import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminSalePostS
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminTopCategoryStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminUserStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.exception.DashboardSuccessCode;
-import org.example.ootoutfitoftoday.domain.dashboard.service.query.admin.AdminDashboardQueryService;
+import org.example.ootoutfitoftoday.domain.dashboard.service.query.admin.DashboardAdminQueryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,9 +26,9 @@ import java.time.LocalDate;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/v1/dashboards")
-public class AdminDashboardController {
+public class DashboardAdminController {
 
-    private final AdminDashboardQueryService adminDashboardQueryService;
+    private final DashboardAdminQueryService dashboardAdminQueryService;
 
     @Operation(
             summary = "대시보드 유저 통계자료 조회",
@@ -42,7 +42,7 @@ public class AdminDashboardController {
             @Parameter(description = "기준 날짜 (기본값: 오늘)") @RequestParam(required = false) LocalDate baseDate
     ) {
 
-        return Response.success(adminDashboardQueryService.adminUserStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_USER_STATISTICS_OK);
+        return Response.success(dashboardAdminQueryService.adminUserStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_USER_STATISTICS_OK);
     }
 
     @Operation(
@@ -55,7 +55,7 @@ public class AdminDashboardController {
     @GetMapping("/clothes/statistics")
     public ResponseEntity<Response<AdminClothesStatisticsResponse>> adminClothesStatistics() {
 
-        return Response.success(adminDashboardQueryService.adminClothesStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_CLOTHES_STATISTICS_OK);
+        return Response.success(dashboardAdminQueryService.adminClothesStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_CLOTHES_STATISTICS_OK);
     }
 
     @Operation(
@@ -70,7 +70,7 @@ public class AdminDashboardController {
             @Parameter(description = "기준 날짜 (기본값: 오늘)") @RequestParam(required = false) LocalDate baseDate
     ) {
 
-        return Response.success(adminDashboardQueryService.adminSalePostStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_SALE_POST_STATISTICS_OK);
+        return Response.success(dashboardAdminQueryService.adminSalePostStatistics(baseDate), DashboardSuccessCode.DASHBOARD_ADMIN_SALE_POST_STATISTICS_OK);
     }
 
     @Operation(
@@ -83,6 +83,6 @@ public class AdminDashboardController {
     @GetMapping("/popular")
     public ResponseEntity<Response<AdminTopCategoryStatisticsResponse>> adminTopCategoryStatistics() {
 
-        return Response.success(adminDashboardQueryService.adminTopCategoryStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_TOP10_CATEGORY_STATISTICS_OK);
+        return Response.success(dashboardAdminQueryService.adminTopCategoryStatistics(), DashboardSuccessCode.DASHBOARD_ADMIN_TOP10_CATEGORY_STATISTICS_OK);
     }
 }

@@ -102,4 +102,16 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
 
         return clothesRepository.findTopCategoryStats();
     }
+
+    @Override
+    public int countAllClothesByUserIdAndIsDeletedFalse(Long userId) {
+
+        return clothesRepository.countAllClothesByUserIdAndIsDeletedFalse(userId);
+    }
+
+    @Override
+    public List<CategoryStat> countUserTopCategoryStats(Long userId) {
+
+        return clothesRepository.countUserTopCategoryStats(userId);
+    }
 }
