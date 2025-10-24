@@ -41,4 +41,10 @@ public interface ClothesQueryService {
 
     // 카테고리 인기 순위
     List<CategoryStat> findTopCategoryStats();
+
+    // 사용자 기준 옷 통계
+    int countAllClothesByUserIdAndIsDeletedFalse(Long userId);
+
+    // 사용자 기준 카테고리 옷 통계
+    List<CategoryStat> countUserTopCategoryStats(Long userId);
 }
