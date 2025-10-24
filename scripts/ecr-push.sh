@@ -7,6 +7,11 @@ set -euo pipefail
 : "${ECR_REPO:?ECR_REPO required}"
 : "${IMAGE_TAG:?IMAGE_TAG required}"
 
+# ECR 저장소 이름과 태그는 소문자여야 하므로, Bash 파라미터 확장을 사용해 강제 변환합니다.
+# 이 로직은 불필요한 서브쉘 생성 없이 변수를 효율적으로 변환합니다.
+ECR_REPO=${ECR_REPO,,}
+IMAGE_TAG=${IMAGE_TAG,,}
+
 REG_URI="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 FULL_URI="${REG_URI}/${ECR_REPO}:${IMAGE_TAG}"
 
