@@ -179,6 +179,9 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
         }
 
+        // 리프레시 토큰 삭제
+        refreshTokenRepository.deleteByUserId(user.getId());
+
         List<ChatParticipatingUser> chatParticipatingUsers = chatParticipatingUserQueryService.getChatParticipatingUsers(user);
 
         chatParticipatingUsers
