@@ -1,8 +1,10 @@
 package org.example.ootoutfitoftoday.domain.salepost.service.command;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.ootoutfitoftoday.common.util.PointFormater;
+import org.example.ootoutfitoftoday.common.util.Location;
+import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryService;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
@@ -30,6 +32,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
     private final UserQueryService userQueryService;
     private final CategoryQueryService categoryQueryService;
     private final SalePostRepository salePostRepository;
+    private final EntityManager entityManager;
 
     // 판매글 생성
     @Override
@@ -42,7 +45,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         Category category = categoryQueryService.findById(request.getCategoryId());
 
-        String tradeLocation = PointFormater.format(request.getTradeLatitude(), request.getTradeLongitude());
+        String tradeLocation = PointFormatAndParse.format(request.getTradeLatitude(), request.getTradeLongitude());
 
         SalePost salePost = SalePost.create(
                 user,
@@ -74,7 +77,9 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId);
 
-        return SalePostCreateResponse.from(savedSalePost);
+        Location location = PointFormatAndParse.parse(savedSalePost.getTradeLocation());
+
+        return SalePostCreateResponse.from(savedSalePost, location.latitude(), location.longitude());
     }
 
     // 판매글 수정
@@ -98,7 +103,9 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
             throw new SalePostException(SalePostErrorCode.CANNOT_UPDATE_NON_SELLING_POST);
         }
 
-        String tradeLocation = PointFormater.format(request.getTradeLatitude(), request.getTradeLongitude());
+        String tradeLocation = PointFormatAndParse.format(request.getTradeLatitude(), request.getTradeLongitude());
+
+        log.info("tradeLocation: {}", tradeLocation);
 
         salePostRepository.updateAsNativeQuery(
                 salePostId,
@@ -110,9 +117,14 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 tradeLocation
         );
 
+        // 업데이트 이후 영속성 컨텍스트
+        entityManager.clear();
+
         SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId);
 
-        return SalePostDetailResponse.from(updatedSalePost);
+        Location location = PointFormatAndParse.parse(updatedSalePost.getTradeLocation());
+
+        return SalePostDetailResponse.from(updatedSalePost, location.latitude(), location.longitude());
     }
 
     // 판매글 삭제
@@ -154,6 +166,14 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         salePost.updateStatus(newStatus);
 
-        return SalePostDetailResponse.from(salePost);
+        salePostRepository.flush();
+
+        entityManager.clear();
+
+        SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId);
+
+        Location location = PointFormatAndParse.parse(updatedSalePost.getTradeLocation());
+
+        return SalePostDetailResponse.from(updatedSalePost, location.latitude(), location.longitude());
     }
 }
