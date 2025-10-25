@@ -19,6 +19,9 @@ public class SalePostDetailResponse {
     private final String content;
     private final BigDecimal price;
     private final SaleStatus status;
+    private final String tradeAddress;
+    private final BigDecimal tradeLatitude;
+    private final BigDecimal tradeLongitude;
     private final Long sellerId;
     private final String sellerNickname;
     private final String sellerImageUrl;
@@ -27,7 +30,7 @@ public class SalePostDetailResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static SalePostDetailResponse from(SalePost salePost) {
+    public static SalePostDetailResponse from(SalePost salePost, BigDecimal tradeLatitude, BigDecimal tradeLongitude) {
 
         return SalePostDetailResponse.builder()
                 .salePostId(salePost.getId())
@@ -35,6 +38,9 @@ public class SalePostDetailResponse {
                 .content(salePost.getContent())
                 .price(salePost.getPrice())
                 .status(salePost.getStatus())
+                .tradeAddress(salePost.getTradeAddress())
+                .tradeLatitude(tradeLatitude)
+                .tradeLongitude(tradeLongitude)
                 .sellerId(salePost.getUser().getId())
                 .sellerNickname(salePost.getUser().getNickname())
                 .sellerImageUrl(salePost.getUser().getImageUrl())

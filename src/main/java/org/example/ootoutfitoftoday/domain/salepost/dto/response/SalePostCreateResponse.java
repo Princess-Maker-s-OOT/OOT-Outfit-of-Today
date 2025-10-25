@@ -20,13 +20,14 @@ public class SalePostCreateResponse {
     private final BigDecimal price;
     private final SaleStatus status;
     private final String tradeAddress;
-    private final String tradeLocation;
+    private final BigDecimal tradeLatitude;
+    private final BigDecimal tradeLongitude;
     private final Long userId;
     private final Long categoryId;
     private final List<String> imageUrls;
     private final LocalDateTime createdAt;
 
-    public static SalePostCreateResponse from(SalePost salePost) {
+    public static SalePostCreateResponse from(SalePost salePost, BigDecimal tradeLatitude, BigDecimal tradeLongitude) {
 
         return SalePostCreateResponse.builder()
                 .salePostId(salePost.getId())
@@ -35,7 +36,8 @@ public class SalePostCreateResponse {
                 .price(salePost.getPrice())
                 .status(salePost.getStatus())
                 .tradeAddress(salePost.getTradeAddress())
-                .tradeLocation(salePost.getTradeLocation())
+                .tradeLatitude(tradeLatitude)
+                .tradeLongitude(tradeLongitude)
                 .userId(salePost.getUser().getId())
                 .categoryId(salePost.getCategory().getId())
                 .imageUrls(salePost.getImages().stream()
