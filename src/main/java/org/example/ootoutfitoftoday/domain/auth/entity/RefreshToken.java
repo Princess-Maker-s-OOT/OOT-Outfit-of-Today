@@ -97,7 +97,7 @@ public class RefreshToken {
 
     // 리프레시 토큰 무효화 여부 확인
     // 로그아웃, 관리자 강제 만료 등으로 상태가 REVOKED인 경우
-    public boolean isRevoke() {
+    public boolean isRevoked() {
 
         return this.status == RefreshTokenStatus.REVOKED;
     }
@@ -106,6 +106,6 @@ public class RefreshToken {
     // 액세스 토큰 유효성과 별개. 리프레시 토큰만 판별
     public boolean isValid() {
 
-        return !isExpired() && !isRevoke();
+        return !isExpired() && !isRevoked();
     }
 }
