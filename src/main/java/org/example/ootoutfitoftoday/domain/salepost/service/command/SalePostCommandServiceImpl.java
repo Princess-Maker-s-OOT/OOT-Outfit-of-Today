@@ -31,6 +31,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
     private final CategoryQueryService categoryQueryService;
     private final SalePostRepository salePostRepository;
 
+    // 판매글 생성
     @Override
     public SalePostCreateResponse createSalePost(
             Long userId,
@@ -71,13 +72,12 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         // 다중 쓰레드 환경에서는 불안감이 있음 - 해결 방법 없음
         Long salePostId = salePostRepository.findLastInsertId();
 
-        SalePost savedSalePost = salePostRepository.findById(salePostId).orElseThrow(
-                () -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND)
-        );
+        SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId);
 
         return SalePostCreateResponse.from(savedSalePost);
     }
 
+    // 판매글 수정
     @Override
     public SalePostDetailResponse updateSalePost(
             Long salePostId,
@@ -98,24 +98,24 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
             throw new SalePostException(SalePostErrorCode.CANNOT_UPDATE_NON_SELLING_POST);
         }
 
-        Category category = categoryQueryService.findById(request.getCategoryId());
-
         String tradeLocation = PointFormater.format(request.getTradeLatitude(), request.getTradeLongitude());
 
-        // 여기 네이티브 쿼리 들어가야 함
-        salePost.update(
-                category,
+        salePostRepository.updateAsNativeQuery(
+                salePostId,
                 request.getTitle(),
                 request.getContent(),
                 request.getPrice(),
+                request.getCategoryId(),
                 request.getTradeAddress(),
-                tradeLocation,
-                request.getImageUrls()
+                tradeLocation
         );
 
-        return SalePostDetailResponse.from(salePost);
+        SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId);
+
+        return SalePostDetailResponse.from(updatedSalePost);
     }
 
+    // 판매글 삭제
     @Override
     public void deleteSalePost(Long salePostId, Long userId) {
 
@@ -136,6 +136,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         salePost.softDelete();
     }
 
+    // 판매글 상태 업데이트
     @Override
     public SalePostDetailResponse updateSaleStatus(
             Long salePostId,
