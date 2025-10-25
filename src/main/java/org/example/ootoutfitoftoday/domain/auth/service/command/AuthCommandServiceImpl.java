@@ -159,6 +159,16 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         return new AuthLoginResponse(newAccessToken, newRefreshToken);
     }
 
+    // 로그아웃
+    // DB에서 리프레시 토큰 삭제
+    @Override
+    public void logout(AuthUser authUser) {
+        User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
+
+        // DB에서 리프레시 토큰 삭제
+        refreshTokenRepository.deleteByUserId(user.getId());
+    }
+
     // 회원탈퇴
     @Override
     public void withdraw(AuthWithdrawRequest request, AuthUser authUser) {

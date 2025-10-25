@@ -14,6 +14,6 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     // userId로 조회(연관관계 없으므로 Long 타입 사용)
     Optional<RefreshToken> findByUserId(Long userId);
 
-    // userId로 삭제 (회원탈퇴, 로그아웃 시 사용)
+    // userId로 삭제(회원탈퇴, 로그아웃 시 사용)
     void deleteByUserId(Long userId);
 }

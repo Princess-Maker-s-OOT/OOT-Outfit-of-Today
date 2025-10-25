@@ -22,5 +22,7 @@ public interface AuthCommandService {
 
     AuthLoginResponse refresh(String refreshToken);
 
+    void logout(AuthUser authUser);
+
     void withdraw(AuthWithdrawRequest request, AuthUser authUser);
 }

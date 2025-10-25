@@ -82,6 +82,25 @@ public class AuthController {
         return Response.success(response, AuthSuccessCode.TOKEN_REFRESH);
     }
 
+    // 로그아웃
+    @Operation(
+            summary = "로그아웃",
+            description = "사용자를 로그아웃하고 리프레시 토큰을 무효화합니다.\n\n" +
+                    "- DB에서 리프레시 토큰 삭제",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            })
+    @PostMapping("/logout")
+    public ResponseEntity<Response<Void>> logout(
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+        authCommandService.logout(authUser);
+
+        return Response.success(null, AuthSuccessCode.USER_LOGOUT);
+    }
+
     // 회원탈퇴
     @Operation(
             summary = "회원 삭제",
