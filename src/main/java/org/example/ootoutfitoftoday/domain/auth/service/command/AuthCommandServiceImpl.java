@@ -121,6 +121,44 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         return new AuthLoginResponse(accessToken, refreshToken);
     }
 
+    // 토큰 재발급(액세스 토큰 만료 시 클라이언트가 저장해둔 리프레시 토큰으로 새 액세스 토큰 발급)
+    // 바디로 전달받은 리프레시 토큰을 파라미터로 받음
+    @Override
+    public AuthLoginResponse refresh(String refreshToken) {
+
+        // 리프레시 토큰 만료 확인
+        if (jwtUtil.isExpired(refreshToken)) {
+            throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
+        }
+
+        // DB에서 리프레시 토큰 조회
+        // 탈취한 토큰인지, 로그아웃 및 회원탈퇴로 무효화된 토큰인지 확인
+        RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken).orElseThrow(
+                () -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+
+        // 리프레시 토큰 유효성 확인
+        if (!storedToken.isValid()) {
+            refreshTokenRepository.delete(storedToken);
+            throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
+        }
+
+        // userId로 User 조회
+        Long userId = storedToken.getUserId();
+        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
+
+        // 새로운 액세스 토큰 생성
+        String newAccessToken = jwtUtil.createAccessToken(userId, user.getRole());
+
+        // 새로운 리프레시 토큰 생성(RTR)
+        // RTR(Refresh Token Rotation): 보안을 위해 리프레시 토큰도 재사용하지 않고 폐기 & 새로 발급
+        String newRefreshToken = jwtUtil.createRefreshToken(user.getId());
+        LocalDateTime newExpiresAt = LocalDateTime.now()
+                .plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
+        storedToken.updateToken(newRefreshToken, newExpiresAt);
+
+        return new AuthLoginResponse(newAccessToken, newRefreshToken);
+    }
+
     // 회원탈퇴
     @Override
     public void withdraw(AuthWithdrawRequest request, AuthUser authUser) {
