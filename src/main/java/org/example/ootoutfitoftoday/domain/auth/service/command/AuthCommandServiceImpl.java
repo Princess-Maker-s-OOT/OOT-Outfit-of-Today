@@ -8,8 +8,10 @@ import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
+import org.example.ootoutfitoftoday.domain.auth.entity.RefreshToken;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
+import org.example.ootoutfitoftoday.domain.auth.repository.RefreshTokenRepository;
 import org.example.ootoutfitoftoday.domain.chat.service.command.ChatReferenceToChatroomCommandService;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.query.ChatParticipatingUserQueryService;
@@ -21,6 +23,7 @@ import org.example.ootoutfitoftoday.security.jwt.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,6 +37,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final UserQueryService userQueryService;
     private final ChatParticipatingUserQueryService chatParticipatingUserQueryService;
     private final ChatReferenceToChatroomCommandService chatReferenceToChatroomCommandService;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
@@ -64,10 +68,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     // 회원가입
-
-    /**
-     * TODO: 리팩토링 고려
-     **/
+    // TODO: 리팩토링 고려
     @Override
     public void signup(AuthSignupRequest request) {
 
@@ -100,17 +101,24 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     // 로그인
+    // 액세스 토큰, 리프레시 토큰 모두 응답 바디로 발급
     @Override
     public AuthLoginResponse login(AuthLoginRequest request) {
 
         User user = userQueryService.findByLoginIdAndIsDeletedFalse(request.getLoginId());
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
 
-        String token = jwtUtil.createToken(user.getId(), user.getRole());
+        // 액세스 토큰 생성
+        String accessToken = jwtUtil.createAccessToken(user.getId(), user.getRole());
 
-        return new AuthLoginResponse(token);
+        // 리프레시 토큰 생성 및 DB 저장
+        String refreshToken = jwtUtil.createRefreshToken(user.getId());
+        saveOrUpdateRefreshToken(user.getId(), refreshToken);
+
+        return new AuthLoginResponse(accessToken, refreshToken);
     }
 
     // 회원탈퇴
@@ -124,7 +132,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         }
 
         List<ChatParticipatingUser> chatParticipatingUsers = chatParticipatingUserQueryService.getChatParticipatingUsers(user);
-        
+
         chatParticipatingUsers
                 .forEach(chatParticipatingUser1 -> {
                     List<ChatParticipatingUser> usersInChatroom = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatParticipatingUser1.getChatroom());
@@ -138,5 +146,25 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                 });
 
         userCommandService.softDeleteUser(user);
+    }
+
+    // 리프레시 토큰 저장 또는 업데이트
+    private void saveOrUpdateRefreshToken(Long userId, String refreshToken) {
+
+        LocalDateTime expiresAt = LocalDateTime.now()
+                .plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
+
+        refreshTokenRepository.findByUserId(userId)
+                .ifPresentOrElse(
+                        existingToken -> existingToken.updateToken(refreshToken, expiresAt),
+                        () -> {
+                            RefreshToken newToken = RefreshToken.create(
+                                    userId,
+                                    refreshToken,
+                                    expiresAt
+                            );
+                            refreshTokenRepository.save(newToken);
+                        }
+                );
     }
 }

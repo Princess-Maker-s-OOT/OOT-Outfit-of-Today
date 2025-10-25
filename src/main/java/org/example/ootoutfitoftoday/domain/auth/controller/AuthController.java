@@ -47,7 +47,9 @@ public class AuthController {
     // 로그인
     @Operation(
             summary = "회원 로그인",
-            description = "아이디와 비밀번호를 사용하여 로그인하고 토큰을 생성합니다.",
+            description = "아이디와 비밀번호를 사용하여 로그인합니다.\n\n" +
+                    "- Access Token: 응답 바디에 포함 (60분)\n" +
+                    "- Refresh Token: 응답 바디에 포함 (7일)",
             responses = {
                     @ApiResponse(responseCode = "200", description = "로그인 성공, 토큰 생성"),
                     @ApiResponse(responseCode = "401", description = "로그인 실패(잘못된 아이디 또는 비밀번호)")
