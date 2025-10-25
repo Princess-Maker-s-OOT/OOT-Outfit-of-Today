@@ -42,7 +42,6 @@ public class ClosetClothesLinkController {
     @Operation(
             summary = "옷장에 옷 등록",
             description = "선택한 옷장에 이미 등록된 옷을 추가합니다. 같은 옷을 중복으로 등록할 수 없습니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "201", description = "등록 성공"),
                     @ApiResponse(responseCode = "400", description = "이미 등록된 옷 또는 잘못된 요청"),
@@ -81,7 +80,6 @@ public class ClosetClothesLinkController {
     @Operation(
             summary = "옷장에 등록된 옷 리스트 조회",
             description = "선택한 옷장에 등록된 모든 옷을 조회합니다. 최근 등록순으로 정렬됩니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "조회 성공"),
                     @ApiResponse(responseCode = "401", description = "인증 실패"),
@@ -123,7 +121,6 @@ public class ClosetClothesLinkController {
     @Operation(
             summary = "옷장에서 옷 제거",
             description = "선택한 옷장에 등록된 옷을 제거합니다. 실제 옷 데이터는 삭제되지 않고 연결만 해제됩니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "삭제 성공"),
                     @ApiResponse(responseCode = "400", description = "연결되지 않은 옷"),
