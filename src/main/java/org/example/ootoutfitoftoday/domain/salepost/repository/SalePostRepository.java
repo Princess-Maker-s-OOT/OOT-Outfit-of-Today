@@ -110,4 +110,42 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
             SELECT LAST_INSERT_ID()
             """, nativeQuery = true)
     Long findLastInsertId();
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            UPDATE sale_posts 
+            SET title = ?2, content = ?3, price = ?4, category_id = ?5, 
+            trade_address = ?6, trade_location = ST_GeomFromText(?7, 4326), updated_at = NOW() 
+            WHERE id = ?1
+            """, nativeQuery = true)
+    void updateAsNativeQuery(
+            Long salePostId,
+            String title,
+            String content,
+            BigDecimal price,
+            Long categoryId,
+            String tradeAddress,
+            String tradeLocation
+    );
+
+    @Query(value = """
+            SELECT
+                s.id,
+                s.title,
+                s.content,
+                s.price,
+                s.status,
+                s.trade_address,
+                ST_AsText(s.trade_location) AS trade_location,
+                s.user_id,
+                s.category_id,
+                s.created_at,
+                s.updated_at,
+                s.is_deleted,
+                s.deleted_at
+            FROM sale_posts s
+            WHERE s.id = ?1
+            """, nativeQuery = true)
+    SalePost findByIdAsNativeQuery(Long salePostId);
 }
