@@ -1,5 +1,9 @@
 package org.example.ootoutfitoftoday.domain.closet.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.PageResponse;
@@ -16,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "옷장 관리", description = "옷장관련 API")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/closets")
@@ -30,6 +36,16 @@ public class ClosetController {
      * @param closetSaveRequest: 옷장 등록 요청 객체 (이름, 설명 등 포함)
      * @return ClosetSaveResponse: 등록된 옷장 정보와 성공 응답 코드
      */
+    @Operation(
+            summary = "옷장 등록",
+            description = "회원이 자신의 옷장을 등록합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "등록 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            }
+    )
     @PostMapping
     public ResponseEntity<Response<ClosetSaveResponse>> createCloset(
             @AuthenticationPrincipal AuthUser authUser,
@@ -52,6 +68,13 @@ public class ClosetController {
      * @param direction: 정렬 방향
      * @return Page<ClosetGetPublicResponse>: 공개 옷장 리스트
      */
+    @Operation(
+            summary = "공개 옷장 전체 조회",
+            description = "공개 옷장 전체를 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공")
+            }
+    )
     @GetMapping("/public")
     public ResponseEntity<PageResponse<ClosetGetPublicResponse>> getPublicClosets(
             @RequestParam(defaultValue = "0") int page,
@@ -77,6 +100,16 @@ public class ClosetController {
      * @return ClosetGetResponse: 옷장 상세 정보 DTO
      * @throws ClosetException: 옷장이 존재하지 않거나 삭제된 경우 (CLOSET_NOT_FOUND)
      */
+    @Operation(
+            summary = "옷장 상세 조회",
+            description = "회원이 옷장의 상세 정보를 조회합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "옷장을 찾을 수 없음")
+            }
+    )
     @GetMapping("/{closetId}")
     public ResponseEntity<Response<ClosetGetResponse>> getCloset(
             @PathVariable Long closetId
@@ -96,6 +129,15 @@ public class ClosetController {
      * @param direction: 정렬 방향
      * @return Page<ClosetGetMyResponse>: 내 옷장 리스트
      */
+    @Operation(
+            summary = "내 옷장 전체 조회",
+            description = "회원이 자신의 전체 옷장을 조회합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            }
+    )
     @GetMapping("/me")
     public ResponseEntity<PageResponse<ClosetGetMyResponse>> getClosetByMe(
             @AuthenticationPrincipal AuthUser authUser,
@@ -124,6 +166,18 @@ public class ClosetController {
      * @param closetUpdateRequest: 옷장 수정 요청 객체 (이름, 설명 등 포함)
      * @return closetUpdateResponse: 수정된 옷장 정보와 성공 응답 코드
      */
+    @Operation(
+            summary = "내 옷장 정보 수정",
+            description = "회원이 자신의 옷장 정보를 수정합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "수정 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "403", description = "권한 없음"),
+                    @ApiResponse(responseCode = "404", description = "옷장을 찾을 수 없음")
+            }
+    )
     @PutMapping("/{closetId}")
     public ResponseEntity<Response<ClosetUpdateResponse>> updateCloset(
             @AuthenticationPrincipal AuthUser authUser,
@@ -147,6 +201,17 @@ public class ClosetController {
      * @param closetId: 삭제할 옷장의 ID
      * @return ClosetDeleteResponse 삭제된 옷장 ID와 삭제 시간
      */
+    @Operation(
+            summary = "내 옷장 삭제",
+            description = "회원이 자신의 옷장을 삭제합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "삭제 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "403", description = "권한 없음"),
+                    @ApiResponse(responseCode = "404", description = "옷장을 찾을 수 없음")
+            }
+    )
     @DeleteMapping("/{closetId}")
     public ResponseEntity<Response<ClosetDeleteResponse>> deleteCloset(
             @AuthenticationPrincipal AuthUser authUser,
