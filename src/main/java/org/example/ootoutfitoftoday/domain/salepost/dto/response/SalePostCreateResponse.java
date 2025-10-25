@@ -19,6 +19,8 @@ public class SalePostCreateResponse {
     private final String content;
     private final BigDecimal price;
     private final SaleStatus status;
+    private final String tradeAddress;
+    private final String tradeLocation;
     private final Long userId;
     private final Long categoryId;
     private final List<String> imageUrls;
@@ -32,6 +34,8 @@ public class SalePostCreateResponse {
                 .content(salePost.getContent())
                 .price(salePost.getPrice())
                 .status(salePost.getStatus())
+                .tradeAddress(salePost.getTradeAddress())
+                .tradeLocation(salePost.getTradeLocation())
                 .userId(salePost.getUser().getId())
                 .categoryId(salePost.getCategory().getId())
                 .imageUrls(salePost.getImages().stream()
