@@ -2,6 +2,8 @@ package org.example.ootoutfitoftoday.domain.image.entity;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.image.exception.ImageErrorCode;
+import org.example.ootoutfitoftoday.domain.image.exception.ImageException;
 
 @Getter
 @RequiredArgsConstructor
@@ -23,10 +25,9 @@ public enum ImageType {
      */
     public static ImageType fromString(String type) {
         try {
-
             return ImageType.valueOf(type.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("유효하지 않은 이미지 타입입니다: " + type);
+            throw new ImageException(ImageErrorCode.INVALID_IMAGE_TYPE);
         }
     }
 }
