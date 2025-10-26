@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface ClothesRepository extends JpaRepository<Clothes, Long>, CustomClothesRepository {
+public interface ClothesRepository extends JpaRepository<Clothes, Long>, ClothesCustomRepository {
 
     Optional<Clothes> findByIdAndIsDeletedFalse(Long id);
 
