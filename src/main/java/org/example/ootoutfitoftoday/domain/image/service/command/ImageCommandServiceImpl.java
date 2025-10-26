@@ -8,14 +8,14 @@ import org.example.ootoutfitoftoday.domain.image.entity.ImageType;
 import org.example.ootoutfitoftoday.domain.image.exception.ImageErrorCode;
 import org.example.ootoutfitoftoday.domain.image.exception.ImageException;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -23,8 +23,9 @@ import java.util.UUID;
 public class ImageCommandServiceImpl implements ImageCommandService {
 
     private static final int PRESIGNED_URL_EXPIRATION_MINUTES = 5;
-    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif", "webp");
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
     private final S3Presigner s3Presigner;
+    private final S3Client s3Client;
     private final AwsS3Properties awsS3Properties;
 
     // Presigned URL 생성
@@ -106,9 +107,7 @@ public class ImageCommandServiceImpl implements ImageCommandService {
 
     // 파일 최종 URL 생성
     private String generateFileUrl(String s3Key) {
-        String region = awsS3Properties.getRegion().getStaticRegion();
         String bucket = awsS3Properties.getS3().getBucket();
-
-        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, s3Key);
+        return s3Client.utilities().getUrl(builder -> builder.bucket(bucket).key(s3Key)).toString();
     }
 }
