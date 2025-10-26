@@ -61,7 +61,10 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
                         // 인증 없이 접근 가능한 API
-                        .requestMatchers(HttpMethod.POST, "/v1/auth/signup", "/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/v1/auth/signup",
+                                "/v1/auth/login",
+                                "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/v1/closets/public",
                                 "/v1/closets/{closetId}",  // 추가 추천

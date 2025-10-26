@@ -11,6 +11,7 @@ import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
+import org.example.ootoutfitoftoday.domain.auth.dto.request.RefreshTokenRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthSuccessCode;
 import org.example.ootoutfitoftoday.domain.auth.service.command.AuthCommandService;
@@ -47,7 +48,9 @@ public class AuthController {
     // 로그인
     @Operation(
             summary = "회원 로그인",
-            description = "아이디와 비밀번호를 사용하여 로그인하고 토큰을 생성합니다.",
+            description = "아이디와 비밀번호를 사용하여 로그인합니다.\n\n" +
+                    "- Access Token: 응답 바디에 포함 (60분)\n" +
+                    "- Refresh Token: 응답 바디에 포함 (7일)",
             responses = {
                     @ApiResponse(responseCode = "200", description = "로그인 성공, 토큰 생성"),
                     @ApiResponse(responseCode = "401", description = "로그인 실패(잘못된 아이디 또는 비밀번호)")
@@ -59,6 +62,43 @@ public class AuthController {
         AuthLoginResponse response = authCommandService.login(request);
 
         return Response.success(response, AuthSuccessCode.USER_LOGIN);
+    }
+
+    // 토큰 재발급
+    @Operation(
+            summary = "토큰 재발급",
+            description = "리프레시 토큰을 사용하여 새로운 액세스 토큰과 리프레시 토큰을 발급합니다.(RTR)\n\n" +
+                    "- 리프레시 토큰은 Body로 전송",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "토큰 재발급 성공"),
+                    @ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 리프레시 토큰")
+            })
+    @PostMapping("/refresh")
+    public ResponseEntity<Response<AuthLoginResponse>> refresh(
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        AuthLoginResponse response = authCommandService.refresh(request.getRefreshToken());
+
+        return Response.success(response, AuthSuccessCode.TOKEN_REFRESH);
+    }
+
+    // 로그아웃
+    @Operation(
+            summary = "로그아웃",
+            description = "사용자를 로그아웃하고 리프레시 토큰을 무효화합니다.\n\n" +
+                    "- DB에서 리프레시 토큰 삭제",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            })
+    @PostMapping("/logout")
+    public ResponseEntity<Response<Void>> logout(
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+        authCommandService.logout(authUser);
+
+        return Response.success(null, AuthSuccessCode.USER_LOGOUT);
     }
 
     // 회원탈퇴
