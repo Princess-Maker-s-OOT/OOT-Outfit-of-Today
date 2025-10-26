@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.domain.auth.enums.RefreshTokenStatus;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -23,9 +24,9 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 유저와 연관관계 없음(userId만 저장)
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(name = "token", nullable = false, unique = true, length = 500)
     private String token;
@@ -47,12 +48,12 @@ public class RefreshToken {
 
     @Builder
     private RefreshToken(
-            Long userId,
+            User user,
             String token,
             RefreshTokenStatus status,
             LocalDateTime expiresAt
     ) {
-        this.userId = userId;
+        this.user = user;
         this.token = token;
         this.status = status;
         this.expiresAt = expiresAt;
@@ -60,20 +61,20 @@ public class RefreshToken {
 
     // 리프레시 토큰 생성
     public static RefreshToken create(
-            Long userId,
+            User user,
             String token,
             LocalDateTime expiresAt
     ) {
 
         return RefreshToken.builder()
-                .userId(userId)
+                .user(user)
                 .token(token)
                 .status(RefreshTokenStatus.ACTIVE)    // 기본값: ACTIVE
                 .expiresAt(expiresAt)
                 .build();
     }
 
-    // 로그아웃 시 리프레시 토큰 무효화
+    // 리프레시 토큰 무효화
     public void revoke() {
 
         this.status = RefreshTokenStatus.REVOKED;

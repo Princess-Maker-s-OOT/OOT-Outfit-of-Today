@@ -116,7 +116,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
         // 리프레시 토큰 생성 및 DB 저장
         String refreshToken = jwtUtil.createRefreshToken(user.getId());
-        saveOrUpdateRefreshToken(user.getId(), refreshToken);
+
+        saveOrUpdateRefreshToken(user, refreshToken);
 
         return new AuthLoginResponse(accessToken, refreshToken);
     }
@@ -143,7 +144,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         }
 
         // userId로 User 조회
-        Long userId = storedToken.getUserId();
+        Long userId = storedToken.getUser().getId();
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
         // 새로운 액세스 토큰 생성
@@ -200,17 +201,17 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     // 리프레시 토큰 저장 또는 업데이트
-    private void saveOrUpdateRefreshToken(Long userId, String refreshToken) {
+    private void saveOrUpdateRefreshToken(User user, String refreshToken) {
 
         LocalDateTime expiresAt = LocalDateTime.now()
                 .plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
 
-        refreshTokenRepository.findByUserId(userId)
+        refreshTokenRepository.findByUserId(user.getId())
                 .ifPresentOrElse(
                         existingToken -> existingToken.updateToken(refreshToken, expiresAt),
                         () -> {
                             RefreshToken newToken = RefreshToken.create(
-                                    userId,
+                                    user,
                                     refreshToken,
                                     expiresAt
                             );
