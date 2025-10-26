@@ -68,8 +68,8 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
 
     @Override
     public Slice<ClothesResponse> findAllByIsDeletedFalse(
-            Long categoryId,
             Long userId,
+            Long categoryId,
             ClothesColor clothesColor,
             ClothesSize clothesSize,
             Long lastClothesId, // 커서 기준 (무한스크롤용)
