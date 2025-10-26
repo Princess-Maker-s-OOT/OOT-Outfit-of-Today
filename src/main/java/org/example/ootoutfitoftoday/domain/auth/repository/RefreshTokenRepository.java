@@ -2,7 +2,11 @@ package org.example.ootoutfitoftoday.domain.auth.repository;
 
 import org.example.ootoutfitoftoday.domain.auth.entity.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
@@ -15,4 +19,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     // userId로 삭제(회원탈퇴, 로그아웃 시 사용)
     void deleteByUserId(Long userId);
+
+    // 만료된 토큰 일괄 삭제
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM RefreshToken rt WHERE rt.expiresAt < :now")
+    void deleteExpiredTokens(@Param("now") LocalDateTime now);
 }
