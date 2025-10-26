@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-// 연관관계 없음. userId(Long)로 조회 및 삭제
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
 
     // 토큰 값으로 조회
