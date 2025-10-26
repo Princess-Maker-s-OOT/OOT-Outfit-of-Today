@@ -18,7 +18,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     Optional<RefreshToken> findByUserId(Long userId);
 
     // userId로 삭제(회원탈퇴, 로그아웃 시 사용)
-    void deleteByUserId(Long userId);
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM RefreshToken rt WHERE rt.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 
     // 만료된 토큰 일괄 삭제
     @Modifying(clearAutomatically = true)
