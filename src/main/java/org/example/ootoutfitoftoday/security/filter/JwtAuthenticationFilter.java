@@ -47,7 +47,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 인증 불필요 경로는 필터 스킵
         // POST 요청에서 인증 불필요한 경로 (회원가입/로그인)
         if ("POST".equalsIgnoreCase(method) &&
-                (requestUri.equals("/v1/auth/signup") || requestUri.equals("/v1/auth/login"))
+                (requestUri.equals("/v1/auth/signup") ||
+                        requestUri.equals("/v1/auth/login") ||
+                        requestUri.equals("/v1/auth/refresh"))
         ) {
             chain.doFilter(httpRequest, httpResponse);
 
@@ -100,10 +102,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response
     ) throws IOException {
         try {
+            // 액세스 토큰 타입 검증 추가
+            if (!jwtUtil.isAccessToken(jwt)) {
+                log.warn("리프레시 토큰이 Authorization 헤더로 전송됨: URI={}", request.getRequestURI());
+                sendErrorResponse(response, HttpStatus.BAD_REQUEST, "액세스 토큰이 필요합니다.");
+                return false;
+            }
+
             // JWT 토큰을 파싱하여 Claims(토큰에 담긴 정보) 추출
             Claims claims = jwtUtil.extractClaims(jwt);
 
-            // SecurityContext에 인증 정보가 없으면 설정 (이미 인증된 경우 중복 설정 방지)
+            // SecurityContext에 인증 정보가 없으면 설정(이미 인증된 경우 중복 설정 방지)
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 setAuthentication(claims);
             }
@@ -112,7 +121,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         } catch (ExpiredJwtException e) {
             log.info("JWT 만료: userId={}, URI={}", e.getClaims().getSubject(), request.getRequestURI());
-            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "액세스 토큰이 만료되었습니다. /v1/auth/refresh를 통해 토큰을 갱신해주세요.");
         } catch (SecurityException | MalformedJwtException | UnsupportedJwtException e) {
             log.error("JWT 검증 실패 [{}]: URI={}", e.getClass().getSimpleName(), request.getRequestURI(), e);
             sendErrorResponse(response, HttpStatus.BAD_REQUEST, "인증이 필요합니다.");
