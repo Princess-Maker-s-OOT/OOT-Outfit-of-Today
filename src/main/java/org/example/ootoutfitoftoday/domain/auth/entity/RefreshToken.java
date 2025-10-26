@@ -66,15 +66,15 @@ public class RefreshToken {
 
     // 리프레시 토큰 만료 여부 확인
     // true = 현재 시간이 expiresAt 이후 즉 만료된 리프레시 토큰
-    public boolean isExpired() {
+    public boolean isExpired(LocalDateTime now) {
 
-        return LocalDateTime.now().isAfter(this.expiresAt);
+        return now.isAfter(this.expiresAt);
     }
 
     // 리프레시 토큰 사용 가능 여부(만료X) 확인
     // 액세스 토큰 유효성과 별개. 리프레시 토큰만 판별
-    public boolean isValid() {
+    public boolean isValid(LocalDateTime now) {
 
-        return !isExpired();
+        return !isExpired(now);
     }
 }

@@ -143,7 +143,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                 () -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         // 리프레시 토큰 유효성 확인
-        if (!storedToken.isValid()) {
+        if (!storedToken.isValid(LocalDateTime.now())) {
             refreshTokenRepository.delete(storedToken);
             throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
         }
