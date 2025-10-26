@@ -7,21 +7,19 @@ import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 
 public interface ClothesQueryService {
 
-    Page<ClothesResponse> getClothes(
-            Long categoryId,
+    Slice<ClothesResponse> getClothes(
             Long userId,
+            Long categoryId,
             ClothesColor clothesColor,
             ClothesSize clothesSize,
-            int page,
-            int size,
-            String sort,
-            String direction
+            Long lastClothesId, // 커서 기준 (무한스크롤용)
+            int size
     );
 
     ClothesResponse getClothesById(Long userId, Long id);
