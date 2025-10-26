@@ -2,7 +2,7 @@ package org.example.ootoutfitoftoday.common.util;
 
 import java.math.BigDecimal;
 
-public final class LocationConstants {
+public final class DefaultLocationConstants {
 
     public static final BigDecimal KM = BigDecimal.valueOf(5);
 
