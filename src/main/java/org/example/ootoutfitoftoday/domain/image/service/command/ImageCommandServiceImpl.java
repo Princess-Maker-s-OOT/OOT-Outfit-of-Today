@@ -2,31 +2,37 @@ package org.example.ootoutfitoftoday.domain.image.service.command;
 
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.aws.config.AwsS3Properties;
+import org.example.ootoutfitoftoday.domain.image.dto.request.ImageSaveRequest;
 import org.example.ootoutfitoftoday.domain.image.dto.request.PresignedUrlRequest;
+import org.example.ootoutfitoftoday.domain.image.dto.response.ImageSaveResponse;
 import org.example.ootoutfitoftoday.domain.image.dto.response.PresignedUrlResponse;
+import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.image.entity.ImageType;
 import org.example.ootoutfitoftoday.domain.image.exception.ImageErrorCode;
 import org.example.ootoutfitoftoday.domain.image.exception.ImageException;
+import org.example.ootoutfitoftoday.domain.image.repository.ImageRepository;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.s3.S3Client;
+import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ImageCommandServiceImpl implements ImageCommandService {
 
     private static final int PRESIGNED_URL_EXPIRATION_MINUTES = 5;
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
+    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif", "webp");
     private final S3Presigner s3Presigner;
-    private final S3Client s3Client;
     private final AwsS3Properties awsS3Properties;
+    private final ImageRepository imageRepository;
 
     // Presigned URL 생성
     @Override
@@ -36,7 +42,7 @@ public class ImageCommandServiceImpl implements ImageCommandService {
 
         ImageType imageType = ImageType.fromString(request.type());
 
-        String s3Key = generateS3Key(imageType, userId, request.fileName());
+        String s3Key = generateS3Key(imageType, request.fileName());
 
         String presignedUrl = createPresignedUrl(s3Key);
 
@@ -48,6 +54,34 @@ public class ImageCommandServiceImpl implements ImageCommandService {
                 s3Key,
                 (int) Duration.ofMinutes(PRESIGNED_URL_EXPIRATION_MINUTES).getSeconds()
         );
+    }
+
+    // 이미지 메타데이터 저장
+    @Override
+    public ImageSaveResponse saveImage(ImageSaveRequest request) {
+
+        // S3 Key 중복 체크
+        imageRepository.findByS3KeyAndIsDeletedFalse(request.s3Key())
+                .ifPresent(image -> {
+                    throw new ImageException(ImageErrorCode.IMAGE_ALREADY_EXISTS);
+                });
+
+        // ImageType 변환
+        ImageType imageType = ImageType.fromString(request.type());
+
+        // Image 엔티티 생성 및 저장
+        Image image = Image.create(
+                request.url(),
+                request.fileName(),
+                request.s3Key(),
+                request.contentType(),
+                request.size(),
+                imageType
+        );
+
+        Image savedImage = imageRepository.save(image);
+
+        return ImageSaveResponse.from(savedImage);
     }
 
     // 파일명 검증
@@ -72,14 +106,13 @@ public class ImageCommandServiceImpl implements ImageCommandService {
         return fileName.substring(lastDotIndex + 1);
     }
 
-    // S3 키 생성
-    private String generateS3Key(ImageType imageType, Long userId, String originalFileName) {
+    // S3 키 생성 (userId 제거)
+    private String generateS3Key(ImageType imageType, String originalFileName) {
         String extension = getFileExtension(originalFileName);
         String uniqueFileName = UUID.randomUUID().toString() + "." + extension;
 
-        return String.format("%s/user-%d/%s",
+        return String.format("%s/%s",
                 imageType.getFolder(),
-                userId,
                 uniqueFileName);
     }
 
@@ -107,7 +140,9 @@ public class ImageCommandServiceImpl implements ImageCommandService {
 
     // 파일 최종 URL 생성
     private String generateFileUrl(String s3Key) {
+        String region = awsS3Properties.getRegion().getStaticRegion();
         String bucket = awsS3Properties.getS3().getBucket();
-        return s3Client.utilities().getUrl(builder -> builder.bucket(bucket).key(s3Key)).toString();
+
+        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, s3Key);
     }
 }
