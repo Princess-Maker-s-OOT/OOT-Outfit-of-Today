@@ -1,15 +1,14 @@
 package org.example.ootoutfitoftoday.domain.clothes.dto.response;
 
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 
 @Getter
 @Builder
-@RequiredArgsConstructor
 public class ClothesResponse {
 
     private final Long id;
@@ -18,6 +17,23 @@ public class ClothesResponse {
     private final ClothesSize clothesSize;
     private final ClothesColor clothesColor;
     private final String description;
+
+    @QueryProjection
+    public ClothesResponse(
+            Long id,
+            Long categoryId,
+            Long userId,
+            ClothesSize clothesSize,
+            ClothesColor clothesColor,
+            String description
+    ) {
+        this.id = id;
+        this.categoryId = categoryId;
+        this.userId = userId;
+        this.clothesSize = clothesSize;
+        this.clothesColor = clothesColor;
+        this.description = description;
+    }
 
     public static ClothesResponse from(Clothes clothes) {
 

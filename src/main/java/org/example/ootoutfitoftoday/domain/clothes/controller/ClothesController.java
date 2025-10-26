@@ -8,8 +8,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.response.PageResponse;
 import org.example.ootoutfitoftoday.common.response.Response;
+import org.example.ootoutfitoftoday.common.response.SliceResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
@@ -18,7 +18,7 @@ import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesSuccessCode;
 import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandService;
 import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -61,29 +61,25 @@ public class ClothesController {
                     @ApiResponse(responseCode = "401", description = "인증 실패")
             })
     @GetMapping
-    public ResponseEntity<PageResponse<ClothesResponse>> getClothes(
+    public ResponseEntity<SliceResponse<ClothesResponse>> getClothes(
             @AuthenticationPrincipal AuthUser authUser,
             @Parameter(description = "카테고리 ID") @RequestParam(required = false) Long categoryId,
             @Parameter(description = "옷 색상") @RequestParam(required = false) ClothesColor clothesColor,
             @Parameter(description = "옷 사이즈") @RequestParam(required = false) ClothesSize clothesSize,
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "페이지당 개수") @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "정렬 기준 컬럼") @RequestParam(defaultValue = "createdAt") String sort,
-            @Parameter(description = "정렬 방향 (ASC / DESC)") @RequestParam(defaultValue = "DESC") String direction
+            @Parameter(description = "마지막 조회 옷 아이디") @RequestParam(required = false) Long lastClothesId,
+            @Parameter(description = "페이지당 개수") @RequestParam(defaultValue = "10") int size
     ) {
 
-        Page<ClothesResponse> clothes = clothesQueryService.getClothes(
+        Slice<ClothesResponse> clothes = clothesQueryService.getClothes(
                 categoryId,
                 authUser.getUserId(),
                 clothesColor,
                 clothesSize,
-                page,
-                size,
-                sort,
-                direction
+                lastClothesId,
+                size
         );
 
-        return PageResponse.success(clothes, ClothesSuccessCode.CLOTHES_OK);
+        return SliceResponse.success(clothes, ClothesSuccessCode.CLOTHES_OK);
     }
 
     @Operation(

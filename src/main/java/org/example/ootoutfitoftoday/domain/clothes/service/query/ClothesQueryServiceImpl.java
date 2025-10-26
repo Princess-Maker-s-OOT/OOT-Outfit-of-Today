@@ -11,7 +11,7 @@ import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesErrorCode;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesException;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,29 +26,23 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
     private final ClothesRepository clothesRepository;
 
     @Override
-    public Page<ClothesResponse> getClothes(
-            Long categoryId,
+    public Slice<ClothesResponse> getClothes(
             Long userId,
+            Long categoryId,
             ClothesColor clothesColor,
             ClothesSize clothesSize,
-            int page,
-            int size,
-            String sort,
-            String direction
+            Long lastClothesId, // 커서 기준 (무한스크롤용)
+            int size
     ) {
 
-        Page<Clothes> clothes = clothesRepository.findAllByIsDeletedFalse(
-                categoryId,
+        return clothesRepository.findAllByIsDeletedFalse(
                 userId,
+                categoryId,
                 clothesColor,
                 clothesSize,
-                page,
-                size,
-                sort,
-                direction
+                lastClothesId,
+                size
         );
-
-        return clothes.map(ClothesResponse::from);
     }
 
     @Override
