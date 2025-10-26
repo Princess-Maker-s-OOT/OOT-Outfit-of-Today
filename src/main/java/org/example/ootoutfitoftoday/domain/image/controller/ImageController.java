@@ -8,7 +8,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
+import org.example.ootoutfitoftoday.domain.image.dto.request.ImageSaveRequest;
 import org.example.ootoutfitoftoday.domain.image.dto.request.PresignedUrlRequest;
+import org.example.ootoutfitoftoday.domain.image.dto.response.ImageSaveResponse;
 import org.example.ootoutfitoftoday.domain.image.dto.response.PresignedUrlResponse;
 import org.example.ootoutfitoftoday.domain.image.exception.ImageSuccessCode;
 import org.example.ootoutfitoftoday.domain.image.service.command.ImageCommandService;
@@ -58,5 +60,32 @@ public class ImageController {
         );
 
         return Response.success(response, ImageSuccessCode.PRESIGNED_URL_CREATED);
+    }
+
+    /**
+     * 이미지 메타데이터 저장 API
+     *
+     * @param request 이미지 저장 요청 객체 (이미지 경로, 타입 등 포함)
+     * @return ImageSaveResponse 객체를 포함한 성공 응답
+     */
+    @Operation(
+            summary = "이미지 메타데이터 저장",
+            description = "S3에 업로드된 이미지의 메타데이터를 DB에 저장합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "저장 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "409", description = "이미지가 이미 존재함")
+            }
+    )
+    @PostMapping
+    public ResponseEntity<Response<ImageSaveResponse>> saveImage(
+            @Valid @RequestBody ImageSaveRequest request
+    ) {
+
+        ImageSaveResponse response = imageCommandService.saveImage(request);
+
+        return Response.success(response, ImageSuccessCode.IMAGE_SAVED);
     }
 }
