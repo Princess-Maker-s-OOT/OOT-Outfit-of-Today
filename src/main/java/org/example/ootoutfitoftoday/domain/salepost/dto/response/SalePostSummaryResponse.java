@@ -16,16 +16,22 @@ public class SalePostSummaryResponse {
     private final String title;
     private final BigDecimal price;
     private final SaleStatus status;
+    private final String tradeAddress;
+    private final BigDecimal tradeLatitude;
+    private final BigDecimal tradeLongitude;
     private final String thumbnailUrl;
     private final LocalDateTime createdAt;
 
-    public static SalePostSummaryResponse from(SalePost salePost) {
+    public static SalePostSummaryResponse from(SalePost salePost, BigDecimal tradeLatitude, BigDecimal tradeLongitude) {
 
         return SalePostSummaryResponse.builder()
                 .salePostId(salePost.getId())
                 .title(salePost.getTitle())
                 .price(salePost.getPrice())
                 .status(salePost.getStatus())
+                .tradeAddress(salePost.getTradeAddress())
+                .tradeLatitude(tradeLatitude)
+                .tradeLongitude(tradeLongitude)
                 .thumbnailUrl(getThumbnailUrl(salePost))
                 .createdAt(salePost.getCreatedAt())
                 .build();
