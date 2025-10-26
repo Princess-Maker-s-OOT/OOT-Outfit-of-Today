@@ -82,4 +82,26 @@ public interface UserRepository extends JpaRepository<User, Long>, CustomUserRep
             WHERE id = ?1
             """, nativeQuery = true)
     void updateTradeLocationAsNativeQuery(Long userId, String tradeAddress, String tradeLocation);
+
+    @Query(value = """
+            SELECT u.id,
+                u.login_id,
+                u.email, 
+                u.nickname, 
+                u.username, 
+                u.password, 
+                u.phone_number, 
+                u.role, 
+                u.trade_address, 
+                ST_AsText(u.trade_location) AS trade_location, 
+                u.image_url, 
+                u.created_at, 
+                u.updated_at, 
+                u.is_deleted, 
+                u.deleted_at 
+            FROM users u
+            WHERE u.id = ?1 AND u.is_deleted = FALSE
+            """, nativeQuery = true
+    )
+    User findByIdAsNativeQuery(Long userId);
 }

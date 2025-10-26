@@ -100,11 +100,14 @@ public class SalePostController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
-            @RequestParam(defaultValue = "DESC") Sort.Direction direction
+            @RequestParam(defaultValue = "DESC") Sort.Direction direction,
+
+            @AuthenticationPrincipal AuthUser authUser
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
 
         Slice<SalePostListResponse> salePosts = salePostQueryService.getSalePostList(
+                authUser.getUserId(),
                 categoryId,
                 status,
                 keyword,

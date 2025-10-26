@@ -30,4 +30,6 @@ public interface UserQueryService {
     int countByIsDeleted(Boolean isDeleted);
 
     int countUsersRegisteredSince(LocalDateTime start, LocalDateTime end);
+
+    User findByIdAsNativeQuery(Long id);
 }

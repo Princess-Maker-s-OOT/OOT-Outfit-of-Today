@@ -99,4 +99,10 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         return userRepository.countUsersRegisteredSince(start, end);
     }
+
+    @Override
+    public User findByIdAsNativeQuery(Long userId) {
+
+        return userRepository.findByIdAsNativeQuery(userId);
+    }
 }
