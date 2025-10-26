@@ -1,8 +1,6 @@
 package org.example.ootoutfitoftoday.domain.image.dto.response;
 
-/**
- * Presigned URL 생성 응답 DTO
- */
+// Presigned URL 생성 응답 DTO
 public record PresignedUrlResponse(
 
         String presignedUrl,  // Presigned URL (업로드용)
