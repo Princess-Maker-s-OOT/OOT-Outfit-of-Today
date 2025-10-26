@@ -120,6 +120,10 @@ public class UserCommandServiceImpl implements UserCommandService {
             user.updatePhoneNumber(request.getPhoneNumber());
         }
 
+        userRepository.flush();
+
+        user = userRepository.findByIdAsNativeQuery(authUser.getUserId());
+
         return GetMyInfoResponse.from(user);
     }
 
