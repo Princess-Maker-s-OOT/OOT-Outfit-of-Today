@@ -71,8 +71,8 @@ public class ClothesController {
     ) {
 
         Slice<ClothesResponse> clothes = clothesQueryService.getClothes(
-                categoryId,
                 authUser.getUserId(),
+                categoryId,
                 clothesColor,
                 clothesSize,
                 lastClothesId,
