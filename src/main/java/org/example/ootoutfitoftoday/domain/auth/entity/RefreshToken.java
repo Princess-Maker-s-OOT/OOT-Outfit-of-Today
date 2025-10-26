@@ -31,7 +31,7 @@ public class RefreshToken {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
-    @Builder
+    @Builder(access = AccessLevel.PROTECTED)
     private RefreshToken(
             User user,
             String token,
