@@ -55,4 +55,4 @@ cloud:
     s3:
       bucket: ${aws.s3.bucket}
     region:
-      static: ap-northeast-2
+      staticRegion: ap-northeast-2
