@@ -127,6 +127,11 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     @Override
     public AuthLoginResponse refresh(String refreshToken) {
 
+        // 리프레시 토큰 타입 검증 추가
+        if (!jwtUtil.isRefreshToken(refreshToken)) {
+            throw new AuthException(AuthErrorCode.INVALID_TOKEN_TYPE);
+        }
+
         // 리프레시 토큰 만료 확인
         if (jwtUtil.isExpired(refreshToken)) {
             throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);

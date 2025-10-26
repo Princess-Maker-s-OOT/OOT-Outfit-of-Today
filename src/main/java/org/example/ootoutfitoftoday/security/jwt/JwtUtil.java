@@ -30,6 +30,8 @@ public class JwtUtil {
     private static final long REFRESH_TOKEN_TIME = 7 * 24 * 60 * 60 * 1000L;
     private static final String USER_ROLE_CLAIM = "userRole";
     private static final String TOKEN_TYPE_CLAIM = "tokenType";
+    private static final String ACCESS_TOKEN_TYPE = "access";
+    private static final String REFRESH_TOKEN_TYPE = "refresh";
 
     @Value("${jwt.secret.key}")
     private String secretKey;
@@ -157,14 +159,6 @@ public class JwtUtil {
     }
 
     /**
-     * 토큰 타입(액세스 or 리프레시) 확인 및 추출(액세스, 리프레시 공통)
-     */
-    public String getTokenType(String token) {
-
-        return extractClaims(token).get(TOKEN_TYPE_CLAIM, String.class);
-    }
-
-    /**
      * 리프레시 토큰 만료 시간 조회용(밀리초)
      * - 쿠키로 클라이언트에 전달될 때만 필요
      * -> 쿠키의 maxAge를 JWT 만료 시간과 맞추기 위해 사용
@@ -176,18 +170,31 @@ public class JwtUtil {
     }
 
     /**
+     * 토큰 타입(액세스 or 리프레시) 확인 및 추출(액세스, 리프레시 공통)
+     * - isAccessToken(), isRefreshToken()에서 내부적으로 사용
+     */
+    public String getTokenType(String token) {
+
+        return extractClaims(token).get(TOKEN_TYPE_CLAIM, String.class);
+    }
+
+    /**
      * 액세스 토큰 판별
+     * - JwtAuthenticationFilter에서 Authorization 헤더 검증 시 사용
+     * - refresh() 엔드포인트에 액세스 토큰이 전송되는 것을 방지
      */
     public boolean isAccessToken(String token) {
 
-        return "access".equals(getTokenType(token));
+        return ACCESS_TOKEN_TYPE.equals(getTokenType(token));
     }
 
     /**
      * 리프레시 토큰 판별
+     * - refresh() 메서드에서 리프레시 토큰 타입 검증 시 사용
+     * - 액세스 토큰이 잘못 전송되는 것을 방지
      */
     public boolean isRefreshToken(String token) {
 
-        return "refresh".equals(getTokenType(token));
+        return REFRESH_TOKEN_TYPE.equals(getTokenType(token));
     }
 }
