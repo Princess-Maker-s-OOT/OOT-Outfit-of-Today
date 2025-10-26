@@ -74,12 +74,6 @@ public class RefreshToken {
                 .build();
     }
 
-    // 리프레시 토큰 무효화
-    public void revoke() {
-
-        this.status = RefreshTokenStatus.REVOKED;
-    }
-
     // 리프레시 토큰 업데이트(RTR: Refresh Token Rotation)
     // 액세스 토큰 재발급 시, 리프레시 토큰도 갱신
     public void updateToken(String newToken, LocalDateTime newExpiresAt) {
