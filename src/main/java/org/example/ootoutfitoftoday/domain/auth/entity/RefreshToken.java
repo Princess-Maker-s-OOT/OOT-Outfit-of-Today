@@ -5,10 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.ootoutfitoftoday.domain.auth.enums.RefreshTokenStatus;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -31,31 +28,17 @@ public class RefreshToken {
     @Column(name = "token", nullable = false, unique = true, length = 500)
     private String token;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private RefreshTokenStatus status;
-
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     @Builder
     private RefreshToken(
             User user,
             String token,
-            RefreshTokenStatus status,
             LocalDateTime expiresAt
     ) {
         this.user = user;
         this.token = token;
-        this.status = status;
         this.expiresAt = expiresAt;
     }
 
@@ -69,7 +52,6 @@ public class RefreshToken {
         return RefreshToken.builder()
                 .user(user)
                 .token(token)
-                .status(RefreshTokenStatus.ACTIVE)    // 기본값: ACTIVE
                 .expiresAt(expiresAt)
                 .build();
     }
@@ -80,7 +62,6 @@ public class RefreshToken {
 
         this.token = newToken;
         this.expiresAt = newExpiresAt;
-        this.status = RefreshTokenStatus.ACTIVE;    // 갱신 후 상태를 ACTIVE로 복원
     }
 
     // 리프레시 토큰 만료 여부 확인
@@ -90,17 +71,10 @@ public class RefreshToken {
         return LocalDateTime.now().isAfter(this.expiresAt);
     }
 
-    // 리프레시 토큰 무효화 여부 확인
-    // 로그아웃, 관리자 강제 만료 등으로 상태가 REVOKED인 경우
-    public boolean isRevoked() {
-
-        return this.status == RefreshTokenStatus.REVOKED;
-    }
-
-    // 리프레시 토큰 사용 가능 여부(만료X && 무효화X) 확인
+    // 리프레시 토큰 사용 가능 여부(만료X) 확인
     // 액세스 토큰 유효성과 별개. 리프레시 토큰만 판별
     public boolean isValid() {
 
-        return !isExpired() && !isRevoked();
+        return !isExpired();
     }
 }
