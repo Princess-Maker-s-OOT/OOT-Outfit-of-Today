@@ -129,6 +129,7 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
             String tradeLocation
     );
 
+    // 판매글 단건 조회 쿼리
     @Query(value = """
             SELECT
                 s.id,
@@ -145,7 +146,7 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
                 s.is_deleted,
                 s.deleted_at
             FROM sale_posts s
-            WHERE s.id = ?1
+            WHERE s.id = ?1 AND s.is_deleted = FALSE
             """, nativeQuery = true)
-    SalePost findByIdAsNativeQuery(Long salePostId);
+    Optional<SalePost> findByIdAsNativeQuery(Long salePostId);
 }

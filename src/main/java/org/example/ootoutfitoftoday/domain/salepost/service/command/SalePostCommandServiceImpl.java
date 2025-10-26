@@ -75,7 +75,8 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         // 다중 쓰레드 환경에서는 불안감이 있음 - 해결 방법 없음
         Long salePostId = salePostRepository.findLastInsertId();
 
-        SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId);
+        SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
         Location location = PointFormatAndParse.parse(savedSalePost.getTradeLocation());
 
@@ -120,7 +121,8 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         // 업데이트 이후 영속성 컨텍스트
         entityManager.clear();
 
-        SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId);
+        SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
         Location location = PointFormatAndParse.parse(updatedSalePost.getTradeLocation());
 
@@ -170,7 +172,8 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         entityManager.clear();
 
-        SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId);
+        SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
         Location location = PointFormatAndParse.parse(updatedSalePost.getTradeLocation());
 
