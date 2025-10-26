@@ -5,8 +5,6 @@ import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
-import org.example.ootoutfitoftoday.common.util.Location;
-import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
@@ -73,9 +71,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
 
         SalePost salePost = findSalePostById(salePostId);
 
-        Location location = PointFormatAndParse.parse(salePost.getTradeLocation());
-
-        return SalePostDetailResponse.from(salePost, location.latitude(), location.longitude());
+        return SalePostDetailResponse.from(salePost);
     }
 
     @Override
@@ -134,11 +130,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
 
         SliceContent sliceContent = sliceAndQueryResult(query, pageable);
 
-        List<SalePostListResponse> responseContent = sliceContent.content().stream().map(salePost -> {
-            Location location = PointFormatAndParse.parse(salePost.getTradeLocation());
-
-            return SalePostListResponse.from(salePost, location.latitude(), location.longitude());
-        }).toList();
+        List<SalePostListResponse> responseContent = sliceContent.content().stream().map(SalePostListResponse::from).toList();
 
         // 7. SliceImpl 반환
         return new SliceImpl<>(responseContent, pageable, sliceContent.hasNext());
@@ -202,11 +194,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
 
         SliceContent sliceContent = sliceAndQueryResult(query, pageable);
 
-        List<SalePostSummaryResponse> responseContent = sliceContent.content().stream().map(salePost -> {
-            Location location = PointFormatAndParse.parse(salePost.getTradeLocation());
-
-            return SalePostSummaryResponse.from(salePost, location.latitude(), location.longitude());
-        }).toList();
+        List<SalePostSummaryResponse> responseContent = sliceContent.content().stream().map(SalePostSummaryResponse::from).toList();
 
         // 7. SliceImpl 반환
         return new SliceImpl<>(responseContent, pageable, sliceContent.hasNext());

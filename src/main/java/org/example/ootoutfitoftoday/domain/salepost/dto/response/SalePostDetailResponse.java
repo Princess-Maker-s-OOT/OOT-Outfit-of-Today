@@ -2,6 +2,8 @@ package org.example.ootoutfitoftoday.domain.salepost.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.example.ootoutfitoftoday.common.util.Location;
+import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePostImage;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
@@ -30,7 +32,8 @@ public class SalePostDetailResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static SalePostDetailResponse from(SalePost salePost, BigDecimal tradeLatitude, BigDecimal tradeLongitude) {
+    public static SalePostDetailResponse from(SalePost salePost) {
+        Location location = PointFormatAndParse.parse(salePost.getTradeLocation());
 
         return SalePostDetailResponse.builder()
                 .salePostId(salePost.getId())
@@ -39,8 +42,8 @@ public class SalePostDetailResponse {
                 .price(salePost.getPrice())
                 .status(salePost.getStatus())
                 .tradeAddress(salePost.getTradeAddress())
-                .tradeLatitude(tradeLatitude)
-                .tradeLongitude(tradeLongitude)
+                .tradeLatitude(location.latitude())
+                .tradeLongitude(location.longitude())
                 .sellerId(salePost.getUser().getId())
                 .sellerNickname(salePost.getUser().getNickname())
                 .sellerImageUrl(salePost.getUser().getImageUrl())

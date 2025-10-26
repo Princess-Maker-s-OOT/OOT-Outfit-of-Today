@@ -2,6 +2,8 @@ package org.example.ootoutfitoftoday.domain.salepost.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.example.ootoutfitoftoday.common.util.Location;
+import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePostImage;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
@@ -27,7 +29,8 @@ public class SalePostCreateResponse {
     private final List<String> imageUrls;
     private final LocalDateTime createdAt;
 
-    public static SalePostCreateResponse from(SalePost salePost, BigDecimal tradeLatitude, BigDecimal tradeLongitude) {
+    public static SalePostCreateResponse from(SalePost salePost) {
+        Location location = PointFormatAndParse.parse(salePost.getTradeLocation());
 
         return SalePostCreateResponse.builder()
                 .salePostId(salePost.getId())
@@ -36,8 +39,8 @@ public class SalePostCreateResponse {
                 .price(salePost.getPrice())
                 .status(salePost.getStatus())
                 .tradeAddress(salePost.getTradeAddress())
-                .tradeLatitude(tradeLatitude)
-                .tradeLongitude(tradeLongitude)
+                .tradeLatitude(location.latitude())
+                .tradeLongitude(location.longitude())
                 .userId(salePost.getUser().getId())
                 .categoryId(salePost.getCategory().getId())
                 .imageUrls(salePost.getImages().stream()

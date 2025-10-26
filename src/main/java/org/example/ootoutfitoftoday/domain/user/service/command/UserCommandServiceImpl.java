@@ -122,6 +122,8 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         userRepository.flush();
 
+        entityManager.clear();
+
         user = userRepository.findByIdAsNativeQuery(authUser.getUserId());
 
         return GetMyInfoResponse.from(user);

@@ -3,7 +3,6 @@ package org.example.ootoutfitoftoday.domain.salepost.service.command;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.ootoutfitoftoday.common.util.Location;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryService;
@@ -78,9 +77,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
-        Location location = PointFormatAndParse.parse(savedSalePost.getTradeLocation());
-
-        return SalePostCreateResponse.from(savedSalePost, location.latitude(), location.longitude());
+        return SalePostCreateResponse.from(savedSalePost);
     }
 
     // 판매글 수정
@@ -124,9 +121,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
-        Location location = PointFormatAndParse.parse(updatedSalePost.getTradeLocation());
-
-        return SalePostDetailResponse.from(updatedSalePost, location.latitude(), location.longitude());
+        return SalePostDetailResponse.from(updatedSalePost);
     }
 
     // 판매글 삭제
@@ -150,7 +145,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         salePost.softDelete();
     }
 
-    // 판매글 상태 업데이트
+    // 판매글 상태 수정
     @Override
     public SalePostDetailResponse updateSaleStatus(
             Long salePostId,
@@ -175,8 +170,6 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
-        Location location = PointFormatAndParse.parse(updatedSalePost.getTradeLocation());
-
-        return SalePostDetailResponse.from(updatedSalePost, location.latitude(), location.longitude());
+        return SalePostDetailResponse.from(updatedSalePost);
     }
 }
