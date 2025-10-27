@@ -221,7 +221,7 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
          *  - 추가로 사용자가 아이디의 값을 0 이하로 입력시 아이디의 값이 null로 처리되어 최상위 카테고리로 인식한다.
          */
         if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
-            parent = categoryRepository.findById(categoryRequest.getParentId())
+            parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId())
                     .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                     );
         }
@@ -232,45 +232,63 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
         return CategoryResponse.from(category);
     }
 
-    // Todo: BFS 탐색용 큐를 활용하여 구현할 수도 있다. 이건 추후에 공부하고 적용하기!
     @Override
     public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest) {
 
+        // 수정할 카테고리가 존재하는 지 검증
         Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
                 );
 
-        Category parent = null;
+        // 새로 설정할 부모 카테고리를 검증하고 조회
+        Category parent = validateCategory(id, categoryRequest.getParentId());
 
-        if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
-
-            parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId())
-                    .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
-                    );
-
-            /**
-             * 순환 참조 방지 코드
-             * 만약 parent가 category 자신의 하위카테고리거나 본인이라면, 자식을 상위 또는 자신을 상위 카테고리로 설정하는 것이다.
-             * 그래서 순환 참조가 발생할 수 있다.
-             * if(Objects.equals(current.getId(), category.getId())
-             * 관리자가 입력한 카테고리 아이디와 url에 입력된 아이디의 값을 비교 같다면 예외 처리
-             * current = current.getParent()로 상위 카테고리의 상위 카테고리까지 계속 올라가며 확인
-             */
-            Category current = parent;
-
-            while (current != null) {
-
-                if (Objects.equals(current.getId(), category.getId())) {
-                    throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
-                }
-
-                current = current.getParent();
-            }
-        }
-
+        // 카테고리명과 새로 설정할 상위 카테고리로 데이터 수정
         category.update(categoryRequest.getName(), parent);
 
         return CategoryResponse.from(category);
+    }
+
+    // 부모 카테고리 검증 로직
+    private Category validateCategory(Long categoryId, Long parentId) {
+
+        // 상위 카테고리가 null 이거나 0 이하면 최상위 카테고리
+        if (parentId == null || parentId <= 0) {
+
+            return null;
+        }
+
+        // 자기 자신을 부모로 설정할 경우
+        if (Objects.equals(categoryId, parentId)) {
+            throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
+        }
+
+        // 부모 카테고리 조회 (설정하려고 하는 상위 카테고리가 존재하는 지 검증)
+        Category parent = categoryRepository.findByIdAndIsDeletedFalse(parentId)
+                .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+
+        // 순환 참조 검증
+        validateCircularReference(categoryId, parent);
+
+        return parent;
+    }
+
+    // 순환 참조 검증 로직 (categoryId: 수정하려고 하는 카테고리 아이디, parent: 새로 지정하려는 상위 카테고리 객체)
+    private void validateCircularReference(Long categoryId, Category parent) {
+
+        // 이미 위에서 수정할 카테고리 아이디와 상위의 아이디 값이 같은 지 검증했음. 그래서 parent의 상위부터 탐색 시작
+        Category current = parent.getParent();
+
+        // 최상위 카테고리까지 반복 (상향 탐색 방식)
+        while (current != null) {
+
+            // current의 상위들 중에 자신이 있다면 예외
+            if (Objects.equals(current.getId(), categoryId)) {
+                throw new CategoryException(CategoryErrorCode.CATEGORY_CIRCULAR_REFERENCE);
+            }
+
+            current = current.getParent();
+        }
     }
 
     @Override

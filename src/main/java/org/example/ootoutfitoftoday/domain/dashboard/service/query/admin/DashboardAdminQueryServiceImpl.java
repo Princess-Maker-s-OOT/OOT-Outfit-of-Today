@@ -28,7 +28,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AdminDashboardQueryServiceImpl implements AdminDashboardQueryService {
+public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryService {
 
     private final UserQueryService userQueryService;
     private final ClothesQueryService clothesQueryService;

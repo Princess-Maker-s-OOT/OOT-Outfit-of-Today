@@ -19,6 +19,11 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
 server:
   port: 8080
   servlet:
@@ -50,7 +55,4 @@ cloud:
     s3:
       bucket: ${aws.s3.bucket}
     region:
-      static: ap-northeast-2
-    credentials:
-      access-key: ${aws.access.key}
-      secret-key: ${aws.secret.access.key}
+      staticRegion: ap-northeast-2
