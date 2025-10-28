@@ -60,7 +60,7 @@ public class SecurityConfig {
                         // Actuator Health Check
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
-                        // 인증 없이 접근 가능한 API
+                        // 인가(로그인) 없이 접근 가능한 API
                         .requestMatchers(HttpMethod.POST,
                                 "/v1/auth/signup",
                                 "/v1/auth/login",
