@@ -38,7 +38,7 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
                 sortObj
         );
 
-        Page<Closet> closets = closetRepository.findAllByIsPublicTrueAndIsDeletedFalse(pageable);
+        Page<Closet> closets = closetRepository.findAllByIsPublicTrue(pageable);
 
         return closets.map(ClosetGetPublicResponse::from);
     }
@@ -74,7 +74,7 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
                 sortObj
         );
 
-        Page<Closet> closets = closetRepository.findAllByUser_IdAndIsDeletedFalse(
+        Page<Closet> closets = closetRepository.findAllByUser_Id(
                 userId,
                 pageable
         );

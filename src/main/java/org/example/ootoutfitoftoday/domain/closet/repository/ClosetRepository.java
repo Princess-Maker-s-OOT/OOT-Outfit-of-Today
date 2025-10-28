@@ -9,21 +9,17 @@ public interface ClosetRepository extends JpaRepository<Closet, Long> {
 
     /**
      * 공개 옷장 리스트 조회
-     * 리스트(전체): all
-     * 공개: IsPublic = true
-     * 삭제: Isdeleted = false
+     * 조건: isPublic = true (Soft Delete 조건은 @Where에 의해 자동 적용됨)
      */
-    Page<Closet> findAllByIsPublicTrueAndIsDeletedFalse(Pageable pageable);
+    Page<Closet> findAllByIsPublicTrue(Pageable pageable);
 
 
     /**
      * 내 옷장 리스트 조회
-     * 리스트(전체): all
-     * 로그인한 사용자의 ID: userId
-     * 삭제: Isdeleted = false
+     * 조건: userId = ? (Soft Delete 조건은 @Where에 의해 자동 적용됨)
      */
-    Page<Closet> findAllByUser_IdAndIsDeletedFalse(
-            Long userId,
-            Pageable pageable
+    Page<Closet> findAllByUser_Id( // 기존 findAllByUser_IdAndIsDeletedFalse 에서 AndIsDeletedFalse 제거
+                                   Long userId,
+                                   Pageable pageable
     );
 }

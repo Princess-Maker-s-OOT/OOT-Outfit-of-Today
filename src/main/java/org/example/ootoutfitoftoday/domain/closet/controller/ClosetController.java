@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.PageResponse;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
-import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetSaveRequest;
+import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetCreateRequest;
 import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetUpdateRequest;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.*;
 import org.example.ootoutfitoftoday.domain.closet.exception.ClosetSuccessCode;
@@ -32,7 +32,7 @@ public class ClosetController {
     /**
      * 옷장 등록
      *
-     * @param closetSaveRequest: 옷장 등록 요청 객체 (이름, 설명 등 포함)
+     * @param closetCreateRequest: 옷장 등록 요청 객체 (이름, 설명 등 포함)
      * @return ClosetSaveResponse: 등록된 옷장 정보와 성공 응답 코드
      */
     @Operation(
@@ -46,16 +46,16 @@ public class ClosetController {
             }
     )
     @PostMapping
-    public ResponseEntity<Response<ClosetSaveResponse>> createCloset(
+    public ResponseEntity<Response<ClosetCreateResponse>> createCloset(
             @AuthenticationPrincipal AuthUser authUser,
-            @Valid @RequestBody ClosetSaveRequest closetSaveRequest
+            @Valid @RequestBody ClosetCreateRequest closetCreateRequest
     ) {
-        ClosetSaveResponse closetSaveResponse = closetCommandService.createCloset(
+        ClosetCreateResponse closetCreateResponse = closetCommandService.createCloset(
                 authUser.getUserId(),
-                closetSaveRequest
+                closetCreateRequest
         );
 
-        return Response.success(closetSaveResponse, ClosetSuccessCode.CLOSET_CREATED);
+        return Response.success(closetCreateResponse, ClosetSuccessCode.CLOSET_CREATED);
     }
 
     /**

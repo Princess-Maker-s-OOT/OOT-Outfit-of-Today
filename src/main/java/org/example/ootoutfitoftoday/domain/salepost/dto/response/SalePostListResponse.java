@@ -2,6 +2,8 @@ package org.example.ootoutfitoftoday.domain.salepost.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.example.ootoutfitoftoday.common.util.Location;
+import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 
@@ -16,18 +18,25 @@ public class SalePostListResponse {
     private final String title;
     private final BigDecimal price;
     private final SaleStatus status;
+    private final String tradeAddress;
+    private final BigDecimal tradeLatitude;
+    private final BigDecimal tradeLongitude;
     private final String thumbnailUrl;
     private final String sellerNickname;
     private final String categoryName;
     private final LocalDateTime createdAt;
 
     public static SalePostListResponse from(SalePost salePost) {
+        Location location = PointFormatAndParse.parse(salePost.getTradeLocation());
 
         return SalePostListResponse.builder()
                 .salePostId(salePost.getId())
                 .title(salePost.getTitle())
                 .price(salePost.getPrice())
                 .status(salePost.getStatus())
+                .tradeAddress(salePost.getTradeAddress())
+                .tradeLatitude(location.latitude())
+                .tradeLongitude(location.longitude())
                 .thumbnailUrl(getThumbnailUrl(salePost))
                 .sellerNickname(salePost.getUser().getNickname())
                 .categoryName(salePost.getCategory().getName())

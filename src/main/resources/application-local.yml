@@ -1,19 +1,11 @@
 spring:
-  cloud:
-    aws:
-      region:
-        static: ap-northeast-2
-      parameter-store:
-        enabled: false
-      stack:
-        auto: false
   datasource:
     url: jdbc:mysql://localhost:3306/${DB_NAME}
     username: ${USER_NAME}
     password: ${PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update # 로컬 개발 시 DDL 자동 업데이트 허용
+      ddl-auto: create-drop # 로컬 개발 시 DDL 자동 업데이트 허용
 
 springdoc:
   api-docs:
@@ -22,3 +14,14 @@ springdoc:
     enabled: true
     display-request-duration: true
     tryItOutEnabled: true
+
+cloud:
+  aws:
+    region:
+      static-region: ap-northeast-2
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+    parameter-store:
+      enabled: false
+    stack:
+      auto: true

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
+import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
 import org.example.ootoutfitoftoday.domain.auth.enums.LoginType;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
@@ -52,6 +53,12 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+    @Column(nullable = false, length = 50)
+    private String tradeAddress;
+
+    @Column(nullable = false, columnDefinition = "POINT SRID 4326", updatable = false, insertable = false)
+    private String tradeLocation;
+
     @Column(nullable = true, length = 500)
     private String imageUrl;
 
@@ -86,6 +93,8 @@ public class User extends BaseEntity {
             String password,
             String phoneNumber,
             UserRole role,
+            String tradeAddress,
+            String tradeLocation,
             String imageUrl,
             LoginType loginType,
             SocialProvider socialProvider,
@@ -98,6 +107,8 @@ public class User extends BaseEntity {
         this.password = password;
         this.phoneNumber = phoneNumber;
         this.role = role;
+        this.tradeAddress = tradeAddress;
+        this.tradeLocation = tradeLocation;
         this.imageUrl = imageUrl;
         this.loginType = loginType;
         this.socialProvider = socialProvider;
@@ -124,6 +135,8 @@ public class User extends BaseEntity {
                 .password(password)
                 .phoneNumber(phoneNumber)
                 .role(role)
+                .tradeAddress(DefaultLocationConstants.DEFAULT_TRADE_ADDRESS)
+                .tradeLocation(DefaultLocationConstants.DEFAULT_TRADE_LOCATION)
                 .imageUrl(imageUrl)
                 .loginType(LoginType.LOGIN_ID)
                 .build();
@@ -145,9 +158,11 @@ public class User extends BaseEntity {
                 .username(username)
                 .password(password)
                 .phoneNumber(phoneNumber)
-                .role(UserRole.ROLE_ADMIN)        // 고정값: 항상 ADMIN
+                .role(UserRole.ROLE_ADMIN)
+                .tradeAddress(DefaultLocationConstants.DEFAULT_TRADE_ADDRESS)
+                .tradeLocation(DefaultLocationConstants.DEFAULT_TRADE_LOCATION)
+                .imageUrl(null)
                 .loginType(LoginType.LOGIN_ID)
-                .imageUrl(null)                   // 고정값: 관리자 이미지 파일 제외
                 .build();
     }
 
@@ -168,6 +183,8 @@ public class User extends BaseEntity {
                 .password(null)
                 .phoneNumber(null)
                 .role(UserRole.ROLE_USER)
+                .tradeAddress(DefaultLocationConstants.DEFAULT_TRADE_ADDRESS)
+                .tradeLocation(DefaultLocationConstants.DEFAULT_TRADE_LOCATION)
                 .imageUrl(imageUrl)
                 .loginType(LoginType.SOCIAL)
                 .socialProvider(provider)
@@ -233,5 +250,10 @@ public class User extends BaseEntity {
 
     public void updatePhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public void updateTradeLocation(String tradeAddress, String tradeLocation) {
+        this.tradeAddress = tradeAddress;
+        this.tradeLocation = tradeLocation;
     }
 }

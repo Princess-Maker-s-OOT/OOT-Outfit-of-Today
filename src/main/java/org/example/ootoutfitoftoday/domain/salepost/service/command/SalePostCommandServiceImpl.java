@@ -1,7 +1,9 @@
 package org.example.ootoutfitoftoday.domain.salepost.service.command;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryService;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
@@ -29,7 +31,9 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
     private final UserQueryService userQueryService;
     private final CategoryQueryService categoryQueryService;
     private final SalePostRepository salePostRepository;
+    private final EntityManager entityManager;
 
+    // 판매글 생성
     @Override
     public SalePostCreateResponse createSalePost(
             Long userId,
@@ -40,20 +44,42 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         Category category = categoryQueryService.findById(request.getCategoryId());
 
+        String tradeLocation = PointFormatAndParse.format(request.getTradeLatitude(), request.getTradeLongitude());
+
         SalePost salePost = SalePost.create(
                 user,
                 category,
                 request.getTitle(),
                 request.getContent(),
                 request.getPrice(),
+                request.getTradeAddress(),
+                tradeLocation,
                 imageUrls
         );
 
-        SalePost savedSalePost = salePostRepository.save(salePost);
+        String status = salePost.getStatus().name();
+
+        salePostRepository.saveAsNativeQuery(
+                salePost.getTitle(),
+                salePost.getContent(),
+                salePost.getPrice(),
+                status,
+                salePost.getTradeAddress(),
+                salePost.getTradeLocation(),
+                user.getId(),
+                category.getId(),
+                false
+        );
+
+        Long salePostId = salePostRepository.findLastInsertId();
+
+        SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
         return SalePostCreateResponse.from(savedSalePost);
     }
 
+    // 판매글 수정
     @Override
     public SalePostDetailResponse updateSalePost(
             Long salePostId,
@@ -74,19 +100,30 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
             throw new SalePostException(SalePostErrorCode.CANNOT_UPDATE_NON_SELLING_POST);
         }
 
-        Category category = categoryQueryService.findById(request.getCategoryId());
+        String tradeLocation = PointFormatAndParse.format(request.getTradeLatitude(), request.getTradeLongitude());
 
-        salePost.update(
-                category,
+        log.info("tradeLocation: {}", tradeLocation);
+
+        salePostRepository.updateAsNativeQuery(
+                salePostId,
                 request.getTitle(),
                 request.getContent(),
                 request.getPrice(),
-                request.getImageUrls()
+                request.getCategoryId(),
+                request.getTradeAddress(),
+                tradeLocation
         );
 
-        return SalePostDetailResponse.from(salePost);
+        // 업데이트 이후 영속성 컨텍스트
+        entityManager.clear();
+
+        SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
+
+        return SalePostDetailResponse.from(updatedSalePost);
     }
 
+    // 판매글 삭제
     @Override
     public void deleteSalePost(Long salePostId, Long userId) {
 
@@ -107,6 +144,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         salePost.softDelete();
     }
 
+    // 판매글 상태 수정
     @Override
     public SalePostDetailResponse updateSaleStatus(
             Long salePostId,
@@ -124,6 +162,13 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         salePost.updateStatus(newStatus);
 
-        return SalePostDetailResponse.from(salePost);
+        salePostRepository.flush();
+
+        entityManager.clear();
+
+        SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
+
+        return SalePostDetailResponse.from(updatedSalePost);
     }
 }

@@ -83,7 +83,7 @@ public class SecurityConfig {
                         // Actuator Health Check
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
-                        // 인증 없이 접근 가능한 API
+                        // 인가(로그인) 없이 접근 가능한 API
                         .requestMatchers(HttpMethod.POST,
                                 "/v1/auth/signup",
                                 "/v1/auth/login",
@@ -91,8 +91,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/v1/closets/public",
                                 "/v1/closets/{closetId}",  // 추가 추천
-                                "/v1/sale-posts",
-                                "/v1/sale-posts/{salePostId}",
+                                // "/v1/sale-posts",
+                                // "/v1/sale-posts/{salePostId}",
                                 "/v1/categories",
                                 "/api/oauth2/**",                      // OAuth2 URL 생성 API 추가
                                 "/api/login/oauth2/**").permitAll()    // OAuth2 URL 생성 API 추가

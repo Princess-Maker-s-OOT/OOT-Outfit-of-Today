@@ -1,11 +1,14 @@
 package org.example.ootoutfitoftoday.domain.user.service.command;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
+import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateTradeLocationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
@@ -27,11 +30,27 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserQueryService userQueryService;
+    private final EntityManager entityManager;
 
     @Override
     public void save(User user) {
 
-        userRepository.save(user);
+        String roleString = user.getRole().name();
+
+        // .save 메서드 대신 POINT 타입 컬럼의 값을 정상적으로 넣기 위한 Native Query를 이용하여 작성
+        userRepository.saveAsNativeQuery(
+                user.getLoginId(),
+                user.getEmail(),
+                user.getNickname(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getPhoneNumber(),
+                roleString,
+                user.getTradeAddress(),
+                user.getTradeLocation(),
+                user.getImageUrl(),
+                false
+        );
     }
 
     // 소셜 회원 생성
@@ -112,7 +131,6 @@ public class UserCommandServiceImpl implements UserCommandService {
         // 이미지(null 허용)
         if (request.getImageUrl() != null) {
             user.updateImageUrl(request.getImageUrl());
-        } else {
         }
 
         // 이메일
@@ -122,7 +140,6 @@ public class UserCommandServiceImpl implements UserCommandService {
                 throw new AuthException(AuthErrorCode.DUPLICATE_EMAIL);
             }
             user.updateEmail(request.getEmail());
-        } else {
         }
 
         // 닉네임 (중간 띄어쓰기 허용, 앞뒤 공백 금지는 DTO에서 검증)
@@ -132,19 +149,16 @@ public class UserCommandServiceImpl implements UserCommandService {
                 throw new AuthException(AuthErrorCode.DUPLICATE_NICKNAME);
             }
             user.updateNickname(request.getNickname());
-        } else {
         }
 
         // 이름
         if (request.getUsername() != null) {
             user.updateUsername(request.getUsername());
-        } else {
         }
 
         // 비밀번호
         if (request.getPassword() != null) {
             user.updatePassword(passwordEncoder.encode(request.getPassword()));
-        } else {
         }
 
         // 전화번호
@@ -154,11 +168,28 @@ public class UserCommandServiceImpl implements UserCommandService {
                 throw new AuthException(AuthErrorCode.DUPLICATE_PHONE_NUMBER);
             }
             user.updatePhoneNumber(request.getPhoneNumber());
-        } else {
         }
 
-        userRepository.save(user);
+        userRepository.flush();
+
+        entityManager.clear();
+
+        user = userRepository.findByIdAsNativeQuery(authUser.getUserId());
 
         return GetMyInfoResponse.from(user);
+    }
+
+    // 유저 거래 위치 수정
+    @Override
+    public void updateMyTradeLocation(UserUpdateTradeLocationRequest request, Long userId) {
+        User user = userRepository.findByIdAndIsDeletedFalse(userId).orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
+        );
+
+        String tradeLocation = PointFormatAndParse.format(request.tradeLongitude(), request.tradeLatitude());
+
+        user.updateTradeLocation(request.tradeAddress(), tradeLocation);
+
+        userRepository.updateTradeLocationAsNativeQuery(userId, user.getTradeAddress(), user.getTradeLocation());
     }
 }

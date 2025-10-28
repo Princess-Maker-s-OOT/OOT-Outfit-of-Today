@@ -83,7 +83,7 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public GetMyInfoResponse getMyInfo(Long id) {
 
-        User user = findByIdAndIsDeletedFalse(id);
+        User user = userRepository.findByIdAsNativeQuery(id);
 
         return GetMyInfoResponse.from(user);
     }
@@ -114,5 +114,11 @@ public class UserQueryServiceImpl implements UserQueryService {
     public int countUsersRegisteredSince(LocalDateTime start, LocalDateTime end) {
 
         return userRepository.countUsersRegisteredSince(start, end);
+    }
+
+    @Override
+    public User findByIdAsNativeQuery(Long userId) {
+
+        return userRepository.findByIdAsNativeQuery(userId);
     }
 }

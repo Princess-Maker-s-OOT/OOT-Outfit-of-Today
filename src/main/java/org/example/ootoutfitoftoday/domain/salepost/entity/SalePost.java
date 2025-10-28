@@ -39,6 +39,12 @@ public class SalePost extends BaseEntity {
     @Column(nullable = false, length = 20)
     private SaleStatus status;
 
+    @Column(nullable = false, length = 50)
+    private String tradeAddress;
+
+    @Column(nullable = false, columnDefinition = "POINT SRID 4326", updatable = false, insertable = false)
+    private String tradeLocation;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -63,7 +69,9 @@ public class SalePost extends BaseEntity {
             String title,
             String content,
             BigDecimal price,
-            SaleStatus status
+            SaleStatus status,
+            String tradeAddress,
+            String tradeLocation
     ) {
         this.user = user;
         this.category = category;
@@ -71,6 +79,8 @@ public class SalePost extends BaseEntity {
         this.content = content;
         this.price = price;
         this.status = status;
+        this.tradeAddress = tradeAddress;
+        this.tradeLocation = tradeLocation;
     }
 
     public static SalePost create(
@@ -79,6 +89,8 @@ public class SalePost extends BaseEntity {
             String title,
             String content,
             BigDecimal price,
+            String tradeAddress,
+            String tradeLocation,
             List<String> imageUrls
     ) {
         validatePrice(price);
@@ -91,6 +103,8 @@ public class SalePost extends BaseEntity {
                 .content(content)
                 .price(price)
                 .status(SaleStatus.SELLING)
+                .tradeAddress(tradeAddress)
+                .tradeLocation(tradeLocation)
                 .build();
 
         // 이미지 URL 리스트를 순서대로 SalePostImage 엔티티로 변환 (displayOrder: 1, 2, 3, ...)
@@ -129,6 +143,8 @@ public class SalePost extends BaseEntity {
             String title,
             String content,
             BigDecimal price,
+            String tradeAddress,
+            String tradeLocation,
             List<String> imageUrls
     ) {
         validatePrice(price);
@@ -138,6 +154,8 @@ public class SalePost extends BaseEntity {
         this.title = title;
         this.content = content;
         this.price = price;
+        this.tradeAddress = tradeAddress;
+        this.tradeLocation = tradeLocation;
 
         updateImages(imageUrls);
     }
@@ -146,7 +164,7 @@ public class SalePost extends BaseEntity {
 
         this.images.clear();
 
-        for(int i = 0; i < imageUrls.size(); i++) {
+        for (int i = 0; i < imageUrls.size(); i++) {
             SalePostImage image = SalePostImage.create(imageUrls.get(i), i + 1);
             this.addImage(image);
         }

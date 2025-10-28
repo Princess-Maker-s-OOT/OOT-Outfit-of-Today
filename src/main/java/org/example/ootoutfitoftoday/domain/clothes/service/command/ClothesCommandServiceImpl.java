@@ -14,6 +14,7 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -95,5 +96,13 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
     @Override
     public void clearCategoryFromClothes(List<Long> categoryIds) {
         clothesRepository.clearCategoryFromClothes(categoryIds);
+    }
+
+    @Override
+    public void updateLastWornAt(Long clothesId, LocalDateTime wornAt) {
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(clothesId)
+                .orElseThrow(() -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND));
+
+        clothes.updateLastWornAt(wornAt);
     }
 }
