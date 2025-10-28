@@ -66,6 +66,7 @@ public class SalePostController {
     @Operation(
             summary = "판매글 상세 조회",
             description = "판매글의 상세 정보를 조회합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "판매글이 성공적으로 조회되었습니다."),
                     @ApiResponse(responseCode = "404", description = "판매글을 찾을 수 없습니다.")
@@ -82,6 +83,7 @@ public class SalePostController {
     @Operation(
             summary = "판매글 전체 조회",
             description = "카테고리/상태/키워드로 필터링 된 전체 판매글을 조회합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "판매글이 성공적으로 조회되었습니다."),
             }
