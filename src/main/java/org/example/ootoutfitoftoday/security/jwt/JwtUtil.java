@@ -59,7 +59,7 @@ public class JwtUtil {
                         .id(UUID.randomUUID().toString())                            // jti: 토큰 고유 식별자 (블랙리스트용)
                         .subject(String.valueOf(userId))
                         .claim(USER_ROLE_CLAIM, userRole.getUserRole())              // 인가용
-                        .claim(TOKEN_TYPE_CLAIM, "access")                        // 토큰 타입 구분
+                        .claim(TOKEN_TYPE_CLAIM, "access")                           // 토큰 타입 구분
                         .expiration(new Date(date.getTime() + ACCESS_TOKEN_TIME))
                         .issuedAt(date)                                              // 발급일
                         .signWith(key, Jwts.SIG.HS256)                               // 암호화 알고리즘
@@ -78,12 +78,12 @@ public class JwtUtil {
         Date date = new Date();
 
         return Jwts.builder()
-                .id(UUID.randomUUID().toString())                            // jti: 토큰 고유 식별자 (블랙리스트용)
+                .id(UUID.randomUUID().toString())
                 .subject(String.valueOf(userId))
-                .claim(TOKEN_TYPE_CLAIM, "refresh")                        // 토큰 타입 구분
+                .claim(TOKEN_TYPE_CLAIM, "refresh")
                 .expiration(new Date(date.getTime() + REFRESH_TOKEN_TIME))
-                .issuedAt(date)                                              // 발급일
-                .signWith(key, Jwts.SIG.HS256)                               // 암호화 알고리즘
+                .issuedAt(date)
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
 
@@ -97,8 +97,8 @@ public class JwtUtil {
 
             return tokenValue.substring(BEARER_PREFIX.length());
         }
-        log.error("Not Found Token");
-        throw new NullPointerException("Not Found Token");
+        log.warn("잘못된 Authorization 헤더 형식이 감지되었습니다. tokenValue={}", tokenValue);
+        throw new IllegalArgumentException("유효하지 않은 JWT 토큰 형식입니다.");
     }
 
     /**
