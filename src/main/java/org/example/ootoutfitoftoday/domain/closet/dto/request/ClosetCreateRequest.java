@@ -11,7 +11,7 @@ import lombok.Builder;
  * - 이미지는 1장만 등록 가능하며, 선택 사항(nullable)
  */
 @Builder(access = AccessLevel.PRIVATE)
-public record ClosetSaveRequest(
+public record ClosetCreateRequest(
 
         @NotBlank(message = "옷장 이름은 필수입니다.")
         @Size(max = 100, message = "옷장 이름은 100자를 초과할 수 없습니다.")
@@ -25,14 +25,14 @@ public record ClosetSaveRequest(
         @NotNull(message = "공개 여부는 필수입니다.")
         Boolean isPublic
 ) {
-    public static ClosetSaveRequest create(
+    public static ClosetCreateRequest of(
             String name,
             String description,
             Long imageId,
             Boolean isPublic
     ) {
 
-        return ClosetSaveRequest.builder()
+        return ClosetCreateRequest.builder()
                 .name(name)
                 .description(description)
                 .imageId(imageId)

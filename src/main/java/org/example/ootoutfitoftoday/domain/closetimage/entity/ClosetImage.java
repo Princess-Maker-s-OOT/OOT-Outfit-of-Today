@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
+import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
 import org.example.ootoutfitoftoday.domain.image.entity.Image;
 
 /**
@@ -20,8 +21,18 @@ import org.example.ootoutfitoftoday.domain.image.entity.Image;
 public class ClosetImage extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /**
+     * [연관관계] Closet과의 1:1 단방향 관계 (연관관계의 주인)
+     * - @JoinColumn(nullable = false) 설정으로, ClosetImage는 Closet에 필수적으로 연결되어야 함
+     *
+     * @MapsId가 이 필드(id)에 Closet의 ID 값을 매핑
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
+    @JoinColumn(name = "closet_id", nullable = false, unique = true) // <--- closet_id FK 매핑
+    private Closet closet;
 
     /**
      * [연관관계] Image와의 1:1 단방향 관계
@@ -30,17 +41,20 @@ public class ClosetImage extends BaseEntity {
      * - nullable = false: 연결 시 Image 정보는 필수
      */
     @OneToOne(fetch = FetchType.LAZY)
+
     @JoinColumn(name = "image_id", nullable = false, unique = true)
     private Image image;
 
     @Builder(access = AccessLevel.PROTECTED)
-    private ClosetImage(Image image) {
+    private ClosetImage(Image image, Closet closet) {
         this.image = image;
+        this.closet = closet;
     }
-    
-    public static ClosetImage create(Image image) {
+
+    public static ClosetImage create(Image image, Closet closet) {
         return ClosetImage.builder()
                 .image(image)
+                .closet(closet)
                 .build();
     }
 
