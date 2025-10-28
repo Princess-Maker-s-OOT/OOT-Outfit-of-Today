@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(jwtAuthenticationFilter, SecurityContextHolderAwareRequestFilter.class) // JwtAuthenticationFilter를 스프링 시큐리티 인증 프로세스 전에 진행
+                .addFilterBefore(jwtAuthenticationFilter, SecurityContextHolderAwareRequestFilter.class)    // JwtAuthenticationFilter를 스프링 시큐리티 인증 프로세스 전에 진행
 
                 // JWT 사용 시 불필요한 기능들 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)      // [SSR] 서버가 로그인 HTML 폼 렌더링
@@ -60,7 +60,7 @@ public class SecurityConfig {
                         // Actuator Health Check
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
-                        // 인증 없이 접근 가능한 API
+                        // 인가(로그인) 없이 접근 가능한 API
                         .requestMatchers(HttpMethod.POST,
                                 "/v1/auth/signup",
                                 "/v1/auth/login",

@@ -12,7 +12,7 @@ import org.example.ootoutfitoftoday.domain.salepost.entity.QSalePost;
 import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
-public class CustomUserRepositoryImpl implements CustomUserRepository {
+public class UserCustomRepositoryImpl implements UserCustomRepository {
 
     private final JPAQueryFactory queryFactory;
     private final EntityManager em;
