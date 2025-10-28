@@ -2,6 +2,7 @@ package org.example.ootoutfitoftoday.domain.user.service.query;
 
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
+import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +64,20 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
                 () -> new UserException(UserErrorCode.USER_NOT_FOUND)
         );
+    }
+
+    @Override
+    public User findByEmailAndIsDeletedFalse(String email) {
+
+        return userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
+        );
+    }
+
+    @Override
+    public Optional<User> findBySocialProviderAndSocialId(SocialProvider provider, String socialId) {
+
+        return userRepository.findBySocialProviderAndSocialId(provider, socialId);
     }
 
     @Override
