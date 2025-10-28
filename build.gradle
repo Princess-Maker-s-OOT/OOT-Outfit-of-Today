@@ -84,6 +84,9 @@ dependencies {
     // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
     implementation 'org.apache.commons:commons-lang3:3.18.0'
+
+    // OAuth2 소셜 로그인(Google)
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 }
 
 // Spring Cloud AWS BOM (버전 통합 관리)
