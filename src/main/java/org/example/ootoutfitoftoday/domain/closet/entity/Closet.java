@@ -34,6 +34,9 @@ public class Closet extends BaseEntity {
     @Column(length = 255, nullable = true)
     private String description;
 
+    // 제거 예정
+    private String imageUrl;
+
     // 공개 여부 (true: 공개, false: 비공개)
     @Column(nullable = false)
     private Boolean isPublic;
