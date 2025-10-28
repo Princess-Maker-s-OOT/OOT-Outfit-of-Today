@@ -7,11 +7,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
+import org.example.ootoutfitoftoday.domain.closetimage.entity.ClosetImage;
+import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 사용자별 디지털 옷장 정보를 관리하는 엔티티
+ * 옷장 정보 외의 이미지는 ClosetImage를 통해 1:1로 관리
+ */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -28,19 +34,33 @@ public class Closet extends BaseEntity {
     @Column(length = 255, nullable = true)
     private String description;
 
-    @Column(length = 500, nullable = true)
-    private String imageUrl;
-
     // 공개 여부 (true: 공개, false: 비공개)
     @Column(nullable = false)
     private Boolean isPublic;
 
-    // 옷장의 소유자
+    /**
+     * [연관관계] User와의 N:1 단방향 관계
+     * 옷장은 반드시 한 명의 소유자(User)를 가짐
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // 옷장과 의류 간의 중간 테이블 역할을 하는 엔티티
+    /**
+     * [연관관계] ClosetImage와의 1:1 관계 (연관관계의 주인)
+     * - Closet이 ClosetImage를 소유 (DB 테이블의 FK를 Closet 테이블이 가짐)
+     * - @JoinColumn(nullable = true): 이미지는 필수가 아니므로, FK 값이 NULL이 허용
+     * - CascadeType.ALL: Closet 저장/수정/삭제 시 ClosetImage도 함께 처리
+     * - orphanRemoval = true: ClosetImage 연결 해제(null 설정) 시 DB에서 해당 엔티티를 삭제
+     */
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "closet_image_id", unique = true, nullable = true)
+    private ClosetImage closetImage;
+
+    /**
+     * [연관관계] ClosetClothesLink와의 1:N 양방향 관계
+     * 옷장에 포함된 의류 목록을 관리
+     */
     @OneToMany(mappedBy = "closet")
     private List<ClosetClothesLink> closetClothesLinks = new ArrayList<>();
 
@@ -49,21 +69,20 @@ public class Closet extends BaseEntity {
             User user,
             String name,
             String description,
-            String imageUrl,
-            Boolean isPublic
+            Boolean isPublic,
+            ClosetImage closetImage
     ) {
         this.user = user;
         this.name = name;
         this.description = description;
-        this.imageUrl = imageUrl;
         this.isPublic = isPublic;
+        this.closetImage = closetImage;
     }
 
     public static Closet create(
             User user,
             String name,
             String description,
-            String imageUrl,
             Boolean isPublic
     ) {
 
@@ -71,26 +90,53 @@ public class Closet extends BaseEntity {
                 .user(user)
                 .name(name)
                 .description(description)
-                .imageUrl(imageUrl)
                 .isPublic(isPublic)
                 .build();
+    }
+
+    public static Closet createWithImage(
+            User user,
+            String name,
+            String description,
+            Boolean isPublic,
+            Image image
+    ) {
+        Closet closet = Closet.create(user, name, description, isPublic);
+        closet.setClosetImage(image);
+
+        return closet;
+    }
+
+    public void setClosetImage(Image image) {
+        if (image == null) {
+            // 이미지를 제거하는 경우 (DB의 FK를 NULL로 설정하고, orphanRemoval=true에 의해 기존 ClosetImage 엔티티 삭제)
+            this.closetImage = null;
+
+            return;
+        }
+
+        if (this.closetImage == null) {
+            // 이미지가 없으면 새로 ClosetImage 엔티티를 생성하여 연결
+            this.closetImage = ClosetImage.create(image);
+        } else {
+            // 이미지가 있으면 기존 ClosetImage의 Image만 변경
+            this.closetImage.updateImage(image);
+        }
+    }
+
+    public void update(
+            String name,
+            String description,
+            Boolean isPublic
+    ) {
+        this.name = name;
+        this.description = description;
+        this.isPublic = isPublic;
     }
 
     // userId를 반환하는 편의 메서드
     public Long getUserId() {
 
         return this.user.getId();
-    }
-
-    public void update(
-            String name,
-            String description,
-            String imageUrl,
-            Boolean isPublic
-    ) {
-        this.name = name;
-        this.description = description;
-        this.imageUrl = imageUrl;
-        this.isPublic = isPublic;
     }
 }
