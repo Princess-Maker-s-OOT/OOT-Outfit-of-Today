@@ -71,7 +71,6 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 false
         );
 
-        // 다중 쓰레드 환경에서는 불안감이 있음 - 해결 방법 없음
         Long salePostId = salePostRepository.findLastInsertId();
 
         SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)

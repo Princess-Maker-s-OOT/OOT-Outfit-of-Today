@@ -99,8 +99,12 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
                     s.created_at,
                     s.updated_at,
                     s.is_deleted,
-                    s.deleted_at
+                    s.deleted_at,
+                    u.nickname AS seller_nickname,
+                    c.name AS category_name
                 FROM sale_posts s
+                JOIN users u ON s.user_id = u.id
+                JOIN categories c ON s.category_id = c.id
                 WHERE s.is_deleted = FALSE
                 AND ST_Distance_Sphere(
                                   s.trade_location,

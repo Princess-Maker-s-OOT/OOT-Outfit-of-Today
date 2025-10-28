@@ -131,22 +131,27 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
 
     // 판매글 단건 조회 쿼리
     @Query(value = """
-            SELECT
-                s.id,
-                s.title,
-                s.content,
-                s.price,
-                s.status,
-                s.trade_address,
-                ST_AsText(s.trade_location) AS trade_location,
-                s.user_id,
-                s.category_id,
-                s.created_at,
-                s.updated_at,
-                s.is_deleted,
-                s.deleted_at
-            FROM sale_posts s
-            WHERE s.id = ?1 AND s.is_deleted = FALSE
+                        SELECT
+                            s.id,
+                            s.title,
+                            s.content,
+                            s.price,
+                            s.status,
+                            s.trade_address,
+                            ST_AsText(s.trade_location) AS trade_location,
+                            s.user_id,
+                            s.category_id,
+                            s.created_at,
+                            s.updated_at,
+                            s.is_deleted,
+                            s.deleted_at,
+                            u.id AS seller_id,
+                            u.nickname AS seller_nickname,
+                            c.name AS category_name
+                        FROM sale_posts s
+                        JOIN users u ON s.user_id = u.id
+                        JOIN categories c ON s.category_id = c.id
+                        WHERE s.id = ?1 AND s.is_deleted = FALSE
             """, nativeQuery = true)
     Optional<SalePost> findByIdAsNativeQuery(Long salePostId);
 }

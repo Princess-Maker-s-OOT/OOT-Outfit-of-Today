@@ -20,6 +20,6 @@ public class PointFormatAndParse {
         BigDecimal tradeLatitude = new BigDecimal(latitudeStr);
         BigDecimal tradeLongitude = new BigDecimal(longitudeStr);
 
-        return Location.from(tradeLatitude, tradeLongitude);
+        return Location.of(tradeLatitude, tradeLongitude);
     }
 }
