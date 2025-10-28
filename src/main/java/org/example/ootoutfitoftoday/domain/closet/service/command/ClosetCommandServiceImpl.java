@@ -1,7 +1,7 @@
 package org.example.ootoutfitoftoday.domain.closet.service.command;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetSaveRequest;
+import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetCreateRequest;
 import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetUpdateRequest;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetCreateResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetDeleteResponse;
@@ -28,7 +28,7 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
 
     // 옷장 등록
     @Override
-    public ClosetCreateResponse createCloset(Long userId, ClosetSaveRequest request) {
+    public ClosetCreateResponse createCloset(Long userId, ClosetCreateRequest request) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
