@@ -10,6 +10,8 @@ import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
 import org.example.ootoutfitoftoday.domain.closet.exception.ClosetErrorCode;
 import org.example.ootoutfitoftoday.domain.closet.exception.ClosetException;
 import org.example.ootoutfitoftoday.domain.closet.repository.ClosetRepository;
+import org.example.ootoutfitoftoday.domain.image.entity.Image;
+import org.example.ootoutfitoftoday.domain.image.service.query.ImageQueryService;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
@@ -24,21 +26,25 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
 
     private final ClosetRepository closetRepository;
     private final UserQueryService userQueryService;
+    private final ImageQueryService imageQueryService;
 
     // 옷장 등록
     @Override
-    public ClosetSaveResponse createCloset(Long id, ClosetSaveRequest request) {
+    public ClosetSaveResponse createCloset(Long userId, ClosetSaveRequest request) {
 
-        User user = userQueryService.findByIdAndIsDeletedFalse(id);
+        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
         Closet closet = Closet.create(
                 user,
                 request.name(),
                 request.description(),
-
-                request.imageUrl(),
                 request.isPublic()
         );
+        
+        if (request.imageId() != null) {
+            Image image = imageQueryService.findImageById(request.imageId());
+            closet.setClosetImage(image);
+        }
 
         Closet savedCloset = closetRepository.save(closet);
 
@@ -52,7 +58,6 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
             Long closetId,
             ClosetUpdateRequest request
     ) {
-
         Closet updatedCloset = closetRepository.findById(closetId)
                 .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
 
@@ -64,12 +69,18 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
             throw new ClosetException(ClosetErrorCode.CLOSET_FORBIDDEN);
         }
 
+        Image newImage = null;
+        if (request.imageId() != null) {
+            newImage = imageQueryService.findImageById(request.imageId());
+        }
+
         updatedCloset.update(
                 request.name(),
                 request.description(),
-                request.imageUrl(),
                 request.isPublic()
         );
+
+        updatedCloset.setClosetImage(newImage);
 
         return ClosetUpdateResponse.from(updatedCloset);
     }
@@ -80,7 +91,6 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
             Long userId,
             Long closetId
     ) {
-
         Closet closet = closetRepository.findById(closetId)
                 .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
 
