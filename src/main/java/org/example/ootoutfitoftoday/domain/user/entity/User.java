@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
+import org.example.ootoutfitoftoday.domain.auth.enums.LoginType;
+import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
@@ -25,7 +27,8 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 25)
+    // 소셜 로그인: nullable 허용
+    @Column(nullable = true, unique = true, length = 25)
     private String loginId;
 
     @Column(nullable = false, unique = true, length = 60)
@@ -37,10 +40,12 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 60)
     private String username;
 
-    @Column(nullable = false, length = 255)
+    // 소셜 로그인: nullable 허용
+    @Column(nullable = true, length = 255)
     private String password;
 
-    @Column(nullable = false, unique = true, length = 30)
+    // 소셜 로그인: nullable 허용
+    @Column(nullable = true, unique = true, length = 30)
     private String phoneNumber;
 
     @Column(nullable = false, length = 10)
@@ -49,6 +54,20 @@ public class User extends BaseEntity {
 
     @Column(nullable = true, length = 500)
     private String imageUrl;
+
+    // 로그인 타입 추가(LOGIN_ID, SOCIAL 구분)
+    @Column(nullable = false, length = 10)
+    @Enumerated(EnumType.STRING)
+    private LoginType loginType;
+
+    // 소셜 로그인 제공자: GOOGLE, KAKAO, NAVER 등
+    @Column(nullable = true, length = 10)
+    @Enumerated(EnumType.STRING)
+    private SocialProvider socialProvider;
+
+    // 소셜 ID(소셜 로그인 시 고유 식별자 - Google의 sub)
+    @Column(nullable = true, unique = true, length = 100)
+    private String socialId;
 
     // 옷장 연관관계
     @OneToMany(mappedBy = "user")
@@ -67,7 +86,10 @@ public class User extends BaseEntity {
             String password,
             String phoneNumber,
             UserRole role,
-            String imageUrl
+            String imageUrl,
+            LoginType loginType,
+            SocialProvider socialProvider,
+            String socialId
     ) {
         this.loginId = loginId;
         this.email = email;
@@ -77,8 +99,12 @@ public class User extends BaseEntity {
         this.phoneNumber = phoneNumber;
         this.role = role;
         this.imageUrl = imageUrl;
+        this.loginType = loginType;
+        this.socialProvider = socialProvider;
+        this.socialId = socialId;
     }
 
+    // 기존의 일반 회원가입용
     public static User create(
             String loginId,
             String email,
@@ -99,6 +125,7 @@ public class User extends BaseEntity {
                 .phoneNumber(phoneNumber)
                 .role(role)
                 .imageUrl(imageUrl)
+                .loginType(LoginType.LOGIN_ID)
                 .build();
     }
 
@@ -118,9 +145,46 @@ public class User extends BaseEntity {
                 .username(username)
                 .password(password)
                 .phoneNumber(phoneNumber)
-                .role(UserRole.ROLE_ADMIN)    // 고정값: 항상 ADMIN
-                .imageUrl(null)               // 고정값: 관리자 이미지 파일 제외
+                .role(UserRole.ROLE_ADMIN)        // 고정값: 항상 ADMIN
+                .loginType(LoginType.LOGIN_ID)
+                .imageUrl(null)                   // 고정값: 관리자 이미지 파일 제외
                 .build();
+    }
+
+    // 소셜 회원가입용
+    public static User createFromSocial(
+            String email,
+            String nickname,
+            String username,
+            String imageUrl,
+            SocialProvider provider,
+            String socialId
+    ) {
+        return User.builder()
+                .loginId(null)
+                .email(email)
+                .nickname(nickname)
+                .username(username)
+                .password(null)
+                .phoneNumber(null)
+                .role(UserRole.ROLE_USER)
+                .imageUrl(imageUrl)
+                .loginType(LoginType.SOCIAL)
+                .socialProvider(provider)
+                .socialId(socialId)
+                .build();
+    }
+
+    // 소셜 계정 연동용 메서드
+    public void linkGoogleAccount(String socialId, String googleImageUrl) {
+        this.socialId = socialId;
+        // 로그인 타입 소셜로 변경
+        this.loginType = LoginType.SOCIAL;
+
+        // 소셜 이미지 URL이 있고, 기존 이미지 URL이 null인 경우에만 업데이트
+        if (googleImageUrl != null && this.imageUrl == null) {
+            this.imageUrl = googleImageUrl;
+        }
     }
 
     // 헬퍼 메서드
