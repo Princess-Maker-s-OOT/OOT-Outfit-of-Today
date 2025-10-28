@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
-import org.example.ootoutfitoftoday.common.util.LocationConstants;
+import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
@@ -109,8 +109,8 @@ public class User extends BaseEntity {
                 .password(password)
                 .phoneNumber(phoneNumber)
                 .role(role)
-                .tradeAddress(LocationConstants.DEFAULT_TRADE_ADDRESS)
-                .tradeLocation(LocationConstants.DEFAULT_TRADE_LOCATION)
+                .tradeAddress(DefaultLocationConstants.DEFAULT_TRADE_ADDRESS)
+                .tradeLocation(DefaultLocationConstants.DEFAULT_TRADE_LOCATION)
                 .imageUrl(imageUrl)
                 .build();
     }
@@ -132,8 +132,8 @@ public class User extends BaseEntity {
                 .password(password)
                 .phoneNumber(phoneNumber)
                 .role(UserRole.ROLE_ADMIN)    // 고정값: 항상 ADMIN
-                .tradeAddress(LocationConstants.DEFAULT_TRADE_ADDRESS)
-                .tradeLocation(LocationConstants.DEFAULT_TRADE_LOCATION)
+                .tradeAddress(DefaultLocationConstants.DEFAULT_TRADE_ADDRESS)
+                .tradeLocation(DefaultLocationConstants.DEFAULT_TRADE_LOCATION)
                 .imageUrl(null)               // 고정값: 관리자 이미지 파일 제외
                 .build();
     }

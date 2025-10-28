@@ -68,8 +68,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/v1/closets/public",
                                 "/v1/closets/{closetId}",  // 추가 추천
-                                "/v1/sale-posts",
-                                "/v1/sale-posts/{salePostId}",
+                                // "/v1/sale-posts",
+                                // "/v1/sale-posts/{salePostId}",
                                 "/v1/categories").permitAll()
 
                         // WebSocket

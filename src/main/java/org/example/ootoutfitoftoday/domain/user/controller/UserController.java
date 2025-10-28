@@ -35,7 +35,6 @@ public class UserController {
      * @param authUser 토큰 정보
      * @return 회원정보 반환
      */
-    // 회원정보 조회
     @Operation(
             summary = "내 정보 조회",
             description = "토큰을 기반으로 회원 자신의 상세 정보를 조회합니다.",

@@ -200,8 +200,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if ("GET".equalsIgnoreCase(method) &&
                 (uri.startsWith("/v1/closets/public") ||
                         uri.startsWith("/v1/closets/{closetId}") ||
-                        uri.startsWith("/v1/sale-posts") ||
-                        uri.startsWith("/v1/sale-posts/{salePostId}") ||
+                        // uri.startsWith("/v1/sale-posts") ||
+                        // uri.startsWith("/v1/sale-posts/{salePostId}") ||
                         uri.startsWith("/v1/categories"))) {
 
             return true;

@@ -3,7 +3,7 @@ package org.example.ootoutfitoftoday.domain.auth.service.command;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.ootoutfitoftoday.common.util.LocationConstants;
+import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
@@ -96,8 +96,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                 .password(encodedPassword)
                 .phoneNumber(request.getPhoneNumber())
                 .role(UserRole.ROLE_USER)
-                .tradeAddress(LocationConstants.DEFAULT_TRADE_ADDRESS)
-                .tradeLocation(LocationConstants.DEFAULT_TRADE_LOCATION)
+                .tradeAddress(DefaultLocationConstants.DEFAULT_TRADE_ADDRESS)
+                .tradeLocation(DefaultLocationConstants.DEFAULT_TRADE_LOCATION)
                 .build();
 
         userCommandService.save(user);
