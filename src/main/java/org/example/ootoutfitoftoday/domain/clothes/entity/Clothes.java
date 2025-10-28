@@ -12,6 +12,7 @@ import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +44,9 @@ public class Clothes extends BaseEntity {
 
     @Column(length = 255, nullable = false)
     private String description;
+
+    @Column(nullable = true)
+    private LocalDateTime lastWornAt;
 
     @OneToMany(mappedBy = "clothes")
     private List<ClothesImage> images = new ArrayList<>();
@@ -102,5 +106,10 @@ public class Clothes extends BaseEntity {
     public void removeImage(ClothesImage image) {
         images.remove(image);
         image.updateClothes(null);
+    }
+
+    // 마지막 착용 일시 갱신 메서드
+    public void updateLastWornAt(LocalDateTime wornAt) {
+        this.lastWornAt = wornAt;
     }
 }
