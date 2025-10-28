@@ -17,6 +17,8 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -87,6 +89,10 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
     ) {
         Closet closet = closetRepository.findById(closetId)
                 .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
+
+        if (!Objects.equals(closet.getUserId(), userId)) {
+            throw new ClosetException(ClosetErrorCode.CLOSET_FORBIDDEN);
+        }
 
         closet.softDelete();
 
