@@ -2,7 +2,9 @@ package org.example.ootoutfitoftoday.domain.user.repository;
 
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -47,4 +49,37 @@ public interface UserRepository extends JpaRepository<User, Long>, UserCustomRep
               AND u.createdAt < :end
             """)
     int countUsersRegisteredSince(LocalDateTime start, LocalDateTime end);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            INSERT INTO users 
+                (login_id, email, nickname, username, password, 
+                 phone_number, role, trade_address, trade_location, 
+                             image_url, is_deleted, created_at, updated_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ST_GeomFromText(?9, 4326), ?10, ?11, NOW(), NOW())
+            """, nativeQuery = true
+    )
+    void saveAsNativeQuery(
+            String loginId,
+            String email,
+            String nickname,
+            String username,
+            String password,
+            String phoneNumber,
+            String role,
+            String tradeAddress,
+            String tradeLocation,
+            String imageUrl,
+            boolean isDeleted
+    );
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            UPDATE users 
+            SET trade_address = ?2, trade_location = ST_GeomFromText(?3, 4326), updated_at = NOW() 
+            WHERE id = ?1
+            """, nativeQuery = true)
+    void updateTradeLocationAsNativeQuery(Long userId, String tradeAddress, String tradeLocation);
 }
