@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<User, Long>, CustomUserRepository {
+public interface UserRepository extends JpaRepository<User, Long>, UserCustomRepository {
 
     boolean existsByLoginId(String loginId);
 

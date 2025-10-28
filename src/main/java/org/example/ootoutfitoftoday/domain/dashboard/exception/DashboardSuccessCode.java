@@ -12,7 +12,8 @@ public enum DashboardSuccessCode implements SuccessCode {
     DASHBOARD_ADMIN_USER_STATISTICS_OK("DASHBOARD_ADMIN_USER_STATISTICS_OK", HttpStatus.OK, "사용자들에 대한 정보를 성공적으로 조회하였습니다!"),
     DASHBOARD_ADMIN_CLOTHES_STATISTICS_OK("DASHBOARD_ADMIN_CLOTHES_STATISTICS_OK", HttpStatus.OK, "옷에 대한 정보를 성공적으로 조회하였습니다!"),
     DASHBOARD_ADMIN_SALE_POST_STATISTICS_OK("DASHBOARD_ADMIN_SALE_POST_STATISTICS_OK", HttpStatus.OK, "판매글에 대한 정보를 성공적으로 조회하였습니다!"),
-    DASHBOARD_ADMIN_TOP10_CATEGORY_STATISTICS_OK("DASHBOARD_ADMIN_TOP10_CATEGORY_STATISTICS_OK", HttpStatus.OK, "인기 카테고리에 대한 정보를 성공적으로 조회하였습니다!");
+    DASHBOARD_ADMIN_TOP10_CATEGORY_STATISTICS_OK("DASHBOARD_ADMIN_TOP10_CATEGORY_STATISTICS_OK", HttpStatus.OK, "인기 카테고리에 대한 정보를 성공적으로 조회하였습니다!"),
+    DASHBOARD_USER_SUMMARY_OK("DASHBOARD_USER_SUMMARY_OK", HttpStatus.OK, "사용자 대시보드를 성공적으로 조회하였습니다!");
 
     private final String code;
     private final HttpStatus httpStatus;

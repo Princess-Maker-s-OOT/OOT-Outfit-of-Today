@@ -23,6 +23,9 @@ public class Image extends BaseEntity {
     @Column(length = 255, nullable = false)
     private String fileName;
 
+    @Column(length = 1000, nullable = false)
+    private String s3Key;
+
     @Column(length = 100, nullable = false)
     private String contentType;
 
@@ -30,21 +33,42 @@ public class Image extends BaseEntity {
     private Long size;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private ImageType type;
 
     @Builder(access = AccessLevel.PROTECTED)
     public Image(
             String url,
             String fileName,
+            String s3Key,
             String contentType,
             Long size,
             ImageType type
     ) {
         this.url = url;
         this.fileName = fileName;
+        this.s3Key = s3Key;
         this.contentType = contentType;
         this.size = size;
         this.type = type;
+    }
+
+    // 정적 팩토리 메서드
+    public static Image create(
+            String url,
+            String fileName,
+            String s3Key,
+            String contentType,
+            Long size,
+            ImageType type
+    ) {
+        return Image.builder()
+                .url(url)
+                .fileName(fileName)
+                .s3Key(s3Key)
+                .contentType(contentType)
+                .size(size)
+                .type(type)
+                .build();
     }
 }

@@ -21,3 +21,8 @@ springdoc:
     enabled: true
     display-request-duration: true
     tryItOutEnabled: true
+
+cloud:
+  aws:
+    stack:
+      auto: true

@@ -141,7 +141,5 @@ public class UserCommandServiceImpl implements UserCommandService {
         user.updateTradeLocation(request.tradeAddress(), tradeLocation);
 
         userRepository.updateTradeLocationAsNativeQuery(userId, user.getTradeAddress(), user.getTradeLocation());
-
-        entityManager.refresh(user);
     }
 }

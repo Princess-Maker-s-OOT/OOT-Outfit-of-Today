@@ -8,6 +8,22 @@ jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
+    # ===============================================
+    # 💡 1. MySQL Docker 컨테이너 서비스 정의 (필수)
+    # ===============================================
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root  # 컨테이너 시작에 필요한 임시 비밀번호
+          MYSQL_DATABASE: test_db    # 테스트 DB 이름
+        ports:
+          - 3306:3306                # 호스트 포트로 연결
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       SPRING_PROFILES_ACTIVE: test
       AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -24,8 +40,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Set up Gradle # Gradle 설정, 종속성 및 빌드 캐시를 자동으로 관리
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
+      # 💡 2단계: Spring Boot 접속 정보 설정
+      - name: Configure DB Connection
+        run: |
+          # 127.0.0.1:3306으로 접속하도록 환경 변수 설정
+          echo "SPRING_DATASOURCE_URL=jdbc:mysql://127.0.0.1:3306/test_db?useSSL=false&allowPublicKeyRetrieval=true" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_USERNAME=root" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_PASSWORD=root" >> $GITHUB_ENV
+
       - name: Grant execute permission for Gradlew
         run: chmod +x gradlew
 
+      # check를 통해서 빌드와 테스트 동시에 진행 / test 설정을 CI에 사용
       - name: Run tests with coverage check
-        run: ./gradlew clean check -Dspring.profiles.active=test
+        run: ./gradlew clean check

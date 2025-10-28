@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(jwtAuthenticationFilter, SecurityContextHolderAwareRequestFilter.class) // JwtAuthenticationFilter를 스프링 시큐리티 인증 프로세스 전에 진행
+                .addFilterBefore(jwtAuthenticationFilter, SecurityContextHolderAwareRequestFilter.class)    // JwtAuthenticationFilter를 스프링 시큐리티 인증 프로세스 전에 진행
 
                 // JWT 사용 시 불필요한 기능들 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)      // [SSR] 서버가 로그인 HTML 폼 렌더링
@@ -48,20 +48,39 @@ public class SecurityConfig {
                 .rememberMe(AbstractHttpConfigurer::disable)     // 서버가 쿠키 발급하여 자동 로그인
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET,
-                                "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()       //Swagger API 문서 관련 경로 허용 (인증 없이 접근 가능)
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()                    // Actuator Health Check 경로 허용 (EC2 배포 환경 체크용)
-                        .requestMatchers(HttpMethod.POST, "/v1/auth/signup", "/v1/auth/login").permitAll()
+                        // Swagger 관련 경로 - 모든 HTTP 메서드 허용
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+
+                        // Actuator Health Check
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+
+                        // 인가(로그인) 없이 접근 가능한 API
+                        .requestMatchers(HttpMethod.POST,
+                                "/v1/auth/signup",
+                                "/v1/auth/login",
+                                "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/v1/closets/public",
+                                "/v1/closets/{closetId}",  // 추가 추천
                                 "/v1/sale-posts",
                                 "/v1/sale-posts/{salePostId}",
-                                "/v1/categories",
-                                "/ws/**").permitAll()
+                                "/v1/categories").permitAll()
+
+                        // WebSocket
+                        .requestMatchers("/ws/**").permitAll()
+
+                        // Admin
                         .requestMatchers("/admin/**").hasAuthority(UserRole.Authority.ADMIN)
-                        .anyRequest().authenticated() // 다른 요청들은 authentication 필요
+
+                        // 나머지는 인증 필요
+                        .anyRequest().authenticated()
                 )
                 .build();
     }
 }
-
