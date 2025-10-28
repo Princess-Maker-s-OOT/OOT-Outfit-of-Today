@@ -50,14 +50,11 @@ public class Closet extends BaseEntity {
     private User user;
 
     /**
-     * [연관관계] ClosetImage와의 1:1 관계 (연관관계의 주인)
-     * - Closet이 ClosetImage를 소유 (DB 테이블의 FK를 Closet 테이블이 가짐)
-     * - @JoinColumn(nullable = true): 이미지는 필수가 아니므로, FK 값이 NULL이 허용
-     * - CascadeType.ALL: Closet 저장/수정/삭제 시 ClosetImage도 함께 처리
-     * - orphanRemoval = true: ClosetImage 연결 해제(null 설정) 시 DB에서 해당 엔티티를 삭제
+     * [연관관계] ClosetImage와의 1:1 양방향 관계 (연관관계의 주인이 아님)
+     * - 연관관계의 주도권은 ClosetImage 엔티티의 'closet' 필드에 위임됨
+     * - CascadeType.ALL: 양방향 설정
      */
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "closet_image_id", unique = true, nullable = true)
+    @OneToOne(mappedBy = "closet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ClosetImage closetImage;
 
     /**
@@ -113,14 +110,13 @@ public class Closet extends BaseEntity {
     public void setClosetImage(Image image) {
         if (image == null) {
             if (this.closetImage != null) {
-                this.closetImage.softDelete();
+                this.closetImage = null;
             }
-
             return;
         }
 
         if (this.closetImage == null) {
-            this.closetImage = ClosetImage.create(image);
+            this.closetImage = ClosetImage.create(image, this);
         } else {
             this.closetImage.updateImage(image);
         }
