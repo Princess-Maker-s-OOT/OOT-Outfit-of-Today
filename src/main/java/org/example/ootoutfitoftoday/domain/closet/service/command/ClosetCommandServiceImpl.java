@@ -34,19 +34,15 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
-        Image image = null;
-        if (request.imageId() != null) {
-            image = imageQueryService.findImageById(request.imageId());
-        }
-
         Closet closet = Closet.create(
                 user,
                 request.name(),
                 request.description(),
                 request.isPublic()
         );
-
-        if (image != null) {
+        
+        if (request.imageId() != null) {
+            Image image = imageQueryService.findImageById(request.imageId());
             closet.setClosetImage(image);
         }
 
