@@ -42,7 +42,8 @@ public class WearRecordController {
                     @ApiResponse(responseCode = "201", description = "등록 성공"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청 (clothesId 누락 등)"),
                     @ApiResponse(responseCode = "401", description = "인증 실패"),
-                    @ApiResponse(responseCode = "404", description = "옷을 찾을 수 없음 (삭제되었거나 권한 없음)")
+                    @ApiResponse(responseCode = "403", description = "권한 없음 (다른 사용자의 옷에 기록 시도)"),
+                    @ApiResponse(responseCode = "404", description = "옷을 찾을 수 없음 (ID 오류 또는 삭제된 옷)")
             }
     )
     @PostMapping
