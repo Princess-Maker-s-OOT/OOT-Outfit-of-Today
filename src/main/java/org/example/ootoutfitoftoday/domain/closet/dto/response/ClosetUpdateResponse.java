@@ -1,9 +1,15 @@
 package org.example.ootoutfitoftoday.domain.closet.dto.response;
 
+import lombok.AccessLevel;
+import lombok.Builder;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
 
 import java.time.LocalDateTime;
 
+/**
+ * 옷장 수정 응답 DTO
+ */
+@Builder(access = AccessLevel.PRIVATE)
 public record ClosetUpdateResponse(
         Long closetId,
         String name,
@@ -14,13 +20,15 @@ public record ClosetUpdateResponse(
 ) {
     public static ClosetUpdateResponse from(Closet closet) {
 
-        return new ClosetUpdateResponse(
-                closet.getId(),
-                closet.getName(),
-                closet.getDescription(),
-                closet.getImageUrl(),
-                closet.getIsPublic(),
-                closet.getUpdatedAt()
-        );
+        String imageUrl = closet.getImageUrl();
+
+        return ClosetUpdateResponse.builder()
+                .closetId(closet.getId())
+                .name(closet.getName())
+                .description(closet.getDescription())
+                .imageUrl(imageUrl)
+                .isPublic(closet.getIsPublic())
+                .updatedAt(closet.getUpdatedAt())
+                .build();
     }
 }
