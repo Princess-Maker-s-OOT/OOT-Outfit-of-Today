@@ -1,9 +1,14 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: ${USER_NAME:sa}
-    password: ${PASSWORD:}
+    # 💡 CI 워크플로우의 Docker 서비스 주소와 포트 (127.0.0.1:3306)를 사용
+    url: jdbc:mysql://127.0.0.1:3306/test_db?useSSL=false&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver # MySQL JDBC 드라이버 명시
+    username: root # CI Docker Compose에서 설정한 사용자 이름
+    password: root # CI Docker Compose에서 설정한 비밀번호
+  #    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+  #    driver-class-name: org.h2.Driver
+  #    username: ${USER_NAME:sa}
+  #    password: ${PASSWORD:}
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -11,7 +16,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.MySQLDialect # MySQL 방언 설정
+  #        dialect: org.hibernate.dialect.H2Dialect
   config:
     import: optional:file:.env[.properties]
 
