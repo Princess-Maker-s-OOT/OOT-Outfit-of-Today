@@ -25,7 +25,7 @@ public record ClosetUpdateRequest(
         @NotNull(message = "공개 여부는 필수입니다.")
         Boolean isPublic
 ) {
-    public static ClosetUpdateRequest create(
+    public static ClosetUpdateRequest of(
             String name,
             String description,
             Long imageId,
