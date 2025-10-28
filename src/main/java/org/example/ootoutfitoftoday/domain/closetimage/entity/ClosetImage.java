@@ -21,12 +21,13 @@ import org.example.ootoutfitoftoday.domain.image.entity.Image;
 public class ClosetImage extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /**
      * [연관관계] Closet과의 1:1 단방향 관계 (연관관계의 주인)
-     * - @JoinColumn(nullable = false) 설정으로, ClosetImage는 Closet에 필수적으로 연결되어야 함 (DB 스키마와 일치)
+     * - @JoinColumn(nullable = false) 설정으로, ClosetImage는 Closet에 필수적으로 연결되어야 함
+     *
+     * @MapsId가 이 필드(id)에 Closet의 ID 값을 매핑
      */
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
