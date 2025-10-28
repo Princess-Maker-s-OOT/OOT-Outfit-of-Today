@@ -167,8 +167,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Swagger & Docs
         if (uri.startsWith("/swagger-ui") ||
                 uri.startsWith("/v3/api-docs") ||
+                uri.startsWith("/v3/api-docs.yaml") ||
                 uri.startsWith("/swagger-resources") ||
                 uri.startsWith("/webjars")) {
+
+            return true;
+        }
+
+        // Actuator Health Check
+        if (uri.startsWith("/actuator/health") ||
+                uri.startsWith("/actuator/info")) {
 
             return true;
         }
@@ -191,7 +199,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // GET 요청 공개 API
         if ("GET".equalsIgnoreCase(method) &&
                 (uri.startsWith("/v1/closets/public") ||
+                        uri.startsWith("/v1/closets/{closetId}") ||
                         uri.startsWith("/v1/sale-posts") ||
+                        uri.startsWith("/v1/sale-posts/{salePostId}") ||
                         uri.startsWith("/v1/categories"))) {
 
             return true;
