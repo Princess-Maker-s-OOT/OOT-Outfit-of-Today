@@ -10,9 +10,11 @@ import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothe
 import org.example.ootoutfitoftoday.domain.closetimage.entity.ClosetImage;
 import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.hibernate.annotations.Where;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 사용자별 디지털 옷장 정보를 관리하는 엔티티
@@ -21,6 +23,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Where(clause = "is_deleted = false")
 @Table(name = "closets")
 public class Closet extends BaseEntity {
 
@@ -33,9 +36,6 @@ public class Closet extends BaseEntity {
 
     @Column(length = 255, nullable = true)
     private String description;
-
-    // 제거 예정
-    private String imageUrl;
 
     // 공개 여부 (true: 공개, false: 비공개)
     @Column(nullable = false)
@@ -50,14 +50,11 @@ public class Closet extends BaseEntity {
     private User user;
 
     /**
-     * [연관관계] ClosetImage와의 1:1 관계 (연관관계의 주인)
-     * - Closet이 ClosetImage를 소유 (DB 테이블의 FK를 Closet 테이블이 가짐)
-     * - @JoinColumn(nullable = true): 이미지는 필수가 아니므로, FK 값이 NULL이 허용
-     * - CascadeType.ALL: Closet 저장/수정/삭제 시 ClosetImage도 함께 처리
-     * - orphanRemoval = true: ClosetImage 연결 해제(null 설정) 시 DB에서 해당 엔티티를 삭제
+     * [연관관계] ClosetImage와의 1:1 양방향 관계 (연관관계의 주인이 아님)
+     * - 연관관계의 주도권은 ClosetImage 엔티티의 'closet' 필드에 위임됨
+     * - CascadeType.ALL: 양방향 설정
      */
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "closet_image_id", unique = true, nullable = true)
+    @OneToOne(mappedBy = "closet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ClosetImage closetImage;
 
     /**
@@ -67,7 +64,7 @@ public class Closet extends BaseEntity {
     @OneToMany(mappedBy = "closet")
     private List<ClosetClothesLink> closetClothesLinks = new ArrayList<>();
 
-    @Builder(access = AccessLevel.PROTECTED)
+    @Builder(access = AccessLevel.PRIVATE)
     private Closet(
             User user,
             String name,
@@ -112,17 +109,15 @@ public class Closet extends BaseEntity {
 
     public void setClosetImage(Image image) {
         if (image == null) {
-            // 이미지를 제거하는 경우 (DB의 FK를 NULL로 설정하고, orphanRemoval=true에 의해 기존 ClosetImage 엔티티 삭제)
-            this.closetImage = null;
-
+            if (this.closetImage != null) {
+                this.closetImage = null;
+            }
             return;
         }
 
         if (this.closetImage == null) {
-            // 이미지가 없으면 새로 ClosetImage 엔티티를 생성하여 연결
-            this.closetImage = ClosetImage.create(image);
+            this.closetImage = ClosetImage.create(image, this);
         } else {
-            // 이미지가 있으면 기존 ClosetImage의 Image만 변경
             this.closetImage.updateImage(image);
         }
     }
@@ -141,5 +136,14 @@ public class Closet extends BaseEntity {
     public Long getUserId() {
 
         return this.user.getId();
+    }
+
+    // 옷장에 연결된 이미지의 URL을 반환하는 편의 메서드
+    public String getImageUrl() {
+
+        return Optional.ofNullable(this.closetImage)
+                .map(ClosetImage::getImage)
+                .map(Image::getUrl)
+                .orElse(null);
     }
 }

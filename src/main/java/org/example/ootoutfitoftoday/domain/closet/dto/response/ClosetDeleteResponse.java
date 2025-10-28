@@ -1,7 +1,14 @@
 package org.example.ootoutfitoftoday.domain.closet.dto.response;
 
+import lombok.AccessLevel;
+import lombok.Builder;
+
 import java.time.LocalDateTime;
 
+/**
+ * 옷장 삭제 응답 DTO
+ */
+@Builder(access = AccessLevel.PRIVATE)
 public record ClosetDeleteResponse(
 
         Long closetId,
@@ -12,6 +19,9 @@ public record ClosetDeleteResponse(
             LocalDateTime deletedAt
     ) {
 
-        return new ClosetDeleteResponse(closetId, deletedAt);
+        return ClosetDeleteResponse.builder()
+                .closetId(closetId)
+                .deletedAt(deletedAt)
+                .build();
     }
 }

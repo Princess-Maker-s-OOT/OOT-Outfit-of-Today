@@ -1,10 +1,10 @@
 package org.example.ootoutfitoftoday.domain.closet.service.command;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetSaveRequest;
+import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetCreateRequest;
 import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetUpdateRequest;
+import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetCreateResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetDeleteResponse;
-import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetSaveResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetUpdateResponse;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
 import org.example.ootoutfitoftoday.domain.closet.exception.ClosetErrorCode;
@@ -30,7 +30,7 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
 
     // 옷장 등록
     @Override
-    public ClosetSaveResponse createCloset(Long userId, ClosetSaveRequest request) {
+    public ClosetCreateResponse createCloset(Long userId, ClosetCreateRequest request) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
@@ -40,7 +40,7 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
                 request.description(),
                 request.isPublic()
         );
-        
+
         if (request.imageId() != null) {
             Image image = imageQueryService.findImageById(request.imageId());
             closet.setClosetImage(image);
@@ -48,7 +48,7 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
 
         Closet savedCloset = closetRepository.save(closet);
 
-        return ClosetSaveResponse.from(savedCloset);
+        return ClosetCreateResponse.from(savedCloset);
     }
 
     // 옷장 정보 수정
@@ -60,10 +60,6 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
     ) {
         Closet updatedCloset = closetRepository.findById(closetId)
                 .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
-
-        if (updatedCloset.isDeleted()) {
-            throw new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND);
-        }
 
         if (!updatedCloset.getUserId().equals(userId)) {
             throw new ClosetException(ClosetErrorCode.CLOSET_FORBIDDEN);
@@ -94,15 +90,15 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
         Closet closet = closetRepository.findById(closetId)
                 .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
 
-        if (closet.isDeleted()) {
-            throw new ClosetException(ClosetErrorCode.CLOSET_DELETED);
-        }
-
         if (!Objects.equals(closet.getUserId(), userId)) {
             throw new ClosetException(ClosetErrorCode.CLOSET_FORBIDDEN);
         }
 
         closet.softDelete();
+
+        if (closet.getClosetImage() != null) {
+            closet.getClosetImage().softDelete();
+        }
 
         return ClosetDeleteResponse.of(closet.getId(), closet.getDeletedAt());
     }
