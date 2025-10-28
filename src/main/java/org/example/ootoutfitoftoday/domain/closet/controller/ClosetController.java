@@ -46,16 +46,16 @@ public class ClosetController {
             }
     )
     @PostMapping
-    public ResponseEntity<Response<ClosetSaveResponse>> createCloset(
+    public ResponseEntity<Response<ClosetCreateResponse>> createCloset(
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody ClosetSaveRequest closetSaveRequest
     ) {
-        ClosetSaveResponse closetSaveResponse = closetCommandService.createCloset(
+        ClosetCreateResponse closetCreateResponse = closetCommandService.createCloset(
                 authUser.getUserId(),
                 closetSaveRequest
         );
 
-        return Response.success(closetSaveResponse, ClosetSuccessCode.CLOSET_CREATED);
+        return Response.success(closetCreateResponse, ClosetSuccessCode.CLOSET_CREATED);
     }
 
     /**
