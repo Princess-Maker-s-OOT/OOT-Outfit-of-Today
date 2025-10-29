@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.domain.user.repository;
 
+import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -22,6 +23,12 @@ public interface UserRepository extends JpaRepository<User, Long>, UserCustomRep
     Optional<User> findByLoginIdAndIsDeletedFalse(String loginId);
 
     Optional<User> findByIdAndIsDeletedFalse(Long id);
+
+    // 이메일로 조회
+    Optional<User> findByEmailAndIsDeletedFalse(String email);
+
+    // 소셜 로그인용: 제공자 + 소셜ID로 조회
+    Optional<User> findBySocialProviderAndSocialId(SocialProvider provider, String socialId);
 
     // 전체 유저 수
     @Query("""

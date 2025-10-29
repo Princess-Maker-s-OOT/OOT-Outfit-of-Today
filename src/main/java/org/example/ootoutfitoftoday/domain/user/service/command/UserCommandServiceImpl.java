@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
+import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
@@ -52,6 +53,59 @@ public class UserCommandServiceImpl implements UserCommandService {
         );
     }
 
+    // 소셜 회원 생성
+    @Override
+    public User createSocialUser(
+            String email,
+            String nickname,
+            String username,
+            String imageUrl,
+            SocialProvider provider,
+            String socialId
+    ) {
+        User socialUser = User.createFromSocial(
+                email,
+                nickname,
+                username,
+                imageUrl,
+                provider,
+                socialId
+        );
+
+        return userRepository.save(socialUser);
+    }
+
+    // 일반 계정에 소셜 정보를 연동하고 DB에 저장
+    @Override
+    public User linkSocialAccount(
+            User user,
+            SocialProvider socialProvider,
+            String socialId,
+            String imageUrl) {
+
+        // User 엔티티의 도메인 메서드를 호출하여 정보 업데이트
+        user.linkSocialAccount(socialProvider, socialId, imageUrl);
+
+        // 트랜잭션 내에서 변경된 엔티티를 명시적으로 저장
+        return userRepository.save(user);
+    }
+
+    @Override
+    public String generateUniqueNickname(String baseName) {
+
+        String nickname = baseName;
+        // 접미사
+        int suffix = 1;
+
+        // 닉네임이 DB에 이미 존재하는 경우, 접미사를 붙여 고유한 닉네임 생성
+        while (userRepository.existsByNickname(nickname)) {
+            nickname = baseName + suffix;
+            suffix++;
+        }
+
+        return nickname;
+    }
+
     @Override
     public void softDeleteUser(User user) {
 
@@ -69,10 +123,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     // 회원정보 수정
-
-    /**
-     * TODO: 리팩토링 고려
-     **/
+    //TODO: 리팩토링 고려
     @Override
     public GetMyInfoResponse updateMyInfo(UserUpdateInfoRequest request, AuthUser authUser) {
 

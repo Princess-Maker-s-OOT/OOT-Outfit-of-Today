@@ -1,11 +1,13 @@
 package org.example.ootoutfitoftoday.domain.user.service.query;
 
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
+import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface UserQueryService {
 
@@ -20,6 +22,10 @@ public interface UserQueryService {
     User findByLoginIdAndIsDeletedFalse(String loginId);
 
     User findByIdAndIsDeletedFalse(Long id);
+
+    User findByEmailAndIsDeletedFalse(String email);
+
+    Optional<User> findBySocialProviderAndSocialId(SocialProvider provider, String socialId);
 
     GetMyInfoResponse getMyInfo(Long userId);
 
