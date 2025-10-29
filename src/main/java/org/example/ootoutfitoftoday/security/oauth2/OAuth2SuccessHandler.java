@@ -17,6 +17,7 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.example.ootoutfitoftoday.security.jwt.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -54,7 +55,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
             // 요청 경로에서 소셜 제공자 식별(예: /login/oauth2/code/google -> google)
-            String registrationId = extractRegistrationId(request);
+            String registrationId = extractRegistrationId(authentication);
             SocialProvider provider = getSocialProvider(registrationId);
 
             // 제공자별 사용자 정보를 표준화된 DTO로 변환
@@ -85,6 +86,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                         // UserCommandService를 통해 연동 및 DB 저장
                         user = userCommandService.linkSocialAccount(
                                 userByEmail,
+                                provider,
                                 userInfo.getSocialId(),
                                 userInfo.getPicture()
                         );
@@ -115,12 +117,16 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     // 요청 경로에서 소셜 제공자 ID 추출(예: /.../google -> google)
-    private String extractRegistrationId(HttpServletRequest request) {
+    // Spring Security가 이미 저장해둔 Authentication 객체에서 추출
+    private String extractRegistrationId(Authentication authentication) {
 
-        String requestURI = request.getRequestURI();
-        String[] parts = requestURI.split("/");
-
-        return parts[parts.length - 1];
+        // authentication이 OAuth2AuthenticationToken인지 확인 및 다운캐스팅
+        if (authentication instanceof OAuth2AuthenticationToken oauth2Token) {
+            return oauth2Token.getAuthorizedClientRegistrationId();
+        }
+        // 이미 파싱된 registrationId를 가져오기만 함
+        log.error("OAuth2AuthenticationToken이 아닌 Authentication 객체: {}", authentication.getClass().getName());
+        throw new AuthException(AuthErrorCode.INVALID_OAUTH2_TOKEN);
     }
 
     // 추출된 ID를 SocialProvider Enum으로 변환
