@@ -17,6 +17,7 @@ import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Entity
@@ -29,7 +30,7 @@ public class User extends BaseEntity {
     private Long id;
 
     // 소셜 로그인: nullable 허용
-    @Column(nullable = true, unique = true, length = 25)
+    @Column(nullable = false, unique = true, length = 25)
     private String loginId;
 
     @Column(nullable = false, unique = true, length = 60)
@@ -42,11 +43,11 @@ public class User extends BaseEntity {
     private String username;
 
     // 소셜 로그인: nullable 허용
-    @Column(nullable = true, length = 255)
+    @Column(nullable = false, length = 255)
     private String password;
 
     // 소셜 로그인: nullable 허용
-    @Column(nullable = true, unique = true, length = 30)
+    @Column(nullable = false, unique = true, length = 30)
     private String phoneNumber;
 
     @Column(nullable = false, length = 10)
@@ -56,7 +57,8 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 50)
     private String tradeAddress;
 
-    @Column(nullable = false, columnDefinition = "POINT SRID 4326", updatable = false, insertable = false)
+    // TODO
+    @Column(nullable = true, columnDefinition = "POINT SRID 4326", updatable = false, insertable = false)
     private String tradeLocation;
 
     @Column(nullable = true, length = 500)
@@ -176,15 +178,15 @@ public class User extends BaseEntity {
             String socialId
     ) {
         return User.builder()
-                .loginId(null)
+                .loginId("SOCIAL_" + UUID.randomUUID().toString().substring(0, 18))
                 .email(email)
                 .nickname(nickname)
                 .username(username)
-                .password(null)
-                .phoneNumber(null)
+                .password("")
+                .phoneNumber("")
                 .role(UserRole.ROLE_USER)
                 .tradeAddress(DefaultLocationConstants.DEFAULT_TRADE_ADDRESS)
-                .tradeLocation(DefaultLocationConstants.DEFAULT_TRADE_LOCATION)
+                .tradeLocation(null)
                 .imageUrl(imageUrl)
                 .loginType(LoginType.SOCIAL)
                 .socialProvider(provider)
