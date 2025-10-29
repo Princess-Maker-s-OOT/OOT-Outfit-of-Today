@@ -26,6 +26,7 @@ public interface UserCommandService {
     // 일반 계정에 소셜 정보를 연동하는 메서드 추가
     User linkSocialAccount(
             User user,
+            SocialProvider socialProvider,
             String socialId,
             String imageUrl);
 

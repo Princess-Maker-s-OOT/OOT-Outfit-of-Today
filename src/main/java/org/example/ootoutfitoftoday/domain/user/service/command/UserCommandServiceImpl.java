@@ -79,11 +79,12 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public User linkSocialAccount(
             User user,
+            SocialProvider socialProvider,
             String socialId,
             String imageUrl) {
 
         // User 엔티티의 도메인 메서드를 호출하여 정보 업데이트
-        user.linkGoogleAccount(socialId, imageUrl);
+        user.linkSocialAccount(socialProvider, socialId, imageUrl);
 
         // 트랜잭션 내에서 변경된 엔티티를 명시적으로 저장
         return userRepository.save(user);
