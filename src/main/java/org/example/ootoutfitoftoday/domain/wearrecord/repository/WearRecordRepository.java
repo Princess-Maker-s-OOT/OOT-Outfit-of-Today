@@ -10,11 +10,12 @@ import org.springframework.data.repository.query.Param;
 public interface WearRecordRepository extends JpaRepository<WearRecord, Long> {
 
     // 특정 사용자의 착용 기록을 페이징하여 조회
-    @Query(value = "SELECT wr FROM WearRecord wr " +
+    @Query(value = "SELECT DISTINCT wr FROM WearRecord wr " +
             "JOIN FETCH wr.user u " +
             "JOIN FETCH wr.clothes c " +
-            "WHERE u.id = :userId " +
-            "ORDER BY wr.wornAt DESC",
+            "LEFT JOIN FETCH c.images ci " +
+            "LEFT JOIN FETCH ci.image i " +
+            "WHERE u.id = :userId",
             countQuery = "SELECT count(wr) FROM WearRecord wr WHERE wr.user.id = :userId")
     Page<WearRecord> findMyWearRecordsWithClothes(
             @Param("userId") Long userId,
