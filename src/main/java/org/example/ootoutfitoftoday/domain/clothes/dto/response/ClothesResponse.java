@@ -6,7 +6,7 @@ import lombok.Getter;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
-import org.example.ootoutfitoftoday.domain.clothesImage.dto.ClothesImageResponse;
+import org.example.ootoutfitoftoday.domain.clothesImage.dto.reponse.ClothesImageResponse;
 
 import java.util.List;
 import java.util.stream.Collectors;
