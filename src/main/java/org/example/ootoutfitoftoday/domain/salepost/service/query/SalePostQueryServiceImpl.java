@@ -125,7 +125,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
         query.setParameter("userPoint", user.getTradeLocation());
         query.setParameter("km", DefaultLocationConstants.KM);
         query.setParameter("categoryId", categoryId);
-        query.setParameter("status", status);
+        query.setParameter("status", status != null ? status.name() : null);
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             keyword = "%" + keyword.trim() + "%";
