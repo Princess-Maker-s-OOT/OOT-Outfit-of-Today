@@ -7,4 +7,6 @@ import java.util.List;
 public interface ClothesImageCommandService {
 
     void saveClothesImages(Clothes clothes, List<Long> imageIds);
+
+    void updateClothesImages(Clothes clothes, List<Long> newImageIds);
 }
