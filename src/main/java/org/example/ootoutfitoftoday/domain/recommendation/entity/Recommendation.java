@@ -67,7 +67,7 @@ public class Recommendation extends BaseEntity {
     }
 
     // 생성 시 상태는 항상 PENDING으로 초기화
-    public static Recommendation ofUnwornClothes(
+    public static Recommendation createForUnwornClothes(
             User user,
             Clothes clothes,
             RecommendationType type,
