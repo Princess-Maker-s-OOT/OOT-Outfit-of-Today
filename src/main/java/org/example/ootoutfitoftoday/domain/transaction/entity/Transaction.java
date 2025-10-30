@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "transactions")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Transaction extends BaseEntity {
@@ -61,7 +62,7 @@ public class Transaction extends BaseEntity {
     @OneToOne(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
     private Payment payment;  // 결제 정보
 
-    @Builder(access = AccessLevel.PROTECTED)
+    @Builder(access = AccessLevel.PRIVATE)
     private Transaction(
             User buyer,
             SalePost salePost,
@@ -88,7 +89,7 @@ public class Transaction extends BaseEntity {
                 .build();
     }
 
-    public void attachPayment(Payment p) {
+    public void setPayment(Payment p) {
         this.payment = p;
     }
 
