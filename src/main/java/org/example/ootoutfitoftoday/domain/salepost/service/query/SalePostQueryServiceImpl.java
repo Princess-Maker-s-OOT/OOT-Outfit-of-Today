@@ -194,7 +194,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
         Query query = entityManager.createNativeQuery(finalSql, SalePost.class);
 
         query.setParameter("userId", userId);
-        query.setParameter("status", status);
+        query.setParameter("status", status != null ? status.name() : null);
 
         SliceContent sliceContent = sliceAndQueryResult(query, pageable);
 
