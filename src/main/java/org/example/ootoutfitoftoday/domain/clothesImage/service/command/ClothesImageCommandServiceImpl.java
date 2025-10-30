@@ -109,4 +109,10 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
             img.updateMain(shouldBeMain);
         }
     }
+
+    @Override
+    public int softDeleteAllByClothesId(Long id) {
+
+        return clothesImageRepository.softDeleteAllByClothesId(id);
+    }
 }
