@@ -53,4 +53,8 @@ public class ClothesImage extends BaseEntity {
                 .isMain(isMain)
                 .build();
     }
+
+    public void addClothes(Clothes clothes) {
+        this.clothes = clothes;
+    }
 }
