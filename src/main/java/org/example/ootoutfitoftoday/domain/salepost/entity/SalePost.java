@@ -102,7 +102,7 @@ public class SalePost extends BaseEntity {
                 .title(title)
                 .content(content)
                 .price(price)
-                .status(SaleStatus.SELLING)
+                .status(SaleStatus.AVAILABLE)
                 .tradeAddress(tradeAddress)
                 .tradeLocation(tradeLocation)
                 .build();
@@ -177,5 +177,9 @@ public class SalePost extends BaseEntity {
 
     public void updateStatus(SaleStatus newStatus) {
         this.status = newStatus;
+    }
+
+    public User getSeller() {
+        return user;
     }
 }
