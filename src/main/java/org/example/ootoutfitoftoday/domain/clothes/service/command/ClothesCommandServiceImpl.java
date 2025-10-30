@@ -106,6 +106,8 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
 
+        clothesImageCommandService.softDeleteAllByClothesId(id);
+
         clothes.softDelete();
     }
 
