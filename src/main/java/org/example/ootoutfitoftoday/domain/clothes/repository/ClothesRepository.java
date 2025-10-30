@@ -12,7 +12,17 @@ import java.util.Optional;
 
 public interface ClothesRepository extends JpaRepository<Clothes, Long>, ClothesCustomRepository {
 
-    Optional<Clothes> findByIdAndIsDeletedFalse(Long id);
+    @Query("""
+            SELECT DISTINCT c
+            FROM Clothes c
+            LEFT JOIN FETCH c.images ci
+            LEFT JOIN FETCH ci.image i
+            WHERE c.id = :id
+              AND c.isDeleted = false
+              AND (ci.isDeleted = false OR ci.isDeleted IS NULL)
+              AND (i.isDeleted = false OR i.isDeleted IS NULL)
+            """)
+    Optional<Clothes> findByIdAndIsDeletedFalse(@Param("id") Long id);
 
     // 카테고리가 소프트 딜리트 처리될 때 연관된 옷의 카테고리 아이디 값을 null 처리
     @Modifying

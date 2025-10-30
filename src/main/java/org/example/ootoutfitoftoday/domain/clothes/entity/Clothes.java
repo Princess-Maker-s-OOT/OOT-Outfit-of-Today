@@ -107,6 +107,8 @@ public class Clothes extends BaseEntity {
 
     public void addImages(List<ClothesImage> images) {
 
+        this.images.clear();
+
         for (ClothesImage image : images) {
             image.addClothes(this);
         }

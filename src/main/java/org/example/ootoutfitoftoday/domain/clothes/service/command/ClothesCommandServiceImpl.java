@@ -62,7 +62,6 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         return ClothesResponse.from(savedClothes);
     }
 
-    // 아래는 이미지 삭제부터 구현 후 리팩토링 진행
     @Override
     public ClothesResponse updateClothes(
             Long userId,
@@ -88,6 +87,11 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
                 new ArrayList<>()
         );
 
+        if (clothesRequest.getImages() != null && !clothesRequest.getImages().isEmpty()) {
+
+            clothesImageCommandService.updateClothesImages(clothes, clothesRequest.getImages());
+        }
+
         return ClothesResponse.from(clothes);
     }
 
@@ -101,6 +105,8 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         if (!Objects.equals(userId, clothes.getUser().getId())) {
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
+
+        clothesImageCommandService.softDeleteAllByClothesId(id);
 
         clothes.softDelete();
     }
