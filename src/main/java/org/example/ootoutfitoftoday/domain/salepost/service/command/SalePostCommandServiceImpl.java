@@ -94,7 +94,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
             throw new SalePostException(SalePostErrorCode.UNAUTHORIZED_ACCESS);
         }
 
-        if (salePost.getStatus() == SaleStatus.RESERVED || salePost.getStatus() == SaleStatus.SOLD) {
+        if (salePost.getStatus() == SaleStatus.RESERVED || salePost.getStatus() == SaleStatus.TRADING || salePost.getStatus() == SaleStatus.COMPLETED) {
             log.warn("Cannot update sale post - salePostId: {}, status: {}",
                     salePostId, salePost.getStatus());
             throw new SalePostException(SalePostErrorCode.CANNOT_UPDATE_NON_SELLING_POST);
