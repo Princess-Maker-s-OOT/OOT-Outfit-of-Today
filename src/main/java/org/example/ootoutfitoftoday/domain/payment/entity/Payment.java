@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "payments")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment extends BaseEntity {
@@ -90,14 +91,12 @@ public class Payment extends BaseEntity {
 
     @Builder(access = AccessLevel.PRIVATE)
     private Payment(
-            Transaction transaction,
             BigDecimal amount,
             PaymentMethod method,
             PaymentStatus status,
             String tossOrderId,
             EasyPayProvider easyPayProvider
     ) {
-        this.transaction = transaction;
         this.amount = amount;
         this.method = method;
         this.status = status;
@@ -111,13 +110,13 @@ public class Payment extends BaseEntity {
             BigDecimal amount,
             String tossOrderId
     ) {
-        return Payment.builder()
-                .transaction(transaction)
+        Payment payment = Payment.builder()
                 .amount(amount)
                 .method(PaymentMethod.ACCOUNT_TRANSFER)
                 .status(PaymentStatus.ESCROWED)
                 .tossOrderId(tossOrderId)
                 .build();
+        return payment.attachTo(transaction);
     }
 
     // 간편결제 생성
@@ -127,14 +126,14 @@ public class Payment extends BaseEntity {
             String tossOrderId,
             EasyPayProvider easyPayProvider
     ) {
-        return Payment.builder()
-                .transaction(transaction)
+        Payment payment = Payment.builder()
                 .amount(amount)
                 .method(PaymentMethod.EASY_PAY)
                 .status(PaymentStatus.ESCROWED)
                 .tossOrderId(tossOrderId)
                 .easyPayProvider(easyPayProvider)
                 .build();
+        return payment.attachTo(transaction);
     }
 
     @PrePersist
@@ -145,8 +144,9 @@ public class Payment extends BaseEntity {
     }
 
     // 양방향 연관관계 편의 메서드
-    public void attachTo(Transaction tx) {
+    public Payment attachTo(Transaction tx) {
         this.transaction = tx;
-        tx.attachPayment(this);
+        tx.setPayment(this);
+        return this;
     }
 }
