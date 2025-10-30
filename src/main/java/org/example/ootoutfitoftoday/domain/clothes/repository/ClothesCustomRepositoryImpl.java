@@ -73,8 +73,6 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
         return lastId != null ? clothes.id.lt(lastId) : null;
     }
 
-    // Todo: 이거 그냥 엔티티로 반환하는 방향으로 생각해보자! 지금 QueryDSL은 List 타입을 직접 프로젝션하기 어려워, 이를 처리하려면 List를 별도의 쿼리로 조회하거나, DTO에서 List 필드를 반환하지 않고, 해당 정보는 나중에 수동으로 채우는 방법을 사용하는 것이 더 적합
-
     /**
      * 사용자의 옷 목록 조회 (필터링 + 무한 스크롤)
      * - 카테고리, 색상, 사이즈로 필터링 가능
@@ -126,7 +124,10 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .distinct()
                 .leftJoin(clothes.images, clothesImage).fetchJoin()
                 .leftJoin(clothesImage.image, image).fetchJoin()
-                .where(clothes.id.in(clothesIds))
+                .where(
+                        clothes.id.in(clothesIds),
+                        clothesImage.isDeleted.eq(false)
+                )
                 .orderBy(clothes.createdAt.desc())
                 .fetch();
 
