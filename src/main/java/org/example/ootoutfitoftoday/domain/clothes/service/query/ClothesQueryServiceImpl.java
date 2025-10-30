@@ -12,11 +12,13 @@ import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesErrorCode;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesException;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -35,13 +37,23 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
             int size
     ) {
 
-        return clothesRepository.findAllByIsDeletedFalse(
+        Slice<Clothes> clothesSlice = clothesRepository.findAllByIsDeletedFalse(
                 userId,
                 categoryId,
                 clothesColor,
                 clothesSize,
                 lastClothesId,
                 size
+        );
+
+        List<ClothesResponse> clothesResponses = clothesSlice.getContent().stream()
+                .map(ClothesResponse::from)
+                .collect(Collectors.toList());
+
+        return new SliceImpl<>(
+                clothesResponses,
+                clothesSlice.getPageable(),
+                clothesSlice.hasNext()
         );
     }
 

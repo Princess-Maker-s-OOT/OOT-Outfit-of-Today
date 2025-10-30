@@ -8,6 +8,8 @@ import org.example.ootoutfitoftoday.domain.image.repository.ImageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -21,5 +23,11 @@ public class ImageQueryServiceImpl implements ImageQueryService {
 
         return imageRepository.findById(imageId)
                 .orElseThrow(() -> new ImageException(ImageErrorCode.IMAGE_NOT_FOUND));
+    }
+
+    @Override
+    public List<Image> findAllByIdIn(List<Long> imageIds) {
+
+        return imageRepository.findAllByIdIn(imageIds);
     }
 }

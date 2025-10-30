@@ -1,14 +1,19 @@
 package org.example.ootoutfitoftoday.domain.clothes.dto.response;
 
-import com.querydsl.core.annotations.QueryProjection;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
+import org.example.ootoutfitoftoday.domain.clothesImage.dto.reponse.ClothesImageResponse;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
+@AllArgsConstructor
 public class ClothesResponse {
 
     private final Long id;
@@ -17,25 +22,13 @@ public class ClothesResponse {
     private final ClothesSize clothesSize;
     private final ClothesColor clothesColor;
     private final String description;
-
-    @QueryProjection
-    public ClothesResponse(
-            Long id,
-            Long categoryId,
-            Long userId,
-            ClothesSize clothesSize,
-            ClothesColor clothesColor,
-            String description
-    ) {
-        this.id = id;
-        this.categoryId = categoryId;
-        this.userId = userId;
-        this.clothesSize = clothesSize;
-        this.clothesColor = clothesColor;
-        this.description = description;
-    }
+    private final List<ClothesImageResponse> clothesImages;
 
     public static ClothesResponse from(Clothes clothes) {
+
+        List<ClothesImageResponse> imageResponses = clothes.getImages().stream()
+                .map(ClothesImageResponse::from)
+                .collect(Collectors.toList());
 
         return ClothesResponse.builder()
                 .id(clothes.getId())
@@ -48,6 +41,7 @@ public class ClothesResponse {
                 .clothesSize(clothes.getClothesSize())
                 .clothesColor(clothes.getClothesColor())
                 .description(clothes.getDescription())
+                .clothesImages(imageResponses)
                 .build();
     }
 }
