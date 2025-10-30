@@ -57,4 +57,8 @@ public class ClothesImage extends BaseEntity {
     public void addClothes(Clothes clothes) {
         this.clothes = clothes;
     }
+
+    public void updateMain(boolean isMain) {
+        this.isMain = isMain;
+    }
 }
