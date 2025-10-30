@@ -22,4 +22,13 @@ public class ImageQueryServiceImpl implements ImageQueryService {
         return imageRepository.findById(imageId)
                 .orElseThrow(() -> new ImageException(ImageErrorCode.IMAGE_NOT_FOUND));
     }
+
+    // 소프르 딜리트된 파일 필터링 조회
+    @Override
+    public Image findByIdAndIsDeletedFalse(Long imageId) {
+
+        return imageRepository.findByIdAndIsDeletedFalse(imageId).orElseThrow(
+                () -> new ImageException(ImageErrorCode.IMAGE_NOT_FOUND)
+        );
+    }
 }
