@@ -26,7 +26,7 @@ import org.springframework.security.web.servletapi.SecurityContextHolderAwareReq
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Configuration
@@ -152,7 +152,7 @@ public class SecurityConfig {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        Map<String, Object> errorResponse = new HashMap<>();
+        Map<String, Object> errorResponse = new LinkedHashMap<>();    // HashMap은 키 순서를 보장하지 않음. 변경
         errorResponse.put("path", request.getRequestURI());
         errorResponse.put("httpStatus", status.name());
         errorResponse.put("statusValue", status.value());
