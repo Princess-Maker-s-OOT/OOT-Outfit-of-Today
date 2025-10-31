@@ -31,7 +31,7 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
     private final UserQueryService userQueryService;
     private final ClothesImageCommandService clothesImageCommandService;
 
-    // Todo: 사용자가 입력한 이미지 순서대로 디비에 저장하도록 구현! + 삭제한 이미지를 다른 옷에 등록할 수 있도록 구현
+    // Todo: 삭제한 이미지를 다른 옷에 등록할 수 있도록 구현
     @Override
     public ClothesResponse createClothes(Long userId, ClothesRequest clothesRequest) {
 
@@ -65,7 +65,7 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         return ClothesResponse.from(savedClothes);
     }
 
-    // Todo: 사용자가 입력한 이미지 순서대로 디비에 저장하도록 구현! + 삭제한 이미지를 다른 옷에 등록할 수 있도록 구현
+    // Todo:  삭제한 이미지를 다른 옷에 등록할 수 있도록 구현
     @Override
     public ClothesResponse updateClothes(
             Long userId,

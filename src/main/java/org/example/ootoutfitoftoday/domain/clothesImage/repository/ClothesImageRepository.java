@@ -26,6 +26,7 @@ public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long
             FROM ClothesImage ci
             JOIN FETCH ci.image
             WHERE ci.clothes.id = :clothesId and ci.isDeleted = false
+            ORDER BY ci.updatedAt desc
             """)
     List<ClothesImage> findByClothesId(Long clothesId);
 
