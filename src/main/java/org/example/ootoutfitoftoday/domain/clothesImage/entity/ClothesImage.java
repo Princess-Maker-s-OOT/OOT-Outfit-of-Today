@@ -24,7 +24,7 @@ public class ClothesImage extends BaseEntity {
     @JoinColumn(name = "clothes_id", nullable = false)
     private Clothes clothes;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id", nullable = false)
     private Image image;
 
