@@ -125,7 +125,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
         query.setParameter("userPoint", user.getTradeLocation());
         query.setParameter("km", DefaultLocationConstants.KM);
         query.setParameter("categoryId", categoryId);
-        query.setParameter("status", status);
+        query.setParameter("status", status != null ? status.name() : null);
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             keyword = "%" + keyword.trim() + "%";
@@ -194,7 +194,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
         Query query = entityManager.createNativeQuery(finalSql, SalePost.class);
 
         query.setParameter("userId", userId);
-        query.setParameter("status", status);
+        query.setParameter("status", status != null ? status.name() : null);
 
         SliceContent sliceContent = sliceAndQueryResult(query, pageable);
 

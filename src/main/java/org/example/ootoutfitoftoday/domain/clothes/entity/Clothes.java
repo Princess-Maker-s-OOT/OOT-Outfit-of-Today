@@ -10,6 +10,7 @@ import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
+import org.example.ootoutfitoftoday.domain.clothesImage.entity.ClothesImage;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 import java.time.LocalDateTime;
@@ -54,19 +55,21 @@ public class Clothes extends BaseEntity {
     @OneToMany(mappedBy = "clothes")
     private List<ClosetClothesLink> closetClothesLinks = new ArrayList<>();
 
-    @Builder(access = AccessLevel.PROTECTED)
+    @Builder(access = AccessLevel.PRIVATE)
     private Clothes(
             Category category,
             User user,
             ClothesSize clothesSize,
             ClothesColor clothesColor,
-            String description
+            String description,
+            List<ClothesImage> images
     ) {
         this.category = category;
         this.user = user;
         this.clothesSize = clothesSize;
         this.clothesColor = clothesColor;
         this.description = description;
+        this.images = images;
     }
 
     public static Clothes create(
@@ -74,7 +77,8 @@ public class Clothes extends BaseEntity {
             User user,
             ClothesSize clothesSize,
             ClothesColor clothesColor,
-            String description
+            String description,
+            List<ClothesImage> images
     ) {
 
         return Clothes.builder()
@@ -83,6 +87,7 @@ public class Clothes extends BaseEntity {
                 .clothesSize(clothesSize)
                 .clothesColor(clothesColor)
                 .description(description)
+                .images(images)
                 .build();
     }
 
@@ -90,22 +95,25 @@ public class Clothes extends BaseEntity {
             Category category,
             ClothesSize clothesSize,
             ClothesColor clothesColor,
-            String description
+            String description,
+            List<ClothesImage> images
     ) {
         this.category = category;
         this.clothesSize = clothesSize;
         this.clothesColor = clothesColor;
         this.description = description;
+        this.images = images;
     }
 
-    public void addImage(ClothesImage image) {
-        images.add(image);
-        image.updateClothes(this);
-    }
+    public void addImages(List<ClothesImage> images) {
 
-    public void removeImage(ClothesImage image) {
-        images.remove(image);
-        image.updateClothes(null);
+        this.images.clear();
+
+        for (ClothesImage image : images) {
+            image.addClothes(this);
+        }
+
+        this.images.addAll(images);
     }
 
     // 마지막 착용 일시 갱신 메서드

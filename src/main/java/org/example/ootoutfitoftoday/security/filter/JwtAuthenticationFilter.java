@@ -174,9 +174,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return true;
         }
 
-        // Actuator Health Check
+        // Actuator Health Check and Prometheus
         if (uri.startsWith("/actuator/health") ||
-                uri.startsWith("/actuator/info")) {
+                uri.startsWith("/actuator/info") ||
+                uri.startsWith("/actuator/prometheus")) {
 
             return true;
         }

@@ -8,6 +8,8 @@ import org.example.ootoutfitoftoday.domain.image.repository.ImageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -23,12 +25,9 @@ public class ImageQueryServiceImpl implements ImageQueryService {
                 .orElseThrow(() -> new ImageException(ImageErrorCode.IMAGE_NOT_FOUND));
     }
 
-    // 소프르 딜리트된 파일 필터링 조회
     @Override
-    public Image findByIdAndIsDeletedFalse(Long imageId) {
+    public List<Image> findAllByIdIn(List<Long> imageIds) {
 
-        return imageRepository.findByIdAndIsDeletedFalse(imageId).orElseThrow(
-                () -> new ImageException(ImageErrorCode.IMAGE_NOT_FOUND)
-        );
+        return imageRepository.findAllByIdIn(imageIds);
     }
 }

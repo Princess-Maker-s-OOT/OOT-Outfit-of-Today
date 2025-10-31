@@ -6,6 +6,8 @@ import lombok.Getter;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 
+import java.util.List;
+
 @Getter
 public class ClothesRequest {
 
@@ -16,4 +18,6 @@ public class ClothesRequest {
     @NotBlank
     @Size(max = 255, message = "255자 이하로 입력해 주세요!")
     private String description;
+
+    private List<Long> images;
 }
