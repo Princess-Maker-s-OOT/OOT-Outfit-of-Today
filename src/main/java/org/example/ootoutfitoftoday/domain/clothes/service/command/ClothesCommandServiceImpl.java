@@ -3,6 +3,7 @@ package org.example.ootoutfitoftoday.domain.clothes.service.command;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryServiceImpl;
+import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesImageUnlinkRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
@@ -39,6 +40,7 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
 
         // 사용자가 categoryId를 입력한 경우에만 DB에서 조회
         if (clothesRequest.getCategoryId() != null) {
+
             category = categoryQueryService.findById(clothesRequest.getCategoryId());
         }
 
@@ -74,6 +76,7 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         );
 
         if (!Objects.equals(userId, clothes.getUser().getId())) {
+
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
 
@@ -103,24 +106,43 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         );
 
         if (!Objects.equals(userId, clothes.getUser().getId())) {
+
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
 
-        clothesImageCommandService.softDeleteAllByClothesId(id);
-
         clothes.softDelete();
+
+        clothesImageCommandService.softDeleteAllByClothesId(id);
     }
 
     @Override
     public void clearCategoryFromClothes(List<Long> categoryIds) {
+
         clothesRepository.clearCategoryFromClothes(categoryIds);
     }
 
     @Override
     public void updateLastWornAt(Long clothesId, LocalDateTime wornAt) {
+
         Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(clothesId)
                 .orElseThrow(() -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND));
 
         clothes.updateLastWornAt(wornAt);
+    }
+
+    // 해당 옷의 이미지 연관관계 끊기 (사용자가 이미지만 제거하고 싶어할 수도 있기 때문)
+    @Override
+    public void removeClothesImages(Long userId, Long clothesId, ClothesImageUnlinkRequest clothesImageUnlinkRequest) {
+
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(clothesId)
+                .orElseThrow(() -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND));
+
+        if (!Objects.equals(userId, clothes.getUser().getId())) {
+
+            throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
+        }
+
+        // 연관관계를 끊을 리스트 추출
+        clothesImageCommandService.removeClothesImages(clothesId, clothesImageUnlinkRequest.getImageIds());
     }
 }

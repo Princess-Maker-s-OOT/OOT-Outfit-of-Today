@@ -8,7 +8,7 @@ public interface ImageQueryService {
 
     Image findImageById(Long imageId);
 
-    List<Image> findAllByIdIn(List<Long> imageIds);
+    List<Image> findAllByIdInAndIsDeletedFalse(List<Long> imageIds);
 
     // 소프트 딜리트된 이미지 필터링 조회
     Image findByIdAndIsDeletedFalse(Long imageId);

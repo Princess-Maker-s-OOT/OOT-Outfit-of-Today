@@ -8,7 +8,10 @@ import org.example.ootoutfitoftoday.domain.image.repository.ImageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -26,9 +29,19 @@ public class ImageQueryServiceImpl implements ImageQueryService {
     }
 
     @Override
-    public List<Image> findAllByIdIn(List<Long> imageIds) {
+    public List<Image> findAllByIdInAndIsDeletedFalse(List<Long> imageIds) {
 
-        return imageRepository.findAllByIdIn(imageIds);
+        // 중복 제거 + 입력 순서 유지
+        Set<Long> uniqueIds = new LinkedHashSet<>(imageIds);
+
+        List<Image> images = imageRepository.findAllByIdInAndIsDeletedFalse(new ArrayList<>(uniqueIds));
+
+        if (images.size() != uniqueIds.size()) {
+
+            throw new ImageException(ImageErrorCode.IMAGE_NOT_FOUND);
+        }
+
+        return images;
     }
 
     // 소프트 딜리트된 파일 필터링 조회
