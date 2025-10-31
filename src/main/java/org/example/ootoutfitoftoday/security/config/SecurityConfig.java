@@ -105,8 +105,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasAuthority(UserRole.Authority.ADMIN)
 
                         // Monitor
-                        .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
-                        .requestMatchers("/actuator/info").hasRole("ADMIN")
+                        .requestMatchers("/actuator/info", "/actuator/health", "/actuator/prometheus").permitAll()
 
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
