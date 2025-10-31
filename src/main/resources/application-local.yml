@@ -5,7 +5,7 @@ spring:
     password: ${PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create-drop # 로컬 개발 시 DDL 자동 업데이트 허용
+      ddl-auto: update # 로컬 개발 시 DDL 자동 업데이트 허용
 
 springdoc:
   api-docs:
