@@ -2,8 +2,8 @@ package org.example.ootoutfitoftoday.domain.clothes.repository;
 
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
+import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.springframework.data.domain.Slice;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface ClothesCustomRepository {
 
-    Slice<ClothesResponse> findAllByIsDeletedFalse(
+    Slice<Clothes> findAllByIsDeletedFalse(
             Long userId,
             Long categoryId,
             ClothesColor clothesColor,

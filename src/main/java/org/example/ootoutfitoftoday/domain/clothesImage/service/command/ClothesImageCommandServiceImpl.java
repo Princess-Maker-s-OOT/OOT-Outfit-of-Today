@@ -1,0 +1,118 @@
+package org.example.ootoutfitoftoday.domain.clothesImage.service.command;
+
+import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
+import org.example.ootoutfitoftoday.domain.clothesImage.entity.ClothesImage;
+import org.example.ootoutfitoftoday.domain.clothesImage.repository.ClothesImageRepository;
+import org.example.ootoutfitoftoday.domain.image.entity.Image;
+import org.example.ootoutfitoftoday.domain.image.service.query.ImageQueryService;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ClothesImageCommandServiceImpl implements ClothesImageCommandService {
+
+    private final ClothesImageRepository clothesImageRepository;
+    private final ImageQueryService imageQueryService;
+
+    @Override
+    public void saveClothesImages(Clothes clothes, List<Long> imageIds) {
+
+        // 이미지 ID 목록을 통해 실제 이미지 객체들 조회
+        List<Image> images = imageQueryService.findAllByIdIn(imageIds);
+
+        // 이미지 객체들을 ClothesImage로 변환
+        List<ClothesImage> clothesImages = new ArrayList<>();
+
+        boolean isMainSet = false;
+
+        for (Image image : images) {
+
+            boolean isMain = !isMainSet; // 첫 번째 이미지가 메인 이미지
+
+            isMainSet = true; // 첫 번째 이미지 설정 후, 이후 이미지는 메인 이미지로 설정하지 않음
+
+            clothesImages.add(ClothesImage.create(clothes, image, isMain));
+        }
+
+        // ClothesImage 저장
+        clothesImageRepository.saveAll(clothesImages);
+
+        // Clothes 객체에 이미지를 추가
+        clothes.addImages(clothesImages);
+    }
+
+    @Override
+    public void updateClothesImages(Clothes clothes, List<Long> newImageIds) {
+
+        Long clothesId = clothes.getId();
+
+        // 기존 이미지 목록 조회 (삭제되지 않은 데이터만 조회)
+        List<ClothesImage> existingImages = clothesImageRepository.findByClothesId(clothesId);
+        List<Long> existingImageIds = existingImages.stream()
+                .map(ci -> ci.getImage().getId())
+                .toList();
+
+        // 삭제해야 할 이미지 ID 목록
+        List<Long> toDeleteIds = existingImageIds.stream()
+                .filter(oldId -> !newImageIds.contains(oldId))
+                .toList();
+
+        // 새로 추가해야 할 이미지 ID목록
+        List<Long> toAddIds = newImageIds.stream()
+                .filter(newId -> !existingImageIds.contains(newId))
+                .toList();
+
+        // 삭제 처리 (Soft Delete)
+        if (!toDeleteIds.isEmpty()) {
+
+            List<ClothesImage> toDelete = existingImages.stream()
+                    .filter(ci -> toDeleteIds.contains(ci.getImage().getId()))
+                    .toList();
+
+            toDelete.forEach(ClothesImage::softDelete);
+            clothesImageRepository.saveAll(toDelete);
+        }
+
+        // 추가 처리
+        if (!toAddIds.isEmpty()) {
+
+            List<Image> newImages = imageQueryService.findAllByIdIn(toAddIds);
+            List<ClothesImage> newClothesImages = new ArrayList<>();
+
+            // 항상 사용자의 요청의 첫번째 이미지가 메인 이미지가 되도록 설정
+            Long firstImageId = newImageIds.get(0);
+
+            for (Image image : newImages) {
+
+                boolean isMain = image.getId().equals(firstImageId);
+                newClothesImages.add(ClothesImage.create(clothes, image, isMain));
+            }
+
+            clothesImageRepository.saveAll(newClothesImages);
+        }
+
+        List<ClothesImage> refreshed = clothesImageRepository.findByClothesId(clothesId);
+        clothes.addImages(refreshed);
+
+        // main 이미지 재설정
+        for (ClothesImage img : clothes.getImages()) {
+
+            if (img.isDeleted()) {
+                continue;
+            }
+
+            boolean shouldBeMain = img.getImage().getId().equals(newImageIds.get(0));
+            img.updateMain(shouldBeMain);
+        }
+    }
+
+    @Override
+    public int softDeleteAllByClothesId(Long id) {
+
+        return clothesImageRepository.softDeleteAllByClothesId(id);
+    }
+}

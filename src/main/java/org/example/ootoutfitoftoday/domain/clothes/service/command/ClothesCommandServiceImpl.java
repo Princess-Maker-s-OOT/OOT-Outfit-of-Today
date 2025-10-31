@@ -9,12 +9,14 @@ import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesErrorCode;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesException;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
+import org.example.ootoutfitoftoday.domain.clothesImage.service.command.ClothesImageCommandService;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,6 +28,7 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
     private final ClothesRepository clothesRepository;
     private final CategoryQueryServiceImpl categoryQueryService;
     private final UserQueryService userQueryService;
+    private final ClothesImageCommandService clothesImageCommandService;
 
     @Override
     public ClothesResponse createClothes(Long userId, ClothesRequest clothesRequest) {
@@ -44,12 +47,19 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
                 user,
                 clothesRequest.getClothesSize(),
                 clothesRequest.getClothesColor(),
-                clothesRequest.getDescription()
+                clothesRequest.getDescription(),
+                new ArrayList<>()
         );
 
-        clothesRepository.save(clothes);
+        Clothes savedClothes = clothesRepository.save(clothes);
 
-        return ClothesResponse.from(clothes);
+        // 이미지를 저장할 경우 이미지 저장 로직을 ClothesImageCommandService로 위임
+        if (clothesRequest.getImages() != null && !clothesRequest.getImages().isEmpty()) {
+
+            clothesImageCommandService.saveClothesImages(savedClothes, clothesRequest.getImages());
+        }
+
+        return ClothesResponse.from(savedClothes);
     }
 
     @Override
@@ -73,8 +83,14 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
                 category,
                 clothesRequest.getClothesSize(),
                 clothesRequest.getClothesColor(),
-                clothesRequest.getDescription()
+                clothesRequest.getDescription(),
+                new ArrayList<>()
         );
+
+        if (clothesRequest.getImages() != null && !clothesRequest.getImages().isEmpty()) {
+
+            clothesImageCommandService.updateClothesImages(clothes, clothesRequest.getImages());
+        }
 
         return ClothesResponse.from(clothes);
     }
@@ -89,6 +105,8 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         if (!Objects.equals(userId, clothes.getUser().getId())) {
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
+
+        clothesImageCommandService.softDeleteAllByClothesId(id);
 
         clothes.softDelete();
     }

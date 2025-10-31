@@ -1,0 +1,31 @@
+package org.example.ootoutfitoftoday.domain.clothesImage.repository;
+
+import org.example.ootoutfitoftoday.domain.clothesImage.entity.ClothesImage;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long> {
+
+    // 추후에 로그도 찍을 것을 고려하여 반환 타입 int로 구현
+    @Modifying(clearAutomatically = true)
+    @Query("""
+            UPDATE ClothesImage ci
+            SET ci.isDeleted = true,
+                ci.deletedAt = CURRENT_TIMESTAMP
+            WHERE ci.clothes.id = :clothesId
+              AND ci.isDeleted = false
+            """)
+    int softDeleteAllByClothesId(@Param("clothesId") Long clothesId);
+
+    @Query("""
+            SELECT ci
+            FROM ClothesImage ci
+            JOIN FETCH ci.image
+            WHERE ci.clothes.id = :clothesId and ci.isDeleted = false
+            """)
+    List<ClothesImage> findByClothesId(Long clothesId);
+}
