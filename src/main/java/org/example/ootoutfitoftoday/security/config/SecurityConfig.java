@@ -70,7 +70,7 @@ public class SecurityConfig {
 
                 // JWT 사용 시 불필요한 기능들 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)      // [SSR] 서버가 로그인 HTML 폼 렌더링
-                .anonymous(AbstractHttpConfigurer::disable)      // 역명 사용자 허용
+                //.anonymous(AbstractHttpConfigurer::disable)      // 역명 사용자 허용
                 .httpBasic(AbstractHttpConfigurer::disable)      // [SSR] 인증 팝업
                 .logout(AbstractHttpConfigurer::disable)         // [SSR] 서버가 세션 무효화 후 리다이렉트
                 .rememberMe(AbstractHttpConfigurer::disable)     // 서버가 쿠키 발급하여 자동 로그인
