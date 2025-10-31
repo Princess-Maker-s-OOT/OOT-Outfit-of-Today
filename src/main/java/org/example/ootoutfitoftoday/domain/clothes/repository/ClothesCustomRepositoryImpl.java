@@ -126,7 +126,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .leftJoin(clothesImage.image, image).fetchJoin()
                 .where(
                         clothes.id.in(clothesIds),
-                        clothesImage.isDeleted.eq(false)
+                        clothesImage.isDeleted.isNull().or(clothesImage.isDeleted.eq(false))
                 )
                 .orderBy(clothes.createdAt.desc())
                 .fetch();
