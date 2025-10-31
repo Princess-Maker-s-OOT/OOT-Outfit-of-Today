@@ -74,7 +74,12 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));    // 프론트엔드 도메인
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",      // JWT 토큰
+                "Content-Type",       // 요청 본문 타입
+                "Accept",             // 응답 타입
+                "X-Requested-With"    // AJAX 식별
+        ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
