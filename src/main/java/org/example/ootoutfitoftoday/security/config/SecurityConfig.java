@@ -7,6 +7,7 @@ import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 import org.example.ootoutfitoftoday.security.filter.JwtAuthenticationFilter;
 import org.example.ootoutfitoftoday.security.oauth2.CustomOAuth2UserService;
 import org.example.ootoutfitoftoday.security.oauth2.OAuth2SuccessHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -28,6 +29,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,10 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final ObjectMapper objectMapper;
+
+    // TODO: CORS 설정(추후 수정 예정)
+    @Value("${spring.cors.allowed-origins}")
+    private String allowedOrigins;
 
     // 순환참조 문제 발생 -> 해결을 위해 @Lazy(수동 생성자 필요) 사용
     public SecurityConfig(
@@ -62,11 +68,10 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // TODO: CORS 설정(추후 수정 예정)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));    // 프론트엔드 도메인
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));    // 프론트엔드 도메인
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
