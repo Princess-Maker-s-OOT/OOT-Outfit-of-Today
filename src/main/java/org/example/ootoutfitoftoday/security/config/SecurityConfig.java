@@ -2,6 +2,8 @@ package org.example.ootoutfitoftoday.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 import org.example.ootoutfitoftoday.security.filter.JwtAuthenticationFilter;
 import org.example.ootoutfitoftoday.security.oauth2.CustomOAuth2UserService;
@@ -22,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,46 +78,25 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)         // [SSR] 서버가 세션 무효화 후 리다이렉트
                 .rememberMe(AbstractHttpConfigurer::disable)     // 서버가 쿠키 발급하여 자동 로그인
 
+                // JWT 사용 시 불필요한 기능들 비활성화
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .rememberMe(AbstractHttpConfigurer::disable)
+
                 .exceptionHandling(exception -> exception
-                        // 인증 실패 시 (401)
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.setCharacterEncoding("UTF-8");
-
-                            Map<String, Object> errorResponse = new HashMap<>();
-                            errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
-                            errorResponse.put("error", HttpStatus.UNAUTHORIZED.getReasonPhrase()); // "Unauthorized"
-                            errorResponse.put("message", "인증이 필요합니다.");
-                            errorResponse.put("path", request.getRequestURI());
-                            errorResponse.put("timestamp", LocalDateTime.now());
-
-                            response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
-                        })
-                        // 권한 거부 시 (403)
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(HttpStatus.FORBIDDEN.value());
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.setCharacterEncoding("UTF-8");
-
-                            Map<String, Object> errorResponse = new HashMap<>();
-                            errorResponse.put("status", HttpStatus.FORBIDDEN.value());
-                            errorResponse.put("error", HttpStatus.FORBIDDEN.getReasonPhrase()); // "Forbidden"
-                            errorResponse.put("message", "접근 권한이 없습니다.");
-                            errorResponse.put("path", request.getRequestURI());
-                            errorResponse.put("timestamp", LocalDateTime.now());
-
-                            response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
-                        })
+                        .authenticationEntryPoint((request, response, authException) ->
+                                writeErrorResponse(response, request, HttpStatus.UNAUTHORIZED, "인증이 필요합니다."))
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                writeErrorResponse(response, request, HttpStatus.FORBIDDEN, "접근 권한이 없습니다."))
                 )
 
                 // OAuth2 로그인 설정 추가
                 .oauth2Login(oauth2 -> oauth2
-//                        .loginPage("/login")
-                                .userInfoEndpoint(userInfo -> userInfo    // 사용자 정보를 처리할 서비스 지정
-                                        .userService(customOAuth2UserService)
-                                )
-                                .successHandler(oAuth2SuccessHandler)    // 인증 성공 후 처리할 핸들러 지정
+                        .userInfoEndpoint(userInfo -> userInfo    // 사용자 정보를 처리할 서비스 지정
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(oAuth2SuccessHandler)    // 인증 성공 후 처리할 핸들러 지정
                 )
 
                 .authorizeHttpRequests(auth -> auth
@@ -157,5 +139,30 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .build();
+    }
+
+    // 에러 응답을 JSON 형태로 작성하는 유틸리티 메서드
+    private void writeErrorResponse(
+            HttpServletResponse response,
+            HttpServletRequest request,
+            HttpStatus status,
+            String message
+    ) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("path", request.getRequestURI());
+        errorResponse.put("httpStatus", status.name());
+        errorResponse.put("statusValue", status.value());
+        errorResponse.put("success", false);
+        errorResponse.put("code", status == HttpStatus.UNAUTHORIZED
+                ? "AUTHENTICATION_ERROR"
+                : "ACCESS_DENIED");
+        errorResponse.put("message", message);
+        errorResponse.put("timestamp", LocalDateTime.now());
+
+        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }
