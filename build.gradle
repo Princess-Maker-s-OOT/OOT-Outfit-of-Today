@@ -87,6 +87,10 @@ dependencies {
 
     // OAuth2 소셜 로그인(Google)
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // Monitoring
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 // Spring Cloud AWS BOM (버전 통합 관리)

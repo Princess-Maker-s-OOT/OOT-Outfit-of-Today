@@ -9,6 +9,8 @@ set -euo pipefail
 : "${APP_PORT:?APP_PORT required}"
 : "${SPRING_PROFILE:?SPRING_PROFILE required}"
 
+MONITORING_EC2_PRIVATE_IP="10.0.1.82"
+
 # ===== ECR 경로 파싱 =====
 REG_URI="$(echo "${FULL_URI}" | cut -d/ -f1)"
 REPO_AND_TAG="$(echo "${FULL_URI}" | cut -d/ -f2- )"
@@ -25,6 +27,29 @@ echo "[INFO] FULL_URI=${FULL_URI}"
 echo "[INFO] REG_URI=${REG_URI}"
 echo "[INFO] EC2_INSTANCE_ID=${EC2_INSTANCE_ID}"
 echo "[INFO] COMMENT=${COMMENT}"
+
+# -----------------------------------------------------------------
+# ▼▼▼ [ 추가 ] Promtail 설정 파일 내용을 변수로 만듭니다 ▼▼▼
+# (EC2에서 이 내용으로 promtail-config.yml 파일을 생성합니다)
+PROMPTAIL_CONFIG_CONTENT=$(cat <<EOF
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+positions:
+  filename: /tmp/positions.yaml
+clients:
+  - url: http://${MONITORING_EC2_PRIVATE_IP}:3100/loki/api/v1/push
+scrape_configs:
+- job_name: stay-stylish-logs
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      job: "stay-stylish"
+      __path__: /home/ssm-user/app-logs/*.log
+EOF
+)
+# -----------------------------------------------------------------
 
 # ===== EC2에서 실행할 커맨드(배열로 안전하게 정의) =====
 CMDS=(
