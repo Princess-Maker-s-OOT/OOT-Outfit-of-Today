@@ -1,5 +1,7 @@
 package org.example.ootoutfitoftoday.security.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 import org.example.ootoutfitoftoday.security.filter.JwtAuthenticationFilter;
 import org.example.ootoutfitoftoday.security.oauth2.CustomOAuth2UserService;
@@ -8,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,25 +22,34 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 @Configuration
 //@RequiredArgsConstructor
-@EnableWebSecurity  // Spring Security 활성화
-@EnableMethodSecurity(securedEnabled = true)  // @Secured 활성화
+@EnableWebSecurity                              // Spring Security 활성화
+@EnableMethodSecurity(securedEnabled = true)    // @Secured 활성화
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final ObjectMapper objectMapper;
 
     // 순환참조 문제 발생 -> 해결을 위해 @Lazy(수동 생성자 필요) 사용
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             @Lazy OAuth2SuccessHandler oAuth2SuccessHandler,
-            CustomOAuth2UserService customOAuth2UserService
+            CustomOAuth2UserService customOAuth2UserService,
+            ObjectMapper objectMapper
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
         this.customOAuth2UserService = customOAuth2UserService;
+        this.objectMapper = objectMapper;
+        // JavaTimeModule을 한 번만 등록(LocalDateTime 직렬화 지원)
+        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Bean
@@ -57,17 +70,51 @@ public class SecurityConfig {
 
                 // JWT 사용 시 불필요한 기능들 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)      // [SSR] 서버가 로그인 HTML 폼 렌더링
-                .anonymous(AbstractHttpConfigurer::disable)      // 미인증 사용자를 익명으로 처리
+                .anonymous(AbstractHttpConfigurer::disable)      // 역명 사용자 허용
                 .httpBasic(AbstractHttpConfigurer::disable)      // [SSR] 인증 팝업
                 .logout(AbstractHttpConfigurer::disable)         // [SSR] 서버가 세션 무효화 후 리다이렉트
                 .rememberMe(AbstractHttpConfigurer::disable)     // 서버가 쿠키 발급하여 자동 로그인
 
+                .exceptionHandling(exception -> exception
+                        // 인증 실패 시 (401)
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setCharacterEncoding("UTF-8");
+
+                            Map<String, Object> errorResponse = new HashMap<>();
+                            errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
+                            errorResponse.put("error", HttpStatus.UNAUTHORIZED.getReasonPhrase()); // "Unauthorized"
+                            errorResponse.put("message", "인증이 필요합니다.");
+                            errorResponse.put("path", request.getRequestURI());
+                            errorResponse.put("timestamp", LocalDateTime.now());
+
+                            response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+                        })
+                        // 권한 거부 시 (403)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpStatus.FORBIDDEN.value());
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setCharacterEncoding("UTF-8");
+
+                            Map<String, Object> errorResponse = new HashMap<>();
+                            errorResponse.put("status", HttpStatus.FORBIDDEN.value());
+                            errorResponse.put("error", HttpStatus.FORBIDDEN.getReasonPhrase()); // "Forbidden"
+                            errorResponse.put("message", "접근 권한이 없습니다.");
+                            errorResponse.put("path", request.getRequestURI());
+                            errorResponse.put("timestamp", LocalDateTime.now());
+
+                            response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+                        })
+                )
+
                 // OAuth2 로그인 설정 추가
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo    // 사용자 정보를 처리할 서비스 지정
-                                .userService(customOAuth2UserService)
-                        )
-                        .successHandler(oAuth2SuccessHandler)    // 인증 성공 후 처리할 핸들러 지정
+//                        .loginPage("/login")
+                                .userInfoEndpoint(userInfo -> userInfo    // 사용자 정보를 처리할 서비스 지정
+                                        .userService(customOAuth2UserService)
+                                )
+                                .successHandler(oAuth2SuccessHandler)    // 인증 성공 후 처리할 핸들러 지정
                 )
 
                 .authorizeHttpRequests(auth -> auth
