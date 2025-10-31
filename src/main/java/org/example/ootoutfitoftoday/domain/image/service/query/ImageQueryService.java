@@ -8,5 +8,5 @@ public interface ImageQueryService {
 
     Image findImageById(Long imageId);
 
-    List<Image> findAllByIdIn(List<Long> imageIds);
+    List<Image> findAllByIdInAndIsDeletedFalse(List<Long> imageIds);
 }
