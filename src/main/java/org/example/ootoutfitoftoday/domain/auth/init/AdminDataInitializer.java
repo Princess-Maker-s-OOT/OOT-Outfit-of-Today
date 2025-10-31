@@ -15,7 +15,7 @@ public class AdminDataInitializer {
     private static final String ADMIN_NICKNAME = "admin";
     private static final String ADMIN_USERNAME = "admin";
     private static final String ADMIN_PASSWORD = "admin00!";
-    private static final String ADMIN_PHONE_NUMBER = "010-0000-0000";
+    private static final String ADMIN_PHONE_NUMBER = "01000000000";
 
     private final AuthCommandService authCommandService;
 
