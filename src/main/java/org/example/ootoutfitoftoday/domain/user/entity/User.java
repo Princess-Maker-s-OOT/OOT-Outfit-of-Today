@@ -62,7 +62,7 @@ public class User extends BaseEntity {
     @Column(nullable = true, columnDefinition = "POINT SRID 4326", updatable = false, insertable = false)
     private String tradeLocation;
 
-    // 소셜 로그인 이미지
+    // 현재 프로필 이미지 URL(소셜 로그인 또는 직접 업로드)
     @Column(nullable = true, length = 500)
     private String imageUrl;
 
