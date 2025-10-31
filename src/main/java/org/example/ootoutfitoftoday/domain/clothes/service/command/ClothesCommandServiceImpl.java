@@ -106,10 +106,12 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
 
-        clothesImageCommandService.softDeleteAllByClothesId(id);
-
         clothes.softDelete();
+
+        clothesImageCommandService.softDeleteAllByClothesId(id);
     }
+
+    // Todo: 이미지 제거 메서드 구현 (기존 데이터에서 옷-이미지 테이블의 값만 softDelete 처리)
 
     @Override
     public void clearCategoryFromClothes(List<Long> categoryIds) {

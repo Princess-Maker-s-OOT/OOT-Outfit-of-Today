@@ -11,7 +11,7 @@ import java.util.List;
 public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long> {
 
     // 추후에 로그도 찍을 것을 고려하여 반환 타입 int로 구현
-    @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = false, flushAutomatically = true)
     @Query("""
             UPDATE ClothesImage ci
             SET ci.isDeleted = true,
