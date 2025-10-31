@@ -49,4 +49,13 @@ public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long
               AND ci.isDeleted = true
             """)
     List<ClothesImage> findDeletedByClothesIdAndImageIds(@Param("clothesId") Long clothesId, @Param("imageIds") List<Long> imageIds);
+
+    @Query("""
+            SELECT ci
+            FROM ClothesImage ci
+            WHERE ci.clothes.id = :clothesId
+              AND ci.image.id IN :imageIds
+              AND ci.isDeleted = false
+            """)
+    List<ClothesImage> findByClothesIdAndImageIdsAndIsDeletedFalse(@Param("clothesId") Long clothesId, @Param("imageIds") List<Long> imageIds);
 }

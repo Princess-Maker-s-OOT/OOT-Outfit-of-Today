@@ -9,11 +9,13 @@ import org.example.ootoutfitoftoday.domain.clothesImage.repository.ClothesImageR
 import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.image.service.query.ImageQueryService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class ClothesImageCommandServiceImpl implements ClothesImageCommandService {
 
@@ -136,6 +138,24 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
 
             boolean shouldBeMain = img.getImage().getId().equals(newImageIds.get(0));
             img.updateMain(shouldBeMain);
+        }
+    }
+
+    @Override
+    public void removeClothesImages(Long clothesId, List<Long> imageIds) {
+
+        // 삭제되지 않은 옷-이미지 조회
+        List<ClothesImage> linkedImages = clothesImageRepository.findByClothesIdAndImageIdsAndIsDeletedFalse(clothesId, imageIds);
+
+        // 연관관계가 없다면
+        if (linkedImages.isEmpty()) {
+            throw new ClothesImageException(ClothesImageErrorCode.CLOTHES_IMAGE_NOT_FOUND);
+        }
+
+        // softDelete 처리
+        for (ClothesImage ci : linkedImages) {
+
+            ci.softDelete();
         }
     }
 
