@@ -6,7 +6,7 @@ import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
-import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
 import org.example.ootoutfitoftoday.domain.user.exception.UserException;
@@ -81,11 +81,11 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     @Override
-    public GetMyInfoResponse getMyInfo(Long id) {
+    public UserGetMyInfoResponse getMyInfo(Long id) {
 
         User user = userRepository.findByIdAsNativeQuery(id);
 
-        return GetMyInfoResponse.from(user);
+        return UserGetMyInfoResponse.from(user);
     }
 
     @Override

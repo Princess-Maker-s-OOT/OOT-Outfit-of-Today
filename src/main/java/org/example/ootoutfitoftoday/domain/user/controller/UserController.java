@@ -12,9 +12,9 @@ import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerifica
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateProfileImageRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateTradeLocationRequest;
-import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetMyInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateProfileImageResponse;
-import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateResponse;
 import org.example.ootoutfitoftoday.domain.user.exception.UserSuccessCode;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
@@ -45,9 +45,9 @@ public class UserController {
                     @ApiResponse(responseCode = "200", description = "성공"),
             })
     @GetMapping
-    public ResponseEntity<Response<GetMyInfoResponse>> getMyInfo(@AuthenticationPrincipal AuthUser authUser) {
+    public ResponseEntity<Response<UserGetMyInfoResponse>> getMyInfo(@AuthenticationPrincipal AuthUser authUser) {
 
-        GetMyInfoResponse response = userQueryService.getMyInfo(authUser.getUserId());
+        UserGetMyInfoResponse response = userQueryService.getMyInfo(authUser.getUserId());
 
         return Response.success(response, UserSuccessCode.GET_MY_INFO);
     }
@@ -94,14 +94,14 @@ public class UserController {
                     @ApiResponse(responseCode = "401", description = "인증 실패"),
             })
     @PatchMapping
-    public ResponseEntity<Response<UserUpdateResponse>> updateUserInfo(
+    public ResponseEntity<Response<UserUpdateInfoResponse>> updateInfo(
             @Valid @RequestBody UserUpdateInfoRequest request,
             @AuthenticationPrincipal AuthUser authUser
     ) {
 
-        UserUpdateResponse response = userCommandService.updateMyInfo(request, authUser);
+        UserUpdateInfoResponse response = userCommandService.updateInfo(request, authUser);
 
-        return Response.success(response, UserSuccessCode.UPDATE_MY_INFO);
+        return Response.success(response, UserSuccessCode.UPDATE_INFO);
     }
 
     @PutMapping("/profile-image")
@@ -112,7 +112,7 @@ public class UserController {
         UserUpdateProfileImageResponse response = userCommandService.updateProfileImage(authUser.getUserId(), request.getImageId()
         );
 
-        return Response.success(response, UserSuccessCode.UPDATE_MY_PROFILE_IMAGE);
+        return Response.success(response, UserSuccessCode.UPDATE_PROFILE_IMAGE);
     }
 
     /**

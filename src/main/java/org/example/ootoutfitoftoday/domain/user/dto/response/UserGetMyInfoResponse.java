@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @Getter
 @Builder
 @RequiredArgsConstructor
-public class GetMyInfoResponse {
+public class UserGetMyInfoResponse {
 
     private final String imageUrl;
     private final String loginId;
@@ -30,11 +30,11 @@ public class GetMyInfoResponse {
     private final LoginType loginType;
     private final SocialProvider socialProvider;
 
-    public static GetMyInfoResponse from(User user) {
+    public static UserGetMyInfoResponse from(User user) {
 
         Location location = PointFormatAndParse.parse(user.getTradeLocation());
 
-        return GetMyInfoResponse.builder()
+        return UserGetMyInfoResponse.builder()
                 .imageUrl(user.getImageUrl())
                 .loginId(user.getLoginId())
                 .email(user.getEmail())

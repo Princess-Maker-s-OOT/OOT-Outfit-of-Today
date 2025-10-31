@@ -11,8 +11,8 @@ import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.image.service.query.ImageQueryService;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateTradeLocationRequest;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateProfileImageResponse;
-import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
 import org.example.ootoutfitoftoday.domain.user.exception.UserException;
@@ -129,7 +129,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     // 회원정보 수정
     //TODO: 리팩토링 고려
     @Override
-    public UserUpdateResponse updateMyInfo(UserUpdateInfoRequest request, AuthUser authUser) {
+    public UserUpdateInfoResponse updateInfo(UserUpdateInfoRequest request, AuthUser authUser) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
 
@@ -176,7 +176,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         user = userRepository.findByIdAsNativeQuery(authUser.getUserId());
 
-        return UserUpdateResponse.of(
+        return UserUpdateInfoResponse.of(
                 user.getEmail(),
                 user.getNickname(),
                 user.getUsername(),
