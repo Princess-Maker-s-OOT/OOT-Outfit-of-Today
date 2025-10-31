@@ -1,7 +1,6 @@
 package org.example.ootoutfitoftoday.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
@@ -51,8 +50,6 @@ public class SecurityConfig {
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
         this.customOAuth2UserService = customOAuth2UserService;
         this.objectMapper = objectMapper;
-        // JavaTimeModule을 한 번만 등록(LocalDateTime 직렬화 지원)
-        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Bean
