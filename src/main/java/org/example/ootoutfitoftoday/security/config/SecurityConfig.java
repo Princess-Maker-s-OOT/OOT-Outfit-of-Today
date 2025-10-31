@@ -80,8 +80,6 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // Actuator Health Check
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
                         // 인가(로그인) 없이 접근 가능한 API
                         .requestMatchers(HttpMethod.POST,
@@ -105,6 +103,9 @@ public class SecurityConfig {
 
                         // Admin
                         .requestMatchers("/admin/**").hasAuthority(UserRole.Authority.ADMIN)
+
+                        // Monitor
+                        .requestMatchers("/actuator/info", "/actuator/health", "/actuator/prometheus").permitAll()
 
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
