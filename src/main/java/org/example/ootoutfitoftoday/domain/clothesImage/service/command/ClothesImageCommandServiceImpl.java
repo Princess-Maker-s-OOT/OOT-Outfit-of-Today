@@ -152,10 +152,24 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
             throw new ClothesImageException(ClothesImageErrorCode.CLOTHES_IMAGE_NOT_FOUND);
         }
 
+        boolean mainImageWillBeDeleted = linkedImages.stream()
+                .anyMatch(ClothesImage::getIsMain);
+
         // softDelete 처리
         for (ClothesImage ci : linkedImages) {
 
             ci.softDelete();
+        }
+
+        if (mainImageWillBeDeleted) {
+            List<ClothesImage> remainingImages = clothesImageRepository.findByClothesIdAndIsDeletedFalseOrderByCreatedAtAsc(clothesId);
+
+            if (!remainingImages.isEmpty()) {
+
+                ClothesImage remainingImage = remainingImages.get(0);
+
+                remainingImage.updateMain(true);
+            }
         }
     }
 
