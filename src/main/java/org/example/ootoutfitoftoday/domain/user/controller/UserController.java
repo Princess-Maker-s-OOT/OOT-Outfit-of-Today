@@ -14,6 +14,7 @@ import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateProfileIma
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateTradeLocationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateProfileImageResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateResponse;
 import org.example.ootoutfitoftoday.domain.user.exception.UserSuccessCode;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
@@ -93,12 +94,12 @@ public class UserController {
                     @ApiResponse(responseCode = "401", description = "인증 실패"),
             })
     @PatchMapping
-    public ResponseEntity<Response<GetMyInfoResponse>> updateUserInfo(
+    public ResponseEntity<Response<UserUpdateResponse>> updateUserInfo(
             @Valid @RequestBody UserUpdateInfoRequest request,
             @AuthenticationPrincipal AuthUser authUser
     ) {
 
-        GetMyInfoResponse response = userCommandService.updateMyInfo(request, authUser);
+        UserUpdateResponse response = userCommandService.updateMyInfo(request, authUser);
 
         return Response.success(response, UserSuccessCode.UPDATE_MY_INFO);
     }

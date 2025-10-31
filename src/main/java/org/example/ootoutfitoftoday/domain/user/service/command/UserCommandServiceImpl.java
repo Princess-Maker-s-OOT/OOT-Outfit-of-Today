@@ -11,8 +11,8 @@ import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.image.service.query.ImageQueryService;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateTradeLocationRequest;
-import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateProfileImageResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
 import org.example.ootoutfitoftoday.domain.user.exception.UserException;
@@ -129,14 +129,9 @@ public class UserCommandServiceImpl implements UserCommandService {
     // 회원정보 수정
     //TODO: 리팩토링 고려
     @Override
-    public GetMyInfoResponse updateMyInfo(UserUpdateInfoRequest request, AuthUser authUser) {
+    public UserUpdateResponse updateMyInfo(UserUpdateInfoRequest request, AuthUser authUser) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
-
-        // 이미지(null 허용)
-        if (request.getImageUrl() != null) {
-            user.updateImageUrl(request.getImageUrl());
-        }
 
         // 이메일
         if (request.getEmail() != null) {
@@ -181,7 +176,12 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         user = userRepository.findByIdAsNativeQuery(authUser.getUserId());
 
-        return GetMyInfoResponse.from(user);
+        return UserUpdateResponse.of(
+                user.getEmail(),
+                user.getNickname(),
+                user.getUsername(),
+                user.getPhoneNumber()
+        );
     }
 
     // 프로필 이미지 수정(등록)
