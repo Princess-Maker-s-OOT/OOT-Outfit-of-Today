@@ -102,14 +102,16 @@ public interface UserRepository extends JpaRepository<User, Long>, UserCustomRep
                 u.trade_address, 
                 ST_AsText(u.trade_location) AS trade_location, 
                 u.image_url, 
+                u.user_image_id,
                 u.login_type,
-                u.social_provider,
+                u.social_provider,   
                 u.social_id,
                 u.created_at, 
                 u.updated_at, 
                 u.is_deleted, 
                 u.deleted_at 
             FROM users u
+            LEFT JOIN user_images ui ON u.user_image_id = ui.id
             WHERE u.id = ?1 AND u.is_deleted = FALSE
             """, nativeQuery = true
     )

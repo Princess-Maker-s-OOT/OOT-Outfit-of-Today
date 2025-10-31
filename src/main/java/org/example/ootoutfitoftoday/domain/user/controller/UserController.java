@@ -10,8 +10,11 @@ import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
+import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateProfileImageRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateTradeLocationRequest;
-import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetMyInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateProfileImageResponse;
 import org.example.ootoutfitoftoday.domain.user.exception.UserSuccessCode;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
@@ -42,9 +45,9 @@ public class UserController {
                     @ApiResponse(responseCode = "200", description = "성공"),
             })
     @GetMapping
-    public ResponseEntity<Response<GetMyInfoResponse>> getMyInfo(@AuthenticationPrincipal AuthUser authUser) {
+    public ResponseEntity<Response<UserGetMyInfoResponse>> getMyInfo(@AuthenticationPrincipal AuthUser authUser) {
 
-        GetMyInfoResponse response = userQueryService.getMyInfo(authUser.getUserId());
+        UserGetMyInfoResponse response = userQueryService.getMyInfo(authUser.getUserId());
 
         return Response.success(response, UserSuccessCode.GET_MY_INFO);
     }
@@ -91,14 +94,33 @@ public class UserController {
                     @ApiResponse(responseCode = "401", description = "인증 실패"),
             })
     @PatchMapping
-    public ResponseEntity<Response<GetMyInfoResponse>> updateUserInfo(
+    public ResponseEntity<Response<UserUpdateInfoResponse>> updateInfo(
             @Valid @RequestBody UserUpdateInfoRequest request,
             @AuthenticationPrincipal AuthUser authUser
     ) {
 
-        GetMyInfoResponse response = userCommandService.updateMyInfo(request, authUser);
+        UserUpdateInfoResponse response = userCommandService.updateInfo(request, authUser);
 
-        return Response.success(response, UserSuccessCode.UPDATE_MY_INFO);
+        return Response.success(response, UserSuccessCode.UPDATE_INFO);
+    }
+
+    @Operation(
+            summary = "프로필 이미지 수정",
+            description = "회원의 프로필 이미지를 업데이트합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "수정 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "찾을 수 없음"),
+            })
+    @PutMapping("/profile-image")
+    public ResponseEntity<Response<UserUpdateProfileImageResponse>> updateProfileImage(
+            @Valid @RequestBody UserUpdateProfileImageRequest request,
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+        UserUpdateProfileImageResponse response = userCommandService.updateProfileImage(authUser.getUserId(), request.getImageId()
+        );
+
+        return Response.success(response, UserSuccessCode.UPDATE_PROFILE_IMAGE);
     }
 
     /**

@@ -3,7 +3,7 @@ package org.example.ootoutfitoftoday.domain.user.service.query;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
-import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 import java.time.LocalDateTime;
@@ -27,7 +27,7 @@ public interface UserQueryService {
 
     Optional<User> findBySocialProviderAndSocialId(SocialProvider provider, String socialId);
 
-    GetMyInfoResponse getMyInfo(Long userId);
+    UserGetMyInfoResponse getMyInfo(Long userId);
 
     void verifyPassword(UserPasswordVerificationRequest request, AuthUser authUser);
 
