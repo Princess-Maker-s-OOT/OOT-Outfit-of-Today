@@ -13,7 +13,9 @@ import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatPart
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
+import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
+import org.example.ootoutfitoftoday.domain.userimage.entity.UserImage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,8 +62,14 @@ public class User extends BaseEntity {
     @Column(nullable = true, columnDefinition = "POINT SRID 4326", updatable = false, insertable = false)
     private String tradeLocation;
 
+    // 소셜 로그인 이미지
     @Column(nullable = true, length = 500)
     private String imageUrl;
+
+    // 사용자가 직접 업로드한 이미지
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)    // 생명 주기를 함께 함
+    @JoinColumn(name = "user_image_id")
+    private UserImage userImage;
 
     // 로그인 타입 추가(LOGIN_ID, SOCIAL 구분)
     @Column(nullable = false, length = 10)
@@ -261,5 +269,20 @@ public class User extends BaseEntity {
     public void updateTradeLocation(String tradeAddress, String tradeLocation) {
         this.tradeAddress = tradeAddress;
         this.tradeLocation = tradeLocation;
+    }
+
+    // 프로필 이미지 업데이트
+    public void updateProfileImage(Image image) {
+
+        if (this.userImage == null) {
+            // 없는 경우 새로 생성
+            this.userImage = UserImage.create(image);
+        } else {
+            // 있는 경우 Image만 교체
+            this.userImage.updateImage(image);
+        }
+
+        // imageUrl도 함께 업데이트
+        this.imageUrl = image.getUrl();
     }
 }
