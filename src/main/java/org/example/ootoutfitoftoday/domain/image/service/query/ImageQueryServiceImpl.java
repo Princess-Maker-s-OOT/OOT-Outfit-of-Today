@@ -35,8 +35,10 @@ public class ImageQueryServiceImpl implements ImageQueryService {
     @Override
     public Image findByIdAndIsDeletedFalse(Long imageId) {
 
-        return imageRepository.findByIdAndIsDeletedFalse(imageId).orElseThrow(
+        Image image = imageRepository.findByIdAndIsDeletedFalse(imageId).orElseThrow(
                 () -> new ImageException(ImageErrorCode.IMAGE_NOT_FOUND)
         );
+
+        return image;
     }
 }
