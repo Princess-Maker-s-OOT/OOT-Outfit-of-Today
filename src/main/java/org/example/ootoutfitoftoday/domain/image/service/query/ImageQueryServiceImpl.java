@@ -30,4 +30,15 @@ public class ImageQueryServiceImpl implements ImageQueryService {
 
         return imageRepository.findAllByIdIn(imageIds);
     }
+
+    // 소프트 딜리트된 파일 필터링 조회
+    @Override
+    public Image findByIdAndIsDeletedFalse(Long imageId) {
+
+        Image image = imageRepository.findByIdAndIsDeletedFalse(imageId).orElseThrow(
+                () -> new ImageException(ImageErrorCode.IMAGE_NOT_FOUND)
+        );
+
+        return image;
+    }
 }
