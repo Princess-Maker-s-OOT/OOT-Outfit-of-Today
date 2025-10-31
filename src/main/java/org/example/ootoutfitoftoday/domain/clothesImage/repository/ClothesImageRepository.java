@@ -39,4 +39,14 @@ public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long
                   )
             """)
     boolean existsLinkedImages(@Param("clothesId") Long clothesId, @Param("imageIds") List<Long> imageIds);
+
+    // 옷-이미지 연결되어 있지만 softDelete 처리된 데이터들
+    @Query("""
+            SELECT ci
+            FROM ClothesImage ci
+            WHERE ci.clothes.id = :clothesId
+              AND ci.image.id IN :imageIds
+              AND ci.isDeleted = true
+            """)
+    List<ClothesImage> findDeletedByClothesIdAndImageIds(@Param("clothesId") Long clothesId, @Param("imageIds") List<Long> imageIds);
 }

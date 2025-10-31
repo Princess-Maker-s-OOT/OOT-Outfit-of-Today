@@ -56,6 +56,7 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
     @Override
     public void updateClothesImages(Clothes clothes, List<Long> newImageIds) {
 
+        // 이미지 중복 방지
         if (clothesImageRepository.existsLinkedImages(clothes.getId(), newImageIds)) {
 
             throw new ClothesImageException(ClothesImageErrorCode.IMAGE_ALREADY_LINKED);
@@ -88,20 +89,37 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
             clothesImageRepository.saveAll(toDelete);
         }
 
+        // 복원 처리 (기존에 soft delete 되어있던 옷-이미지 상태변환)
+        List<ClothesImage> deletedLinks = clothesImageRepository.findDeletedByClothesIdAndImageIds(clothes.getId(), toAddIds);
+        List<Long> restoredIds = new ArrayList<>();
+
+        if (!deletedLinks.isEmpty()) {
+
+            deletedLinks.forEach(ClothesImage::restore);
+
+            clothesImageRepository.saveAll(deletedLinks);
+
+            restoredIds.addAll(
+                    deletedLinks.stream()
+                            .map(ci -> ci.getImage().getId())
+                            .toList()
+            );
+        }
+
+        List<Long> newIds = toAddIds.stream()
+                .filter(id -> !restoredIds.contains(id))
+                .toList();
+
         // 추가 처리
-        if (!toAddIds.isEmpty()) {
+        if (!newIds.isEmpty()) {
 
-            List<Image> newImages = imageQueryService.findAllByIdInAndIsDeletedFalse(toAddIds);
-            List<ClothesImage> newClothesImages = new ArrayList<>();
+            List<Image> newImages = imageQueryService.findAllByIdInAndIsDeletedFalse(newIds);
 
-            // 항상 사용자의 요청의 첫번째 이미지가 메인 이미지가 되도록 설정
-            Long firstImageId = newImageIds.get(0);
+            Long firstImageId = newImageIds.get(0); // 요청의 첫 번째 이미지 = 메인 이미지
 
-            for (Image image : newImages) {
-
-                boolean isMain = image.getId().equals(firstImageId);
-                newClothesImages.add(ClothesImage.create(clothes, image, isMain));
-            }
+            List<ClothesImage> newClothesImages = newImages.stream()
+                    .map(image -> ClothesImage.create(clothes, image, image.getId().equals(firstImageId)))
+                    .toList();
 
             clothesImageRepository.saveAll(newClothesImages);
         }
