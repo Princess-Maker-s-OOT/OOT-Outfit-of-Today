@@ -28,4 +28,15 @@ public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long
             WHERE ci.clothes.id = :clothesId and ci.isDeleted = false
             """)
     List<ClothesImage> findByClothesId(Long clothesId);
+
+    @Query("""
+            SELECT EXISTS (
+                    SELECT ci.id
+                    FROM ClothesImage ci
+                    WHERE ci.image.id In :imageIds
+                      AND ci.isDeleted = false
+                      AND ci.clothes.id <> :clothesId
+                  )
+            """)
+    boolean existsLinkedImages(@Param("clothesId") Long clothesId, @Param("imageIds") List<Long> imageIds);
 }

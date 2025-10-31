@@ -3,6 +3,8 @@ package org.example.ootoutfitoftoday.domain.clothesImage.service.command;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothesImage.entity.ClothesImage;
+import org.example.ootoutfitoftoday.domain.clothesImage.exception.ClothesImageErrorCode;
+import org.example.ootoutfitoftoday.domain.clothesImage.exception.ClothesImageException;
 import org.example.ootoutfitoftoday.domain.clothesImage.repository.ClothesImageRepository;
 import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.image.service.query.ImageQueryService;
@@ -21,8 +23,14 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
     @Override
     public void saveClothesImages(Clothes clothes, List<Long> imageIds) {
 
+        // 이미 다른 곳에서 이미지를 사용하고 있다면
+        if (clothesImageRepository.existsLinkedImages(clothes.getId(), imageIds)) {
+
+            throw new ClothesImageException(ClothesImageErrorCode.IMAGE_ALREADY_LINKED);
+        }
+
         // 이미지 ID 목록을 통해 실제 이미지 객체들 조회
-        List<Image> images = imageQueryService.findAllByIdIn(imageIds);
+        List<Image> images = imageQueryService.findAllByIdInAndIsDeletedFalse(imageIds);
 
         // 이미지 객체들을 ClothesImage로 변환
         List<ClothesImage> clothesImages = new ArrayList<>();
@@ -48,10 +56,13 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
     @Override
     public void updateClothesImages(Clothes clothes, List<Long> newImageIds) {
 
-        Long clothesId = clothes.getId();
+        if (clothesImageRepository.existsLinkedImages(clothes.getId(), newImageIds)) {
+
+            throw new ClothesImageException(ClothesImageErrorCode.IMAGE_ALREADY_LINKED);
+        }
 
         // 기존 이미지 목록 조회 (삭제되지 않은 데이터만 조회)
-        List<ClothesImage> existingImages = clothesImageRepository.findByClothesId(clothesId);
+        List<ClothesImage> existingImages = clothesImageRepository.findByClothesId(clothes.getId());
         List<Long> existingImageIds = existingImages.stream()
                 .map(ci -> ci.getImage().getId())
                 .toList();
@@ -80,7 +91,7 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
         // 추가 처리
         if (!toAddIds.isEmpty()) {
 
-            List<Image> newImages = imageQueryService.findAllByIdIn(toAddIds);
+            List<Image> newImages = imageQueryService.findAllByIdInAndIsDeletedFalse(toAddIds);
             List<ClothesImage> newClothesImages = new ArrayList<>();
 
             // 항상 사용자의 요청의 첫번째 이미지가 메인 이미지가 되도록 설정
@@ -95,7 +106,7 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
             clothesImageRepository.saveAll(newClothesImages);
         }
 
-        List<ClothesImage> refreshed = clothesImageRepository.findByClothesId(clothesId);
+        List<ClothesImage> refreshed = clothesImageRepository.findByClothesId(clothes.getId());
         clothes.addImages(refreshed);
 
         // main 이미지 재설정
