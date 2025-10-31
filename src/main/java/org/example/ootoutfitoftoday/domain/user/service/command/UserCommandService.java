@@ -5,6 +5,7 @@ import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateTradeLocationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateProfileImageResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 public interface UserCommandService {
@@ -34,6 +35,8 @@ public interface UserCommandService {
     String generateUniqueNickname(String baseName);
 
     GetMyInfoResponse updateMyInfo(UserUpdateInfoRequest request, AuthUser authUser);
+
+    UserUpdateProfileImageResponse updateProfileImage(Long userId, Long imageId);
 
     void updateMyTradeLocation(UserUpdateTradeLocationRequest request, Long userId);
 }

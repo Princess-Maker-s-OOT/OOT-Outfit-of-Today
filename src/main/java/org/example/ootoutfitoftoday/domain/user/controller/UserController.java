@@ -10,8 +10,10 @@ import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
+import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateProfileImageRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateTradeLocationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateProfileImageResponse;
 import org.example.ootoutfitoftoday.domain.user.exception.UserSuccessCode;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
@@ -99,6 +101,17 @@ public class UserController {
         GetMyInfoResponse response = userCommandService.updateMyInfo(request, authUser);
 
         return Response.success(response, UserSuccessCode.UPDATE_MY_INFO);
+    }
+
+    @PutMapping("/profile-image")
+    public ResponseEntity<Response<UserUpdateProfileImageResponse>> updateProfileImage(
+            @Valid @RequestBody UserUpdateProfileImageRequest request,
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+        UserUpdateProfileImageResponse response = userCommandService.updateProfileImage(authUser.getUserId(), request.getImageId()
+        );
+
+        return Response.success(response, UserSuccessCode.UPDATE_MY_PROFILE_IMAGE);
     }
 
     /**
