@@ -71,20 +71,25 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));    // 프론트엔드 도메인
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+
+        // 와일드카드 대신 필요한 헤더만 명시
         configuration.setAllowedHeaders(List.of(
                 "Authorization",      // JWT 토큰
                 "Content-Type",       // 요청 본문 타입
                 "Accept",             // 응답 타입
                 "X-Requested-With"    // AJAX 식별
         ));
+
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 
