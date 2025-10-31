@@ -104,6 +104,14 @@ public class UserController {
         return Response.success(response, UserSuccessCode.UPDATE_INFO);
     }
 
+    @Operation(
+            summary = "프로필 이미지 수정",
+            description = "회원의 프로필 이미지를 업데이트합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "수정 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "찾을 수 없음"),
+            })
     @PutMapping("/profile-image")
     public ResponseEntity<Response<UserUpdateProfileImageResponse>> updateProfileImage(
             @Valid @RequestBody UserUpdateProfileImageRequest request,
