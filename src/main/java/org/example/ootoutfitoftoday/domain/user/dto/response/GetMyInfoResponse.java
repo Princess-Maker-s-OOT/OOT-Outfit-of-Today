@@ -6,8 +6,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.util.Location;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
+import org.example.ootoutfitoftoday.domain.auth.enums.LoginType;
+import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
-import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 
 import java.math.BigDecimal;
 
@@ -23,12 +24,14 @@ public class GetMyInfoResponse {
     private final String nickname;
     private final String username;
     private final String phoneNumber;
-    private final UserRole role;
     private final String tradeAddress;
     private final BigDecimal tradeLatitude;
     private final BigDecimal tradeLongitude;
+    private final LoginType loginType;
+    private final SocialProvider socialProvider;
 
     public static GetMyInfoResponse from(User user) {
+
         Location location = PointFormatAndParse.parse(user.getTradeLocation());
 
         return GetMyInfoResponse.builder()
@@ -41,7 +44,8 @@ public class GetMyInfoResponse {
                 .tradeAddress(user.getTradeAddress())
                 .tradeLatitude(location.latitude())
                 .tradeLongitude(location.longitude())
-                .role(user.getRole())
+                .loginType(user.getLoginType())
+                .socialProvider(user.getSocialProvider())
                 .build();
     }
 }
