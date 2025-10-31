@@ -10,6 +10,10 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
     show-sql: true
 
+  # CORS 설정 추가
+  cors:
+    allowed-origins: http://localhost:3000
+
   # 데이터소스 드라이버만 공통으로 정의
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

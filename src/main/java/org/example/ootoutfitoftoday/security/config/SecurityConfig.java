@@ -7,12 +7,14 @@ import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 import org.example.ootoutfitoftoday.security.filter.JwtAuthenticationFilter;
 import org.example.ootoutfitoftoday.security.oauth2.CustomOAuth2UserService;
 import org.example.ootoutfitoftoday.security.oauth2.OAuth2SuccessHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,10 +24,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Configuration
@@ -38,6 +45,10 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final ObjectMapper objectMapper;
+
+    // TODO: CORS 설정(추후 수정 예정)
+    @Value("${spring.cors.allowed-origins}")
+    private String allowedOrigins;
 
     // 순환참조 문제 발생 -> 해결을 위해 @Lazy(수동 생성자 필요) 사용
     public SecurityConfig(
@@ -59,9 +70,34 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));    // 프론트엔드 도메인
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+
+        // 와일드카드 대신 필요한 헤더만 명시
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",      // JWT 토큰
+                "Content-Type",       // 요청 본문 타입
+                "Accept",             // 응답 타입
+                "X-Requested-With"    // AJAX 식별
+        ));
+
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         return http
+                .cors(Customizer.withDefaults())    // CORS 규칙 활성화를 위해 위에서 정의한 빈을 Spring Security 내에 적용하는 코드
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
