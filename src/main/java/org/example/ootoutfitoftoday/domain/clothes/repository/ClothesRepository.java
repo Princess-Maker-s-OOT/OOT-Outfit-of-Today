@@ -47,4 +47,13 @@ public interface ClothesRepository extends JpaRepository<Clothes, Long>, Clothes
             limit 10
             """)
     List<CategoryStat> countUserTopCategoryStats(@Param("userId") Long userId);
+
+    // 사용자의 모든 옷 조회
+    @Query("""
+            SELECT c
+            FROM Clothes c
+            WHERE c.user.id = :userId
+              AND c.isDeleted = false
+            """)
+    List<Clothes> findAllByUserIdAndIsDeletedFalse(@Param("userId") Long userId);
 }
