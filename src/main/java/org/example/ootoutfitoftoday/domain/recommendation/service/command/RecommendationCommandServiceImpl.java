@@ -12,8 +12,10 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -21,9 +23,12 @@ import java.util.List;
 @Transactional
 public class RecommendationCommandServiceImpl implements RecommendationCommandService {
 
+    private static final String UNWORN_REASON = "마지막 착용일이 1년 이상 경과";
+
     private final RecommendationRepository recommendationRepository;
     private final ClothesQueryService clothesQueryService;
     private final UserQueryService userQueryService;
+    private final Clock clock;
 
     // 사용자에게 기부/판매 추천 기록을 생성
     @Override
@@ -36,22 +41,13 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
         // 추천 조건 검사 + 엔티티 생성 (각 옷마다 판매/기부 2개의 추천 생성)
         List<Recommendation> recommendations = clothesList.stream()
                 .filter(this::isUnwornForOneYear)
-                .flatMap(clothes -> List.of(
-                        // 판매 추천
-                        Recommendation.createForUnwornClothes(
+                .flatMap(clothes -> Arrays.stream(RecommendationType.values())
+                        .map(type -> Recommendation.createForUnwornClothes(
                                 user,
                                 clothes,
-                                RecommendationType.SALE,
-                                "마지막 착용일이 1년 이상 경과"
-                        ),
-                        // 기부 추천
-                        Recommendation.createForUnwornClothes(
-                                user,
-                                clothes,
-                                RecommendationType.DONATION,
-                                "마지막 착용일이 1년 이상 경과"
-                        )
-                ).stream())
+                                type,
+                                UNWORN_REASON
+                        )))
                 .toList();
 
         List<Recommendation> savedRecommendations = recommendationRepository.saveAll(recommendations);
@@ -67,12 +63,14 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
 
         // lastWornAt이 null이면 착용한 적이 없으므로 추천 대상
         if (lastWornAt == null) {
+
             return true;
         }
 
         // lastWornAt을 LocalDate로 변환하여 1년 전과 비교
         LocalDate lastWornDate = lastWornAt.toLocalDate();
-        LocalDate oneYearAgo = LocalDate.now().minusYears(1);
+
+        LocalDate oneYearAgo = LocalDate.now(clock).minusYears(1);
 
         return lastWornDate.isBefore(oneYearAgo);
     }
