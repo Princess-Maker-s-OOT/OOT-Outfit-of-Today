@@ -19,6 +19,8 @@ import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.repository.UserRepository;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.example.ootoutfitoftoday.domain.userimage.entity.UserImage;
+import org.example.ootoutfitoftoday.domain.userimage.exception.UserImageErrorCode;
+import org.example.ootoutfitoftoday.domain.userimage.exception.UserImageException;
 import org.example.ootoutfitoftoday.domain.userimage.service.command.UserImageCommandService;
 import org.example.ootoutfitoftoday.domain.userimage.service.query.UserImageQueryService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -222,7 +224,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         // UserImage 존재 여부 체크
         if (user.getUserImage() == null) {
-            throw new UserException(UserErrorCode.PROFILE_IMAGE_NOT_FOUND);
+            throw new UserImageException(UserImageErrorCode.PROFILE_IMAGE_NOT_FOUND);
         }
 
         // DB에서 실제 UserImage 조회(소프트 삭제 확인)

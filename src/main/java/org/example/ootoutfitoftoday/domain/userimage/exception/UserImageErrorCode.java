@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum UserImageErrorCode implements ErrorCode {
 
-    USER_IMAGE_NOT_FOUND("USER_IMAGE_NOT_FOUND", HttpStatus.NOT_FOUND, "사용자 이미지를 찾을 수 없습니다.");
+    USER_IMAGE_NOT_FOUND("USER_IMAGE_NOT_FOUND", HttpStatus.NOT_FOUND, "사용자 이미지를 찾을 수 없습니다."),
+    PROFILE_IMAGE_NOT_FOUND("PROFILE_IMAGE_NOT_FOUND", HttpStatus.NOT_FOUND, "존재하지 않는 프로필 이미지입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
