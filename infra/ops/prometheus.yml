@@ -24,4 +24,4 @@ scrape_configs:
 
   - job_name: 'locust'
     static_configs:
-        - targets: [ 'locust_exporter:9646' ]
+      - targets: [ 'locust_exporter:9646' ]
