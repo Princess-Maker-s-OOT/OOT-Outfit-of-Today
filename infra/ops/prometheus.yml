@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - /etc/prometheus/alert.rules.yml
+
+scrape_configs:
+  # Prometheus 자체 모니터링 (활성 상태 확인용)
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  # WAS 애플리케이션 모니터링 설정
+  - job_name: "OOT-Outfit-of-Today"
+    metrics_path: /api/actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
+
+  - job_name: 'locust'
+    static_configs:
+      - targets: [ 'locust_exporter:9646' ]
