@@ -208,8 +208,17 @@ public class UserCommandServiceImpl implements UserCommandService {
             user.assignProfileImage(savedUserImage);
 
         } else {
-            // 기존 프로필 이미지가 있음 -> 교체
-            user.changeProfileImage(image);
+            // 기존 프로필 이미지가 있음 -> 활성 상태 확인 후 처리
+            try {
+                UserImage activeUserImage = userImageQueryService.findByIdAndIsDeletedFalse(user.getUserImage().getId()
+                );
+                // 활성 상태인 경우 -> 기존 이미지 교체
+                user.changeProfileImage(image);
+            } catch (UserImageException e) {
+                // 기존 프로필 이미지가 소프트 딜리트 되어 조회 실패 시 새로 생성
+                UserImage savedUserImage = userImageCommandService.createAndSave(image);
+                user.assignProfileImage(savedUserImage);
+            }
         }
 
         userRepository.save(user);
