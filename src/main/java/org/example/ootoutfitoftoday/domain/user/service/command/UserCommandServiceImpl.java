@@ -20,6 +20,7 @@ import org.example.ootoutfitoftoday.domain.user.repository.UserRepository;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.example.ootoutfitoftoday.domain.userimage.entity.UserImage;
 import org.example.ootoutfitoftoday.domain.userimage.service.command.UserImageCommandService;
+import org.example.ootoutfitoftoday.domain.userimage.service.query.UserImageQueryService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +39,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final EntityManager entityManager;
     private final ImageQueryService imageQueryService;
     private final UserImageCommandService userImageCommandService;
+    private final UserImageQueryService userImageQueryService;
 
     @Override
     public void save(User user) {
@@ -218,10 +220,13 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
-        UserImage userImage = user.getUserImage();
-        if (userImage == null) {
+        // UserImage 존재 여부 체크
+        if (user.getUserImage() == null) {
             throw new UserException(UserErrorCode.PROFILE_IMAGE_NOT_FOUND);
         }
+
+        // DB에서 실제 UserImage 조회(소프트 삭제 확인)
+        UserImage userImage = userImageQueryService.findByIdAndIsDeletedFalse(user.getUserImage().getId());
 
         userImageCommandService.softDeleteUserImage(userImage);
 
