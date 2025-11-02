@@ -234,7 +234,7 @@ public ResponseEntity<UserResponse> getUserInfo(@PathVariable Long userId) {
 }
 ```
 
-#### 2개 이상 파라미터: 첫 파라미터 기준 정렬
+#### 2개 이상 파라미터: 문단 띄어쓰기
 
 ```java
 // Controller 메서드
