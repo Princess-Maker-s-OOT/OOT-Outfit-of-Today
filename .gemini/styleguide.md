@@ -217,9 +217,11 @@ signup()  // 유저 생성의 경우 특별히 signup 사용
 getClosets()
 
 // 필터 처리가 있는 조회
-getClosets(@RequestParam(required = false) Long userId,
-           @RequestParam(required = false) String keyword,
-           @RequestParam(required = false) String sortBy)
+getClosets(
+        @RequestParam(required = false) Long userId,
+        @RequestParam(required = false) String keyword,
+        @RequestParam(required = false) String sortBy
+)
 ```
 
 ### 파라미터 개수에 따른 포맷팅
@@ -232,13 +234,15 @@ public ResponseEntity<UserResponse> getUserInfo(@PathVariable Long userId) {
 }
 ```
 
-#### 2개 이상 파라미터: 첫 파라미터 기준 정렬
+#### 2개 이상 파라미터: 문단 띄어쓰기
 
 ```java
 // Controller 메서드
-public ResponseEntity<PostListResponse> getPostsByPeriod(@RequestParam LocalDateTime startDate,
-                                                         @RequestParam LocalDateTime endDate,
-                                                         @RequestParam(defaultValue = "0") int page) {
+public ResponseEntity<PostListResponse> getPostsByPeriod(
+        @RequestParam LocalDateTime startDate,
+        @RequestParam LocalDateTime endDate,
+        @RequestParam(defaultValue = "0") int page
+) {
     // 코드 구현
 }
 
@@ -262,9 +266,10 @@ public record UserResponse(
 ```java
 
 @PatchMapping
-public ResponseEntity<UserResponse> updateUserInfo(@LoginUserResolver User user,
-                                                   @RequestBody @Valid UpdateUserInfoRequest request) {
-
+public ResponseEntity<UserResponse> updateUserInfo(
+        @LoginUserResolver User user,
+        @RequestBody @Valid UpdateUserInfoRequest request
+) {
     UserResponse updatedUser = userService.updateUserInfo(user.getId(), request);
 
     return ResponseEntity.ok(updatedUser);
