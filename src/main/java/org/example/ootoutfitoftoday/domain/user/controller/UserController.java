@@ -123,6 +123,15 @@ public class UserController {
         return Response.success(response, UserSuccessCode.UPDATE_PROFILE_IMAGE);
     }
 
+    @DeleteMapping("/profile-image")
+    public ResponseEntity<Response<Void>> deleteProfileImage(
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+        userCommandService.deleteProfileImage(authUser.getUserId());
+
+        return Response.success(null, UserSuccessCode.DELETE_PROFILE_IMAGE);
+    }
+
     /**
      * 회원 거래 위치 수정
      *

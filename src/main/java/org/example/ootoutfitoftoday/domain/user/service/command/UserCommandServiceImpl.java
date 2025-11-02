@@ -18,6 +18,8 @@ import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
 import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.repository.UserRepository;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
+import org.example.ootoutfitoftoday.domain.userimage.entity.UserImage;
+import org.example.ootoutfitoftoday.domain.userimage.service.command.UserImageCommandService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final UserQueryService userQueryService;
     private final EntityManager entityManager;
     private final ImageQueryService imageQueryService;
+    private final UserImageCommandService userImageCommandService;
 
     @Override
     public void save(User user) {
@@ -204,6 +207,24 @@ public class UserCommandServiceImpl implements UserCommandService {
         return UserUpdateProfileImageResponse.of(user.getId(), image.getUrl());
     }
 
+    // 프로필 이미지 삭제(소프트 딜리트)
+    public void deleteProfileImage(Long userId) {
+
+        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
+
+        UserImage userImage = user.getUserImage();
+        if (userImage == null) {
+            throw new UserException(UserErrorCode.PROFILE_IMAGE_NOT_FOUND);
+        }
+
+        userImageCommandService.softDeleteUserImage(userImage);
+
+        // User의 UserImage 참조 제거 및 imageUrl 초기화
+        user.removeProfileImage();
+
+        userRepository.save(user);
+    }
+    
     // 유저 거래 위치 수정
     @Override
     public void updateMyTradeLocation(UserUpdateTradeLocationRequest request, Long userId) {
