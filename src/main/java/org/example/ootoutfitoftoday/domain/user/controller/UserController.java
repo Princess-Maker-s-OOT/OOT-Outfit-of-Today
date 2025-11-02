@@ -123,6 +123,23 @@ public class UserController {
         return Response.success(response, UserSuccessCode.UPDATE_PROFILE_IMAGE);
     }
 
+    @Operation(
+            summary = "프로필 이미지 삭제",
+            description = "회원의 프로필 이미지를 삭제합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "삭제 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "찾을 수 없음"),
+            })
+    @DeleteMapping("/profile-image")
+    public ResponseEntity<Response<Void>> deleteProfileImage(
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+        userCommandService.deleteProfileImage(authUser.getUserId());
+
+        return Response.success(null, UserSuccessCode.DELETE_PROFILE_IMAGE);
+    }
+
     /**
      * 회원 거래 위치 수정
      *
