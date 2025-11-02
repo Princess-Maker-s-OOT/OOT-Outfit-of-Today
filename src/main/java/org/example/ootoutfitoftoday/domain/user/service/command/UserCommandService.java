@@ -38,5 +38,7 @@ public interface UserCommandService {
 
     UserUpdateProfileImageResponse updateProfileImage(Long userId, Long imageId);
 
+    void deleteProfileImage(Long userId);
+
     void updateMyTradeLocation(UserUpdateTradeLocationRequest request, Long userId);
 }

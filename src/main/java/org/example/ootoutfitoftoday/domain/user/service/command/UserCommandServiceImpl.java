@@ -18,6 +18,11 @@ import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
 import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.repository.UserRepository;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
+import org.example.ootoutfitoftoday.domain.userimage.entity.UserImage;
+import org.example.ootoutfitoftoday.domain.userimage.exception.UserImageErrorCode;
+import org.example.ootoutfitoftoday.domain.userimage.exception.UserImageException;
+import org.example.ootoutfitoftoday.domain.userimage.service.command.UserImageCommandService;
+import org.example.ootoutfitoftoday.domain.userimage.service.query.UserImageQueryService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +40,8 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final UserQueryService userQueryService;
     private final EntityManager entityManager;
     private final ImageQueryService imageQueryService;
+    private final UserImageCommandService userImageCommandService;
+    private final UserImageQueryService userImageQueryService;
 
     @Override
     public void save(User user) {
@@ -195,13 +202,49 @@ public class UserCommandServiceImpl implements UserCommandService {
         Image image = imageQueryService.findByIdAndIsDeletedFalse(imageId);
 
         // 프로필 이미지 업데이트
-        // 기존 이미지가 있으면 이미지만 교체
-        // 없으면 새로운 이미지 생성
-        user.updateProfileImage(image);
+        if (user.getUserImage() == null) {
+            // 기존 프로필 이미지가 없음 -> 새로 생성하고 저장
+            UserImage savedUserImage = userImageCommandService.createAndSave(image);
+            user.assignProfileImage(savedUserImage);
+
+        } else {
+            // 기존 프로필 이미지가 있음 -> 활성 상태 확인 후 처리
+            try {
+                UserImage activeUserImage = userImageQueryService.findByIdAndIsDeletedFalse(user.getUserImage().getId()
+                );
+                // 활성 상태인 경우 -> 기존 이미지 교체
+                user.changeProfileImage(image);
+            } catch (UserImageException e) {
+                // 기존 프로필 이미지가 소프트 딜리트 되어 조회 실패 시 새로 생성
+                UserImage savedUserImage = userImageCommandService.createAndSave(image);
+                user.assignProfileImage(savedUserImage);
+            }
+        }
 
         userRepository.save(user);
 
         return UserUpdateProfileImageResponse.of(user.getId(), image.getUrl());
+    }
+
+    // 프로필 이미지 삭제(소프트 딜리트)
+    public void deleteProfileImage(Long userId) {
+
+        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
+
+        // UserImage 존재 여부 체크
+        if (user.getUserImage() == null) {
+            throw new UserImageException(UserImageErrorCode.PROFILE_IMAGE_NOT_FOUND);
+        }
+
+        // DB에서 실제 UserImage 조회(소프트 삭제 확인)
+        UserImage userImage = userImageQueryService.findByIdAndIsDeletedFalse(user.getUserImage().getId());
+
+        userImageCommandService.softDeleteUserImage(userImage);
+
+        // User의 UserImage 참조 제거 및 imageUrl 초기화
+        user.removeProfileImage();
+
+        userRepository.save(user);
     }
 
     // 유저 거래 위치 수정
