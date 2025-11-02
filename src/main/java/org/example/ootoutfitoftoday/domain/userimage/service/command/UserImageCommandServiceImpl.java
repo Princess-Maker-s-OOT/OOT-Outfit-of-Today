@@ -3,6 +3,8 @@ package org.example.ootoutfitoftoday.domain.userimage.service.command;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.userimage.entity.UserImage;
+import org.example.ootoutfitoftoday.domain.userimage.exception.UserImageErrorCode;
+import org.example.ootoutfitoftoday.domain.userimage.exception.UserImageException;
 import org.example.ootoutfitoftoday.domain.userimage.repository.UserImageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,10 @@ public class UserImageCommandServiceImpl implements UserImageCommandService {
 
     @Override
     public UserImage createAndSave(Image image) {
+
+        if (userImageRepository.existsByImageId(image.getId())) {
+            throw new UserImageException(UserImageErrorCode.USER_IMAGE_NOT_FOUND);
+        }
 
         UserImage userImage = UserImage.create(image);
 

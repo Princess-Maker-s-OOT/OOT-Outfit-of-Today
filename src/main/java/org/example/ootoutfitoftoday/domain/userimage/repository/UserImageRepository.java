@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface UserImageRepository extends JpaRepository<UserImage, Long> {
 
     Optional<UserImage> findByIdAndIsDeletedFalse(Long id);
+
+    boolean existsByImageId(Long id);
 }
