@@ -198,9 +198,15 @@ public class UserCommandServiceImpl implements UserCommandService {
         Image image = imageQueryService.findByIdAndIsDeletedFalse(imageId);
 
         // 프로필 이미지 업데이트
-        // 기존 이미지가 있으면 이미지만 교체
-        // 없으면 새로운 이미지 생성
-        user.updateProfileImage(image);
+        if (user.getUserImage() == null) {
+            // 기존 프로필 이미지가 없음 -> 새로 생성하고 저장
+            UserImage savedUserImage = userImageCommandService.createAndSave(image);
+            user.assignProfileImage(savedUserImage);
+
+        } else {
+            // 기존 프로필 이미지가 있음 -> 교체
+            user.changeProfileImage(image);
+        }
 
         userRepository.save(user);
 
@@ -224,7 +230,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         userRepository.save(user);
     }
-    
+
     // 유저 거래 위치 수정
     @Override
     public void updateMyTradeLocation(UserUpdateTradeLocationRequest request, Long userId) {

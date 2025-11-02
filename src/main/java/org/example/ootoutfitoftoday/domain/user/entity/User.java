@@ -271,19 +271,18 @@ public class User extends BaseEntity {
         this.tradeLocation = tradeLocation;
     }
 
-    // 프로필 이미지 업데이트
-    public void updateProfileImage(Image image) {
+    // 이미지가 있으면, 기존 UserImage의 이미지만 교체
+    public void changeProfileImage(Image newImage) {
 
-        if (this.userImage == null) {
-            // 없는 경우 새로 생성
-            this.userImage = UserImage.create(image);
-        } else {
-            // 있는 경우 Image만 교체
-            this.userImage.updateImage(image);
-        }
+        this.userImage.updateImage(newImage);
+        this.imageUrl = newImage.getUrl();
+    }
 
-        // imageUrl도 함께 업데이트
-        this.imageUrl = image.getUrl();
+    // 이미지가 없으면, 새로 등록
+    public void assignProfileImage(UserImage userImage) {
+
+        this.userImage = userImage;
+        this.imageUrl = userImage.getImage().getUrl();
     }
 
     // 프로필 이미지 삭제
