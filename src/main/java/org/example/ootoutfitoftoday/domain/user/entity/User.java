@@ -67,7 +67,7 @@ public class User extends BaseEntity {
     private String imageUrl;
 
     // 사용자가 직접 업로드한 이미지
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)    // 생명 주기를 함께 함
+    @OneToOne(fetch = FetchType.LAZY)    // cascade = CascadeType.ALL, orphanRemoval = true)    // 생명 주기를 함께 함
     @JoinColumn(name = "user_image_id")
     private UserImage userImage;
 
@@ -284,5 +284,12 @@ public class User extends BaseEntity {
 
         // imageUrl도 함께 업데이트
         this.imageUrl = image.getUrl();
+    }
+
+    // 프로필 이미지 삭제
+    public void removeProfileImage() {
+
+        this.userImage = null;
+        this.imageUrl = null;
     }
 }
