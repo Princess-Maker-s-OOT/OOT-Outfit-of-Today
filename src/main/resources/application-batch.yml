@@ -1,0 +1,29 @@
+spring:
+  config:
+    activate:
+      on-profile: batch
+  main:
+    web-application-type: none
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/${DB_NAME}
+    username: ${USER_NAME}
+    password: ${PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none    # Spring Boot의 내장 웹서버를 완전히 끄고 실행
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: false
+
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: true               # 배치 Job 실행 허용
+
+server:
+  port: 8081
