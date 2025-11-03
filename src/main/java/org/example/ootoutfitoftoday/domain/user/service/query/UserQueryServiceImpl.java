@@ -100,6 +100,12 @@ public class UserQueryServiceImpl implements UserQueryService {
             return;
         }
 
+        // 일반 유저는 비밀번호 필수
+        // 비민감 작업이므로 명확한 에러 메시지
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new AuthException(AuthErrorCode.VALIDATION_FAILED);
+        }
+
         // 일반 회원만 비밀번호 검증 진행
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
