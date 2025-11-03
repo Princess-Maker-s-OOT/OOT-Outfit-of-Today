@@ -3,6 +3,7 @@ package org.example.ootoutfitoftoday.domain.chat.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.SliceResponse;
 import org.example.ootoutfitoftoday.domain.chat.dto.response.ChatResponse;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "채팅", description = "채팅 관련 API")
 @RestController
 @RequestMapping("/v1/chatrooms/{chatroomId}/chats")
 @RequiredArgsConstructor
