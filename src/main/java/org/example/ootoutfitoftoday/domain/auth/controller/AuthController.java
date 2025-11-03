@@ -104,7 +104,9 @@ public class AuthController {
     // 회원탈퇴
     @Operation(
             summary = "회원 삭제",
-            description = "특정 회원을 삭제합니다.",
+            description = "특정 회원을 삭제합니다.\n\n" +
+                    "- 일반 로그인 사용자: 비밀번호 검증 필수\n" +
+                    "- 소셜 로그인 사용자: 비밀번호 검증 통과",
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "삭제 성공"),
