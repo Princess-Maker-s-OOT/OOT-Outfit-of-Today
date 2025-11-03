@@ -23,7 +23,7 @@ spring:
     jdbc:
       initialize-schema: always   # Spring Batch의 내부 테이블(BATCH_JOB_INSTANCE 등)을 항상 초기화(배치 메타데이터 테이블이 자동으로 생성됨)
     job:
-      enabled: true               # 배치 Job 실행 허용(true면 배치서버 실행 시 Job이 바로 시작됨)
+      enabled: false               # 배치 Job 실행 허용(true면 배치서버 실행 시 Job이 바로 시작됨)
 
 server:
   port: 8081   # 배치 서버 포트 (웹 서버가 없더라도 관리용 포트로 사용 가능)

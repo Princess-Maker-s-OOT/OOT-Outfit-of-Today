@@ -7,11 +7,6 @@ echo "OOT-Outfit-of-Today 서버 실행 시작..."
 mkdir -p logs
 echo "logs 디렉토리 확인 완료."
 
-# ===== 기존 포트 점유 프로세스 종료 =====
-echo "기존 포트 점유 프로세스 종료 중..."
-kill -9 $(lsof -ti :8080) 2>/dev/null || true
-kill -9 $(lsof -ti :8081) 2>/dev/null || true
-
 # ===== 기존 프로세스 종료 =====
 echo "기존 서버 프로세스 종료 중..."
 pkill -f "spring.profiles.active=local" || true
@@ -30,8 +25,8 @@ sleep 8
 echo "서버가 백그라운드에서 실행 중입니다."
 
 # ===== 상태 확인 =====
-LOCAL_PID=$(pgrep -f "spring.profiles.active=local" | head -n 1 || true)
-BATCH_PID=$(pgrep -f "spring.profiles.active=batch" | head -n 1 || true)
+LOCAL_PID=$(pgrep -f "spring.profiles.active=local" || true)
+BATCH_PID=$(pgrep -f "spring.profiles.active=batch" || true)
 
 if [ -n "$LOCAL_PID" ]; then
   echo "Local 서버 실행 중 (PID: $LOCAL_PID)"
