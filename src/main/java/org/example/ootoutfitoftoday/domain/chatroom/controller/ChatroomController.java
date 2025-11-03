@@ -1,5 +1,9 @@
 package org.example.ootoutfitoftoday.domain.chatroom.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.common.response.SliceResponse;
@@ -16,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "채팅방", description = "채팅방 API")
 @RestController
 @RequestMapping("/v1/chatrooms")
 @RequiredArgsConstructor
@@ -31,6 +36,16 @@ public class ChatroomController {
      * @param authUser        토큰 정보
      * @return 공통 응답만 반환
      */
+    @Operation(
+            summary = "채팅방 생성",
+            description = "회원이 채팅방을 생성합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "생성 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            }
+    )
     @PostMapping
     public ResponseEntity<Response<Void>> createChatroom(
             @RequestBody ChatroomRequest chatroomRequest,
