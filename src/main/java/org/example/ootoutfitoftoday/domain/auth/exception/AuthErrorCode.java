@@ -24,7 +24,9 @@ public enum AuthErrorCode implements ErrorCode {
 
     ACCOUNT_ALREADY_LINKED("ACCOUNT_ALREADY_LINKED", HttpStatus.BAD_REQUEST, "이미 다른 계정에 연결된 이메일입니다."),
 
-    INVALID_OAUTH2_TOKEN("INVALID_OAUTH2_TOKEN", HttpStatus.INTERNAL_SERVER_ERROR, "유효하지 않은 OAuth2 인증 토큰입니다.");
+    INVALID_OAUTH2_TOKEN("INVALID_OAUTH2_TOKEN", HttpStatus.INTERNAL_SERVER_ERROR, "유효하지 않은 OAuth2 인증 토큰입니다."),
+
+    USER_ALREADY_WITHDRAWN("USER_ALREADY_WITHDRAWN", HttpStatus.GONE, "이미 탈퇴한 사용자입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
