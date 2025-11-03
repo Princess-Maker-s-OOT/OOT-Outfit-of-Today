@@ -97,6 +97,16 @@ public class ChatroomController {
      * @param chatroomId 채팅방 아이디
      * @return 공통 응답만 반환
      */
+    @Operation(
+            summary = "채팅방 삭제",
+            description = "회원이 채팅방을 삭제합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "삭제 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            }
+    )
     @DeleteMapping("/{chatroomId}")
     public ResponseEntity<Response<Void>> deleteChatroom(
             @AuthenticationPrincipal AuthUser authUser,
