@@ -45,4 +45,7 @@ public interface ClothesQueryService {
 
     // 사용자 기준 카테고리 옷 통계
     List<CategoryStat> countUserTopCategoryStats(Long userId);
+
+    // 사용자의 모든 옷 엔티티 조회
+    List<Clothes> findAllClothesByUserId(Long userId);
 }

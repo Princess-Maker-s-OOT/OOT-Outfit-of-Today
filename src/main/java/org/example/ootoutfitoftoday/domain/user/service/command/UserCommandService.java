@@ -4,7 +4,8 @@ import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateInfoRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserUpdateTradeLocationRequest;
-import org.example.ootoutfitoftoday.domain.user.dto.response.GetMyInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateInfoResponse;
+import org.example.ootoutfitoftoday.domain.user.dto.response.UserUpdateProfileImageResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 public interface UserCommandService {
@@ -33,7 +34,11 @@ public interface UserCommandService {
     // 닉네임 중복 체크 및 고유 닉네임 생성
     String generateUniqueNickname(String baseName);
 
-    GetMyInfoResponse updateMyInfo(UserUpdateInfoRequest request, AuthUser authUser);
+    UserUpdateInfoResponse updateInfo(UserUpdateInfoRequest request, AuthUser authUser);
+
+    UserUpdateProfileImageResponse updateProfileImage(Long userId, Long imageId);
+
+    void deleteProfileImage(Long userId);
 
     void updateMyTradeLocation(UserUpdateTradeLocationRequest request, Long userId);
 }

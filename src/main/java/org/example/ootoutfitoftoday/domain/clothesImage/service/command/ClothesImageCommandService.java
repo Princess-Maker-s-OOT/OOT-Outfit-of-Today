@@ -10,5 +10,7 @@ public interface ClothesImageCommandService {
 
     void updateClothesImages(Clothes clothes, List<Long> newImageIds);
 
+    void removeClothesImages(Long clothesId, List<Long> imageIds);
+
     int softDeleteAllByClothesId(Long id);
 }

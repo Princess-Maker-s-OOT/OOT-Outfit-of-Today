@@ -1,0 +1,173 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    # 컨테이너 이름
+    container_name: prometheus
+    # 명령어창
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--web.enable-lifecycle"]
+    # 바인딩 마운트 or 마운드 바인딩
+    # 네임드 볼륨 방식 - 도커
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+    # ex) - ./mysql : /etc/mysql 요것도 가능
+    ports: ["9090:9090"]
+    networks:
+      - monitoring_network
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9090/-/ready" ]
+      interval: 10s       # 10초마다 체크
+      timeout: 3s         # 3초 내 응답 없으면 실패
+      retries: 5          # 5회 실패 시 Unhealthy로 간주
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports: ["9093:9093"]
+    networks:
+      - monitoring_network
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9093/-/ready" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - ./provisioning:/etc/grafana/provisioning
+      - ./dashboards:/var/lib/grafana/dashboards
+    ports: ["3000:3000"]
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on: [prometheus]
+    networks:
+      - monitoring_network
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  loki:
+    image: grafana/loki:2.9.8
+    container_name: loki
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports: ["3100:3100"]
+
+  promtail:
+    image: grafana/promtail:2.9.8
+    container_name: promtail
+    volumes:
+      - ../logs:/var/log/oot-app:ro
+      - ./promtail-config.yml:/etc/promtail/config.yml:ro
+    command: ["--config.file=/etc/promtail/config.yml"]
+    depends_on: [loki]
+
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    environment:
+      - INFLUXDB_DB=k6
+      - INFLUXDB_HTTP_AUTH_ENABLED=false
+    volumes:
+      - ../load/k6/influxdb:/var/lib/influxdb
+    ports:
+      - "8086:8086"
+    restart: unless-stopped
+
+  k6:
+    image: grafana/k6:latest
+    container_name: k6
+    profiles: [ "on-demand" ]
+    depends_on: [ influxdb ]
+    working_dir: /scripts
+    volumes:
+      - ../load:/scripts:ro
+    entrypoint: [ "k6","run","--out","influxdb=http://influxdb:8086/k6","/scripts/k6-script.js" ]
+
+  locust:
+    # infra/Dockerfile을 빌드하도록 지정. context는 Dockerfile이 있는 디렉토리입니다.
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: locust_master
+    ports:
+      - "8089:8089" # Locust 웹 UI 포트
+      - "5557:5557" # 워커 통신 포트
+      - "5558:5558" # 워커 통신 포트
+    volumes:
+      # locustfile.py가 있는 디렉토리를 컨테이너 내 /mnt/locust로 마운트
+      # docker-compose.yml 기준 상대 경로: ../load/
+      - ../load:/mnt/locust
+    command:
+      # 마운트된 디렉토리의 locustfile.py를 사용하여 마스터 모드로 실행
+      - -f /mnt/locust/locustfile.py
+      - --master
+      - --web-host=0.0.0.0
+    networks:
+      - monitoring_network
+
+  locust_worker:
+    # 마스터와 동일한 빌드 및 볼륨 설정 사용
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: locust_worker_1
+    volumes:
+      - ../load:/mnt/locust
+    command:
+      # 워커 모드로 실행하고, 마스터의 주소를 지정
+      - -f /mnt/locust/locustfile.py
+      - --worker
+      - --master-host=locust_master # Docker Compose 서비스 이름 사용
+    depends_on:
+      - locust # 마스터가 먼저 시작되도록 의존성 설정
+    networks:
+      - monitoring_network
+    restart: always # ✨ 이 설정 추가
+
+  locust-exporter:
+    # ✨ 공식 이미지로 복귀
+    image: containersol/locust_exporter:latest
+    container_name: locust_exporter
+    # ✨ ARM 환경에서 AMD64 에뮬레이션을 강제
+    platform: linux/amd64
+    environment:
+      # 공식 이미지에 맞는 변수 사용
+      - LOCUST_EXPORTER_URI=http://locust_master:8089
+    ports:
+      - "9646:9646"
+    depends_on:
+      - locust
+    networks:
+      - monitoring_network
+    restart: on-failure
+
+  gatling:
+    build:
+      context: ../load/gatling
+      dockerfile: Dockerfile
+    image: my-gatling:local
+    container_name: gatling
+    depends_on: []
+    volumes:
+      - ../load/gatling/simulations:/opt/gatling/user-files/simulations:ro
+      - ../load/gatling/results:/opt/gatling/results
+    environment:
+      - GATLING_NO_PROMPT=true
+    command: [ "-rm", "local", "-s", "EchoWebSocketSimulation" ]
+    restart: "no"
+    profiles: [ "on-demand" ]
+
+# 데이터 영속성을 위한 볼륨 정의
+volumes:
+  prometheus_data: {}
+  alertmanager_data: {}
+
+networks:
+  monitoring_network:
+    driver: bridge

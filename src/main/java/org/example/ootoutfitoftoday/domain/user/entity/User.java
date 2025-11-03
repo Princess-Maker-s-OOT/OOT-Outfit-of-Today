@@ -13,7 +13,9 @@ import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatPart
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
+import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
+import org.example.ootoutfitoftoday.domain.userimage.entity.UserImage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,49 +28,67 @@ import java.util.UUID;
 public class User extends BaseEntity {
 
     private static final String SOCIAL_LOGIN_ID_PREFIX = "SOCIAL_";
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    // 소셜 로그인: nullable 허용
+
     @Column(nullable = false, unique = true, length = 25)
     private String loginId;
+
     @Column(nullable = false, unique = true, length = 60)
     private String email;
+
     @Column(nullable = false, unique = true, length = 20)
     private String nickname;
+
     @Column(nullable = false, length = 60)
     private String username;
-    // 소셜 로그인: nullable 허용
+
     @Column(nullable = false, length = 255)
     private String password;
-    // 소셜 로그인: nullable 허용
+
     @Column(nullable = false, unique = true, length = 30)
     private String phoneNumber;
+
     @Column(nullable = false, length = 10)
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
     @Column(nullable = false, length = 50)
     private String tradeAddress;
+
     // TODO
     @Column(nullable = true, columnDefinition = "POINT SRID 4326", updatable = false, insertable = false)
     private String tradeLocation;
+
+    // 현재 프로필 이미지 URL(소셜 로그인 또는 직접 업로드)
     @Column(nullable = true, length = 500)
     private String imageUrl;
+
+    // 사용자가 직접 업로드한 이미지
+    @OneToOne(fetch = FetchType.LAZY)    // cascade = CascadeType.ALL, orphanRemoval = true)    // 생명 주기를 함께 함
+    @JoinColumn(name = "user_image_id")
+    private UserImage userImage;
+
     // 로그인 타입 추가(LOGIN_ID, SOCIAL 구분)
     @Column(nullable = false, length = 10)
     @Enumerated(EnumType.STRING)
     private LoginType loginType;
+
     // 소셜 로그인 제공자: GOOGLE, KAKAO, NAVER 등
     @Column(nullable = true, length = 10)
     @Enumerated(EnumType.STRING)
     private SocialProvider socialProvider;
+
     // 소셜 ID(소셜 로그인 시 고유 식별자 - Google의 sub)
     @Column(nullable = true, unique = true, length = 100)
     private String socialId;
+
     // 옷장 연관관계
     @OneToMany(mappedBy = "user")
     private List<Closet> closets = new ArrayList<>();
+
     // 중간테이블
     @OneToMany(mappedBy = "user")
     private List<ChatParticipatingUser> chatParticipatingUsers = new ArrayList<>();
@@ -249,5 +269,26 @@ public class User extends BaseEntity {
     public void updateTradeLocation(String tradeAddress, String tradeLocation) {
         this.tradeAddress = tradeAddress;
         this.tradeLocation = tradeLocation;
+    }
+
+    // 이미지가 있으면, 기존 UserImage의 이미지만 교체
+    public void changeProfileImage(Image newImage) {
+
+        this.userImage.updateImage(newImage);
+        this.imageUrl = newImage.getUrl();
+    }
+
+    // 이미지가 없으면, 새로 등록
+    public void assignProfileImage(UserImage userImage) {
+
+        this.userImage = userImage;
+        this.imageUrl = userImage.getImage().getUrl();
+    }
+
+    // 프로필 이미지 삭제
+    public void removeProfileImage() {
+
+        this.userImage = null;
+        this.imageUrl = null;
     }
 }

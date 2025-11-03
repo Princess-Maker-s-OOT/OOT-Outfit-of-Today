@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.common.response.SliceResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
+import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesImageUnlinkRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
@@ -138,5 +139,27 @@ public class ClothesController {
         clothesCommandService.deleteClothes(authUser.getUserId(), clothesId);
 
         return Response.success(null, ClothesSuccessCode.CLOTHES_DELETE);
+    }
+
+    @Operation(
+            summary = "해당 옷에 등록된 이미지 제거",
+            description = "회원이 자신의 옷에 등록된 이미지를 제거합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "삭제 성공")
+            })
+    @PostMapping("/{clothesId}/images/remove")
+    public ResponseEntity<Response<Void>> removeClothesImages(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long clothesId,
+            @RequestBody ClothesImageUnlinkRequest clothesImageUnlinkRequest
+    ) {
+
+        clothesCommandService.removeClothesImages(
+                authUser.getUserId(),
+                clothesId,
+                clothesImageUnlinkRequest
+        );
+
+        return Response.success(null, ClothesSuccessCode.CLOTHES_IMAGE_REMOVE);
     }
 }

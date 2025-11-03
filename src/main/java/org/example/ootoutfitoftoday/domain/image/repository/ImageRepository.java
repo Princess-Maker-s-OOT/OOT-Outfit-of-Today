@@ -20,6 +20,7 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
             SELECT i
             FROM Image i
             WHERE i.id IN :imageIds
+              AND i.isDeleted = false
             """)
-    List<Image> findAllByIdIn(List<Long> imageIds);
+    List<Image> findAllByIdInAndIsDeletedFalse(List<Long> imageIds);
 }

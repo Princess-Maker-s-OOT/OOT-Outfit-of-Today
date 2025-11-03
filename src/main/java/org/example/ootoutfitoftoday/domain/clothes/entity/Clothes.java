@@ -12,6 +12,7 @@ import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothesImage.entity.ClothesImage;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ public class Clothes extends BaseEntity {
     private LocalDateTime lastWornAt;
 
     @OneToMany(mappedBy = "clothes")
+    @Where(clause = "is_deleted = false")
     private List<ClothesImage> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "clothes")
@@ -107,8 +109,15 @@ public class Clothes extends BaseEntity {
 
     public void addImages(List<ClothesImage> images) {
 
+        // 1. 기존 이미지들의 관계를 먼저 끊음
+        for (ClothesImage existingImage : this.images) {
+            existingImage.addClothes(null);  // 관계 해제
+        }
+
+        // 2. 컬렉션 비우기
         this.images.clear();
 
+        // 3. 새 이미지 추가
         for (ClothesImage image : images) {
             image.addClothes(this);
         }
