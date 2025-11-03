@@ -35,4 +35,9 @@ public class ChatQueryServiceImpl implements ChatQueryService {
                 chat.getCreatedAt()
         ));
     }
+
+    @Override
+    public boolean existsByChatroom(Long chatroomId) {
+        return chatRepository.existsByChatroomIdAndIsDeletedFalse(chatroomId);
+    }
 }

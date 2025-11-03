@@ -1,11 +1,13 @@
 package org.example.ootoutfitoftoday.domain.salepost.repository;
 
+import jakarta.persistence.LockModeType;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SaleStatusCount;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -154,4 +156,14 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
                         WHERE s.id = ?1 AND s.is_deleted = FALSE
             """, nativeQuery = true)
     Optional<SalePost> findByIdAsNativeQuery(Long salePostId);
+
+    // 판매글을 비관적 락으로 조회 (결제 시 동시성 제어)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+       SELECT sp FROM SalePost sp
+       WHERE sp.id = :id
+         AND sp.isDeleted = false
+         AND sp.status = 'AVAILABLE'
+    """)
+    Optional<SalePost> findAvailableByIdForUpdate(@Param("id") Long id);
 }

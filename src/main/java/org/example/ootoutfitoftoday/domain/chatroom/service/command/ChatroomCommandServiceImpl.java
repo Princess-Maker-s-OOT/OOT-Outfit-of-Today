@@ -44,7 +44,7 @@ public class ChatroomCommandServiceImpl implements ChatroomCommandService {
             throw new ChatroomException(ChatroomErrorCode.EQUAL_SELLER_BUYER);
         }
 
-        Chatroom chatroom = new Chatroom();
+        Chatroom chatroom = Chatroom.create(salePost);
 
         Chatroom saveChatroom = chatroomRepository.save(chatroom);
 

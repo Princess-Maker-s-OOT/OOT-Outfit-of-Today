@@ -1,10 +1,14 @@
 package org.example.ootoutfitoftoday.domain.chatroom.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
+import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -18,7 +22,7 @@ import java.util.List;
 @Table(name = "chatrooms")
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class Chatroom {
+public class Chatroom extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,9 +35,24 @@ public class Chatroom {
     @OneToMany(mappedBy = "chatroom")
     private List<ChatParticipatingUser> chatParticipatingUsers = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sale_post_id", nullable = false)
+    private SalePost salePost;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @Builder(access = AccessLevel.PRIVATE)
+    private Chatroom(SalePost salePost) {
+        this.salePost = salePost;
+    }
+
+    public static Chatroom create(SalePost salePost) {
+        return Chatroom.builder()
+                .salePost(salePost)
+                .build();
+    }
 
     // 헬퍼 메서드
     public void addChatParticipatingUser(User user) {
