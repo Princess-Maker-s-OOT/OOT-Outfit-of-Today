@@ -85,27 +85,7 @@ public class DonationCenter extends BaseEntity {
                 .description(description)
                 .build();
     }
-
-    /**
-     * 기부처 정보 수정
-     * 카카오맵 API로부터 최신 정보를 받아 업데이트할 때 사용
-     */
-    public void updateInfo(
-            String name,
-            String address,
-            String phoneNumber,
-            String operatingHours,
-            Point location,
-            String description
-    ) {
-        this.name = name;
-        this.address = address;
-        this.phoneNumber = phoneNumber;
-        this.operatingHours = operatingHours;
-        this.location = location;
-        this.description = description;
-    }
-
+    
     // 위도 조회 편의 메서드
     public double getLatitude() {
         return location.getY();
