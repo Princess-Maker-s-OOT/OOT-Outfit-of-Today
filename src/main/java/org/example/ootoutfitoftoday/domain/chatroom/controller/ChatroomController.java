@@ -44,7 +44,6 @@ public class ChatroomController {
                     @ApiResponse(responseCode = "201", description = "생성 성공"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청"),
                     @ApiResponse(responseCode = "401", description = "인증 실패"),
-                    @ApiResponse(responseCode = "404", description = "판매 게시글을 찾을 수 없음"),
                     @ApiResponse(responseCode = "409", description = "이미 채팅방이 존재함")
             }
     )
@@ -106,7 +105,6 @@ public class ChatroomController {
                     @ApiResponse(responseCode = "200", description = "삭제 성공"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청"),
                     @ApiResponse(responseCode = "401", description = "인증 실패"),
-                    @ApiResponse(responseCode = "403", description = "권한 없음"),
                     @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
             }
     )

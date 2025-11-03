@@ -1,5 +1,8 @@
 package org.example.ootoutfitoftoday.domain.chat.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.SliceResponse;
 import org.example.ootoutfitoftoday.domain.chat.dto.response.ChatResponse;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1/chatrooms/{chatroomId}/chats")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class ChatController {
 
     private final ChatQueryService chatQueryService;
@@ -27,6 +31,15 @@ public class ChatController {
      * @param size       크기
      * @return 채팅 리스트
      */
+    @Operation(
+            summary = "채팅 조회",
+            description = "회원이 채팅을 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            }
+    )
     @GetMapping
     public ResponseEntity<SliceResponse<ChatResponse>> getChats(
             @PathVariable Long chatroomId,
