@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -88,5 +89,13 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
         return chatroomRepository.findById(chatroomId).orElseThrow(
                 () -> new ChatroomException(ChatroomErrorCode.NOT_EXIST_CHATROOM)
         );
+    }
+
+    @Override
+    public Optional<Chatroom> findByUserAndSalePost(
+            Long userId,
+            Long salePostId
+    ) {
+        return chatroomRepository.findByUserAndSalePost(userId, salePostId);
     }
 }

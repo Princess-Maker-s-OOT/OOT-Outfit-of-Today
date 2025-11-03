@@ -34,10 +34,3 @@ ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
 
 # Run application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
-
-# Locust 공식 이미지 사용
-FROM locustio/locust:latest
-
-RUN pip install prometheus_client
-
-WORKDIR /mnt/locust
