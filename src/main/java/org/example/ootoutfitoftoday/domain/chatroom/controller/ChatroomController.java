@@ -66,6 +66,15 @@ public class ChatroomController {
      * @param size     크기
      * @return 채팅방 리스트
      */
+    @Operation(
+            summary = "채팅방 조회",
+            description = "회원이 채팅방을 조회합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            }
+    )
     @GetMapping
     public ResponseEntity<SliceResponse<ChatroomResponse>> getChatrooms(
             @AuthenticationPrincipal AuthUser authUser,
