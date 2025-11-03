@@ -61,7 +61,9 @@ public class UserController {
      */
     @Operation(
             summary = "회원정보 수정 전 비밀번호 검증",
-            description = "회원정보 수정 전 비밀번호를 검증합니다.",
+            description = "회원정보 수정 전 비밀번호를 검증합니다.\n\n" +
+                    "- 일반 로그인 사용자: 비밀번호 검증 필수\n" +
+                    "- 소셜 로그인 사용자: 비밀번호 검증 통과",
             responses = {
                     @ApiResponse(responseCode = "200", description = "성공"),
                     @ApiResponse(responseCode = "401", description = "인증 실패"),

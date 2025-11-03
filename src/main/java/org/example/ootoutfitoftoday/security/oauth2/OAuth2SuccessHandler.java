@@ -72,16 +72,22 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             Optional<User> userBySocialId = userQueryService.findBySocialProviderAndSocialId(provider, userInfo.getSocialId());
 
             if (userBySocialId.isPresent()) {
-                // 2. 소셜 로그인 기록이 있는 기존 사용자
+                // 2. 소셜 로그인 기록이 있는 기존 유저
                 user = userBySocialId.get();
 
+                // 3. 회원탈퇴한 유저인지 확인
+                if (user.isDeleted()) {
+                    log.warn("소셜 로그인 유저가 삭제된 상태입니다: {}", userInfo.getEmail());
+                    throw new AuthException(AuthErrorCode.USER_ALREADY_WITHDRAWN);
+                }
+
             } else {
-                // 3. 소셜 ID로 찾지 못함. 이메일로 일반/미연동 계정 확인 시도
+                // 4. 소셜 ID로 찾지 못함. 이메일로 일반/미연동 계정 확인 시도
                 try {
                     User userByEmail = userQueryService.findByEmailAndIsDeletedFalse(userInfo.getEmail());
 
                     if (userByEmail.getSocialId() == null) {
-                        // 4. 이메일은 있지만 socialId가 null인 '일반 계정' 발견 -> 연동 처리
+                        // 5. 이메일은 있지만 socialId가 null인 '일반 계정' 발견 -> 연동 처리
                         log.info("일반 계정에 소셜 연동 진행: {}", userInfo.getEmail());
                         // UserCommandService를 통해 연동 및 DB 저장
                         user = userCommandService.linkSocialAccount(
@@ -93,7 +99,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     }
 
                 } catch (UserException e) {
-                    // 5. 이메일로도 사용자를 찾지 못함 -> 완전히 신규 회원 가입
+                    // 6. 이메일로도 사용자를 찾지 못함 -> 완전히 신규 회원 가입
                     log.info("신규 회원가입 진행: {}", provider);
                     user = createNewUser(provider, userInfo);
                     isNewUser = true;
@@ -110,6 +116,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             // 액세스 & 리프레시 토큰 발급 + JSON 응답 반환
             issueTokensAndRespond(response, user, isNewUser);
 
+        }
+
+        // AuthException은 브라우저로 상세 메시지 전달
+        catch (AuthException ae) {
+            log.warn("OAuth2 인증 실패: {}", ae.getMessage());
+            sendErrorResponse(response, ae.getMessage());
+            
         } catch (Exception e) {
             log.error("OAuth2 인증 처리 중 오류 발생", e);
             sendErrorResponse(response, "OAuth2 인증 처리 중 오류가 발생했습니다.");

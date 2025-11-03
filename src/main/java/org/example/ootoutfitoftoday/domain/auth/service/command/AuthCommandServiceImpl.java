@@ -10,6 +10,7 @@ import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.entity.RefreshToken;
+import org.example.ootoutfitoftoday.domain.auth.enums.LoginType;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.auth.repository.RefreshTokenRepository;
@@ -184,9 +185,19 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
+        // 일반 회원만 비밀번호 검증
+        if (user.getLoginType() == LoginType.LOGIN_ID) {
+            // 비밀번호가 제공되지 않은 경우 예외 발생
+            // 민감 작업이므로 보안을 위해 null과 불일치 동일하게 처리
+            if (request.getPassword() == null || request.getPassword().isBlank()) {
+                throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
+            }
+
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
+            }
         }
+        // 소셜 회원은 비밀번호 검증 없이 바로 탈퇴 처리
 
         // 리프레시 토큰 삭제
         refreshTokenRepository.deleteByUserId(user.getId());

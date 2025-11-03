@@ -45,10 +45,13 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 60)
     private String username;
 
-    @Column(nullable = false, length = 255)
+    // 소셜 로그인을 위해 nullable = true
+    @Column(nullable = true, length = 255)
     private String password;
 
-    @Column(nullable = false, unique = true, length = 30)
+    // 소셜 로그인을 위해 nullable = true
+    // UNIQUE + nullable = true 조합 가능
+    @Column(nullable = true, unique = true, length = 30)
     private String phoneNumber;
 
     @Column(nullable = false, length = 10)
@@ -189,8 +192,8 @@ public class User extends BaseEntity {
                 .email(email)
                 .nickname(nickname)
                 .username(username)
-                .password("")
-                .phoneNumber("")
+                .password(null)
+                .phoneNumber(null)
                 .role(UserRole.ROLE_USER)
                 .tradeAddress(DefaultLocationConstants.DEFAULT_TRADE_ADDRESS)
                 .tradeLocation(null)

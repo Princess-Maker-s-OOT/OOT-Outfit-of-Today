@@ -88,7 +88,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         updateLocationUser.updateTradeLocation(DefaultLocationConstants.DEFAULT_TRADE_ADDRESS, DefaultLocationConstants.DEFAULT_TRADE_LOCATION);
 
-        userRepository.updateTradeLocationAsNativeQuery(updateLocationUser.getId(),updateLocationUser.getTradeAddress(), updateLocationUser.getTradeLocation());
+        userRepository.updateTradeLocationAsNativeQuery(updateLocationUser.getId(), updateLocationUser.getTradeAddress(), updateLocationUser.getTradeLocation());
 
         return socialUser;
     }
@@ -128,7 +128,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     public void softDeleteUser(User user) {
 
         if (user.isDeleted()) {
-            throw new UserException(UserErrorCode.USER_ALREADY_WITHDRAWN);
+            throw new AuthException(AuthErrorCode.USER_ALREADY_WITHDRAWN);
         }
 
         LocalDateTime now = LocalDateTime.now();
