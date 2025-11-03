@@ -163,7 +163,7 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
        SELECT sp FROM SalePost sp
        WHERE sp.id = :id
          AND sp.isDeleted = false
-         AND sp.status = org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus.AVAILABLE
+         AND sp.status = 'AVAILABLE'
     """)
     Optional<SalePost> findAvailableByIdForUpdate(@Param("id") Long id);
 }
