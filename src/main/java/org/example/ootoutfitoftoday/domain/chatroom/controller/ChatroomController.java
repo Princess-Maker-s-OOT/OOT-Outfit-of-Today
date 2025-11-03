@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1/chatrooms")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class ChatroomController {
 
     private final ChatroomCommandService chatroomCommandService;
@@ -39,11 +40,12 @@ public class ChatroomController {
     @Operation(
             summary = "채팅방 생성",
             description = "회원이 채팅방을 생성합니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "201", description = "생성 성공"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-                    @ApiResponse(responseCode = "401", description = "인증 실패")
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "판매 게시글을 찾을 수 없음"),
+                    @ApiResponse(responseCode = "409", description = "이미 채팅방이 존재함")
             }
     )
     @PostMapping
@@ -69,9 +71,9 @@ public class ChatroomController {
     @Operation(
             summary = "채팅방 조회",
             description = "회원이 채팅방을 조회합니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 페이지 또는 사이즈 파라미터"),
                     @ApiResponse(responseCode = "401", description = "인증 실패")
             }
     )
@@ -100,11 +102,12 @@ public class ChatroomController {
     @Operation(
             summary = "채팅방 삭제",
             description = "회원이 채팅방을 삭제합니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "삭제 성공"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-                    @ApiResponse(responseCode = "401", description = "인증 실패")
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "403", description = "권한 없음"),
+                    @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
             }
     )
     @DeleteMapping("/{chatroomId}")
