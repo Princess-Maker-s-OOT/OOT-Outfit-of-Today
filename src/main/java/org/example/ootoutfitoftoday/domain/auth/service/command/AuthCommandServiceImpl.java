@@ -188,6 +188,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         // 일반 회원만 비밀번호 검증
         if (user.getLoginType() == LoginType.LOGIN_ID) {
             // 비밀번호가 제공되지 않은 경우 예외 발생
+            // 민감 작업이므로 보안을 위해 null과 불일치 동일하게 처리
             if (request.getPassword() == null || request.getPassword().isBlank()) {
                 throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
             }
