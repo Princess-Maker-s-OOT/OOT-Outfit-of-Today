@@ -188,7 +188,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         // 새로운 리프레시 토큰 생성(RTR)
         // RTR(Refresh Token Rotation): 보안을 위해 리프레시 토큰도 재사용하지 않고 폐기 & 새로 발급
         String newRefreshToken = jwtUtil.createRefreshToken(user.getId());
-        LocalDateTime newExpiresAt = LocalDateTime.now().plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
+
+        LocalDateTime newExpiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
 
         // updateToken 호출 시 lastUsedAt도 자동 갱신됨
         storedToken.updateToken(newRefreshToken, newExpiresAt);
@@ -270,7 +271,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             String refreshToken,
             HttpServletRequest httpRequest
     ) {
-        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
+        LocalDateTime newExpiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
 
         // 클라이언트 IP 추출
         String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
@@ -281,7 +282,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         refreshTokenRepository.findByUserIdAndDeviceId(user.getId(), deviceId)
                 .ifPresentOrElse(
                         // 기존 토큰이 있으면 갱신(lastUsedAt도 자동 갱신됨)
-                        existingToken -> existingToken.updateToken(refreshToken, expiresAt),
+                        existingToken -> existingToken.updateToken(refreshToken, newExpiresAt),
                         () -> {
                             // 없으면 새로 생성하여 저장(모든 필드 포함)
                             RefreshToken newToken = RefreshToken.create(
@@ -289,7 +290,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                                     deviceId,
                                     deviceName,
                                     refreshToken,
-                                    expiresAt,
+                                    newExpiresAt,
                                     ipAddress,
                                     userAgent
                             );
