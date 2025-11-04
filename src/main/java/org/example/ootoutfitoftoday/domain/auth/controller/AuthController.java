@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
@@ -50,16 +51,18 @@ public class AuthController {
             summary = "회원 로그인",
             description = "아이디와 비밀번호를 사용하여 로그인합니다.\n\n" +
                     "- Access Token: 응답 바디에 포함 (60분)\n" +
-                    "- Refresh Token: 응답 바디에 포함 (7일)",
+                    "- Refresh Token: 응답 바디에 포함 (7일)\n" +
+                    "- Device ID: 클라이언트가 생성한 UUID 필수 전송",
             responses = {
                     @ApiResponse(responseCode = "200", description = "로그인 성공, 토큰 생성"),
                     @ApiResponse(responseCode = "401", description = "로그인 실패(잘못된 아이디 또는 비밀번호)")
             })
     @PostMapping("/login")
     public ResponseEntity<Response<AuthLoginResponse>> login(
-            @Valid @RequestBody AuthLoginRequest request
+            @Valid @RequestBody AuthLoginRequest request,
+            HttpServletRequest httpRequest    // IP, User-Agent 추출용
     ) {
-        AuthLoginResponse response = authCommandService.login(request);
+        AuthLoginResponse response = authCommandService.login(request, httpRequest);
 
         return Response.success(response, AuthSuccessCode.USER_LOGIN);
     }
@@ -68,7 +71,8 @@ public class AuthController {
     @Operation(
             summary = "토큰 재발급",
             description = "리프레시 토큰을 사용하여 새로운 액세스 토큰과 리프레시 토큰을 발급합니다.(RTR)\n\n" +
-                    "- 리프레시 토큰은 Body로 전송",
+                    "- 리프레시 토큰은 Body로 전송\n" +
+                    "- Device ID도 함께 전송하여 디바이스 검증",
             responses = {
                     @ApiResponse(responseCode = "200", description = "토큰 재발급 성공"),
                     @ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 리프레시 토큰")
@@ -77,16 +81,19 @@ public class AuthController {
     public ResponseEntity<Response<AuthLoginResponse>> refresh(
             @Valid @RequestBody RefreshTokenRequest request
     ) {
-        AuthLoginResponse response = authCommandService.refresh(request.getRefreshToken());
+        // deviceId 전달
+        AuthLoginResponse response = authCommandService.refresh(request.getRefreshToken(), request.getDeviceId());
 
         return Response.success(response, AuthSuccessCode.TOKEN_REFRESH);
     }
 
     // 로그아웃
+    // deviceId 쿼리 파라미터 추가
     @Operation(
             summary = "로그아웃",
-            description = "사용자를 로그아웃하고 리프레시 토큰을 무효화합니다.\n\n" +
-                    "- DB에서 리프레시 토큰 삭제",
+            description = "특정 디바이스에서 로그아웃하고 리프레시 토큰을 무효화합니다.\n\n" +
+                    "- DB에서 해당 디바이스의 리프레시 토큰 삭제\n" +
+                    "- 다른 디바이스는 계속 로그인 상태 유지",
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
@@ -94,9 +101,10 @@ public class AuthController {
             })
     @PostMapping("/logout")
     public ResponseEntity<Response<Void>> logout(
-            @AuthenticationPrincipal AuthUser authUser
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam String deviceId
     ) {
-        authCommandService.logout(authUser);
+        authCommandService.logout(authUser, deviceId);
 
         return Response.success(null, AuthSuccessCode.USER_LOGOUT);
     }
