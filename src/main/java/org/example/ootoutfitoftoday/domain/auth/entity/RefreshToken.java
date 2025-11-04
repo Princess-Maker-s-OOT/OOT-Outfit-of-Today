@@ -11,7 +11,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "refresh_tokens")
+@Table(
+        name = "refresh_tokens",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "device_id"})
+)
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -25,34 +28,72 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "token", nullable = false, unique = true, length = 500)
+
+    // 디바이스 고유 식별자(클라이언트에서 생성한 UUID)
+    @Column(name = "device_id", nullable = false, length = 255)
+    private String deviceId;
+
+    // 디바이스 명
+    @Column(name = "device_name", length = 100)
+    private String deviceName;
+
+    // 유니크 제거 조건 제거 -> 디바이스별로 여러 토큰 허용
+    @Column(name = "token", nullable = false, length = 500)
     private String token;
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
+    // 마지막 사용 시간(디바이스 활동 추적)
+    @Column(name = "last_used_at")
+    private LocalDateTime lastUsedAt;
+
+    // IP 주소(보안 추적)
+    @Column(name = "ip_address", length = 45)
+    private String ipAddress;
+
+    // 브라우저 & 디바이스 정보
+    @Column(name = "user_agent", length = 500)
+    private String userAgent;
+
     @Builder(access = AccessLevel.PROTECTED)
     private RefreshToken(
             User user,
+            String deviceId,
+            String deviceName,
             String token,
-            LocalDateTime expiresAt
+            LocalDateTime expiresAt,
+            String ipAddress,
+            String userAgent
     ) {
         this.user = user;
+        this.deviceId = deviceId;
+        this.deviceName = deviceName;
         this.token = token;
         this.expiresAt = expiresAt;
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
     }
 
     // 리프레시 토큰 생성
     public static RefreshToken create(
             User user,
+            String deviceId,
+            String deviceName,
             String token,
-            LocalDateTime expiresAt
+            LocalDateTime expiresAt,
+            String ipAddress,
+            String userAgent
     ) {
 
         return RefreshToken.builder()
                 .user(user)
+                .deviceId(deviceId)
+                .deviceName(deviceName)
                 .token(token)
                 .expiresAt(expiresAt)
+                .ipAddress(ipAddress)
+                .userAgent(userAgent)
                 .build();
     }
 
@@ -62,6 +103,7 @@ public class RefreshToken {
 
         this.token = newToken;
         this.expiresAt = newExpiresAt;
+        this.lastUsedAt = LocalDateTime.now();    // 업데이트 시 마지막 사용 시간도 갱신
     }
 
     // 리프레시 토큰 만료 여부 확인
