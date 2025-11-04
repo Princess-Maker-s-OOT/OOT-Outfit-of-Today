@@ -13,9 +13,12 @@ set -euo pipefail
 if [ "${DEPLOY_TARGET}" == "batch" ]; then
   : "${EC2_INSTANCE_ID_BATCH:?EC2_INSTANCE_ID_BATCH required}"
   EC2_INSTANCE_ID="${EC2_INSTANCE_ID_BATCH}"
-else
+elif [ "${DEPLOY_TARGET}" == "web" ]; then
   : "${EC2_INSTANCE_ID_DEV:?EC2_INSTANCE_ID_DEV required}"
   EC2_INSTANCE_ID="${EC2_INSTANCE_ID_DEV}"
+else
+  echo "[ERROR] Invalid DEPLOY_TARGET: ${DEPLOY_TARGET}. Must be 'web' or 'batch'." >&2
+  exit 1
 fi
 
 echo "[INFO] DEPLOY_TARGET=${DEPLOY_TARGET}"
