@@ -3,7 +3,7 @@ package org.example.ootoutfitoftoday.domain.auth.service.query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.DeviceInfoResponse;
+import org.example.ootoutfitoftoday.domain.auth.dto.response.DeviceInfoResponse;
 import org.example.ootoutfitoftoday.domain.auth.entity.RefreshToken;
 import org.example.ootoutfitoftoday.domain.auth.repository.RefreshTokenRepository;
 import org.springframework.stereotype.Service;

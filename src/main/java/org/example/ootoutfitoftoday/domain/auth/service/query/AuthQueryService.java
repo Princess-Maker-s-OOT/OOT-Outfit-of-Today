@@ -1,7 +1,7 @@
 package org.example.ootoutfitoftoday.domain.auth.service.query;
 
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.DeviceInfoResponse;
+import org.example.ootoutfitoftoday.domain.auth.dto.response.DeviceInfoResponse;
 
 import java.util.List;
 

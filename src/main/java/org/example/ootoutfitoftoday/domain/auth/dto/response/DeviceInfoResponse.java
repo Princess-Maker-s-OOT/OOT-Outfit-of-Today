@@ -1,4 +1,4 @@
-package org.example.ootoutfitoftoday.domain.auth.dto.request;
+package org.example.ootoutfitoftoday.domain.auth.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
