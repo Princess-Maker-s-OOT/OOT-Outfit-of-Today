@@ -96,3 +96,4 @@ for i in {1..30}; do
 done
 
 echo "[ERROR] SSM command did not complete in time"
+exit 1
