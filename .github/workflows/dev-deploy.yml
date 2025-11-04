@@ -2,7 +2,7 @@ name: Deploy (dev)
 
 on:
   push:
-    branches: [ "dev" ] # dev 브랜치 push 시에만 실행
+    branches: [ "batch" ]
 
 permissions:
   id-token: write     # OIDC 인증을 위해 필요
