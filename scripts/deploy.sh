@@ -55,16 +55,9 @@ EOF
 CMDS=(
   "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REG_URI}"
   "docker pull ${FULL_URI}"
-
-  # 메인 서버
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
   "docker run -d --name ${CONTAINER_NAME} --restart=always -p ${APP_PORT}:${APP_PORT} -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} ${FULL_URI}"
-
-   # 배치 서버
-    "docker stop ${CONTAINER_NAME}-batch || true"
-    "docker rm   ${CONTAINER_NAME}-batch || true"
-    "docker run -d --name ${CONTAINER_NAME}-batch --restart=always -e SPRING_PROFILES_ACTIVE=batch ${FULL_URI}"
 )
 
 # Bash 배열 → JSON 배열 변환 (jq 필수)
