@@ -68,7 +68,7 @@ public class KakaoMapClient {
                 throw new KakaoMapException(KakaoMapErrorCode.INVALID_API_RESPONSE);
             }
 
-            log.info("카카오맵 API 호출 성공: totalCount={}", body.getMeta().getTotalCount());
+            log.info("카카오맵 API 호출 성공: totalCount={}", body.meta().totalCount());
             return body;
 
         } catch (HttpClientErrorException e) {
