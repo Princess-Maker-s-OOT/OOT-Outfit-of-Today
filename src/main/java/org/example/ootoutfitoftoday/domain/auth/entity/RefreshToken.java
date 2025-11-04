@@ -53,6 +53,8 @@ public class RefreshToken {
     private String ipAddress;
 
     // 브라우저 & 디바이스 정보
+    // HTTP 요청 헤더 중 하나로, 클라이언트 환경 정보를 문자열로 전달
+    // 서버에서는 누가 어떤 환경에서 요청했는지 확인 가능
     @Column(name = "user_agent", length = 500)
     private String userAgent;
 
