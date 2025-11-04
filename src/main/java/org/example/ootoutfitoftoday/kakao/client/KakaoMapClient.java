@@ -115,10 +115,10 @@ public class KakaoMapClient {
                 .path(KEYWORD_SEARCH_PATH)
                 .queryParam("query", keyword);
 
-        if (x != null && !x.trim().isEmpty()) {
+        if (x != null) {
             builder.queryParam("x", x);
         }
-        if (y != null && !y.trim().isEmpty()) {
+        if (y != null) {
             builder.queryParam("y", y);
         }
         if (radius != null) {
