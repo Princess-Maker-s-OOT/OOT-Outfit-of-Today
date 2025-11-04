@@ -9,16 +9,16 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.RefreshTokenRequest;
+import org.example.ootoutfitoftoday.domain.auth.dto.request.*;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthSuccessCode;
 import org.example.ootoutfitoftoday.domain.auth.service.command.AuthCommandService;
+import org.example.ootoutfitoftoday.domain.auth.service.query.AuthQueryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "회원 관리", description = "회원 관련 API")
 @RestController
@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthCommandService authCommandService;
+    private final AuthQueryService authQueryService;
 
     // 회원가입
     @Operation(
@@ -65,6 +66,27 @@ public class AuthController {
         AuthLoginResponse response = authCommandService.login(request, httpRequest);
 
         return Response.success(response, AuthSuccessCode.USER_LOGIN);
+    }
+
+    // 내 디바이스 목록 조회
+    @Operation(
+            summary = "내 디바이스 목록",
+            description = "현재 로그인된 모든 디바이스 목록을 조회합니다.\n\n" +
+                    "- 디바이스 ID, 이름, 마지막 사용 시간 등 포함\n" +
+                    "- 최근 사용 순으로 정렬",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            })
+    @GetMapping("/devices")
+    public ResponseEntity<Response<List<DeviceInfoResponse>>> getDevices(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam String currentDeviceId
+    ) {
+        List<DeviceInfoResponse> devices = authQueryService.getDeviceList(authUser, currentDeviceId);
+
+        return Response.success(devices, AuthSuccessCode.DEVICE_LIST_RETRIEVED);
     }
 
     // 토큰 재발급
