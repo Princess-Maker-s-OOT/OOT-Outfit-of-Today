@@ -3,11 +3,24 @@ set -euo pipefail
 
 # ===== 필수 환경변수 점검 =====
 : "${AWS_REGION:?AWS_REGION required}"
-: "${EC2_INSTANCE_ID:?EC2_INSTANCE_ID required}"
+: "${DEPLOY_TARGET:?DEPLOY_TARGET required}"  # web or batch
 : "${FULL_URI:?FULL_URI required}"
 : "${CONTAINER_NAME:?CONTAINER_NAME required}"
 : "${APP_PORT:?APP_PORT required}"
 : "${SPRING_PROFILE:?SPRING_PROFILE required}"
+
+# ===== 서버별 Instance ID 매핑 =====
+if [ "${DEPLOY_TARGET}" == "batch" ]; then
+  : "${EC2_INSTANCE_ID_BATCH:?EC2_INSTANCE_ID_BATCH required}"
+  EC2_INSTANCE_ID="${EC2_INSTANCE_ID_BATCH}"
+else
+  : "${EC2_INSTANCE_ID_DEV:?EC2_INSTANCE_ID_DEV required}"
+  EC2_INSTANCE_ID="${EC2_INSTANCE_ID_DEV}"
+fi
+
+echo "[INFO] DEPLOY_TARGET=${DEPLOY_TARGET}"
+echo "[INFO] EC2_INSTANCE_ID=${EC2_INSTANCE_ID}"
+echo "[INFO] SPRING_PROFILE=${SPRING_PROFILE}"
 
 MONITORING_EC2_PRIVATE_IP="10.0.1.82"
 
@@ -18,14 +31,13 @@ REPO="$(echo "${REPO_AND_TAG}" | rev | cut -d: -f2- | rev)"
 TAG="$(echo "${REPO_AND_TAG}"  | awk -F: '{print $NF}')"
 
 # SSM 코멘트(100자 제한 방어)
-COMMENT="Deploy ${REPO}:${TAG}"
+COMMENT="Deploy ${REPO}:${TAG} (${DEPLOY_TARGET})"
 if [ ${#COMMENT} -gt 100 ]; then
   COMMENT="${COMMENT:0:100}"
 fi
 
 echo "[INFO] FULL_URI=${FULL_URI}"
 echo "[INFO] REG_URI=${REG_URI}"
-echo "[INFO] EC2_INSTANCE_ID=${EC2_INSTANCE_ID}"
 echo "[INFO] COMMENT=${COMMENT}"
 
 # -----------------------------------------------------------------
@@ -60,12 +72,18 @@ CMDS=(
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
   "docker run -d --name ${CONTAINER_NAME} --restart=always -p ${APP_PORT}:${APP_PORT} -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} ${FULL_URI}"
+)
 
-   # 배치 서버
+# 배치 서버일 경우 batch 전용 컨테이너 실행
+if [ "${DEPLOY_TARGET}" == "batch" ]; then
+  CMDS+=(
+    "echo '[STEP] Batch Container Deploy...'"
     "docker stop ${CONTAINER_NAME}-batch || true"
     "docker rm   ${CONTAINER_NAME}-batch || true"
-    "docker run -d --name ${CONTAINER_NAME}-batch --restart=always -e SPRING_PROFILES_ACTIVE=batch ${FULL_URI}"
-)
+    "docker run -d --name ${CONTAINER_NAME}-batch --restart=always \
+       -e SPRING_PROFILES_ACTIVE=batch ${FULL_URI}"
+  )
+fi
 
 # Bash 배열 → JSON 배열 변환 (jq 필수)
 COMMANDS_JSON=$(jq -Rn --argjson arr "$(printf '%s\n' "${CMDS[@]}" | jq -R . | jq -s .)" '$arr')
