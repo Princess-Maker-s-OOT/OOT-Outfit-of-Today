@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
+import org.example.ootoutfitoftoday.common.util.HttpRequestUtil;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
@@ -187,8 +188,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         // 새로운 리프레시 토큰 생성(RTR)
         // RTR(Refresh Token Rotation): 보안을 위해 리프레시 토큰도 재사용하지 않고 폐기 & 새로 발급
         String newRefreshToken = jwtUtil.createRefreshToken(user.getId());
-        LocalDateTime newExpiresAt = LocalDateTime.now()
-                .plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
+        LocalDateTime newExpiresAt = LocalDateTime.now().plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
 
         // updateToken 호출 시 lastUsedAt도 자동 갱신됨
         storedToken.updateToken(newRefreshToken, newExpiresAt);
@@ -270,11 +270,10 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             String refreshToken,
             HttpServletRequest httpRequest
     ) {
-        LocalDateTime expiresAt = LocalDateTime.now()
-                .plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
+        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
 
         // 클라이언트 IP 추출
-        String ipAddress = getClientIp(httpRequest);
+        String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
 
         // User-Agent 추출
         String userAgent = httpRequest.getHeader("User-Agent");
@@ -297,23 +296,5 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                             refreshTokenRepository.save(newToken);
                         }
                 );
-    }
-
-    // private 메서드 - 클라이언트 실제 IP 추출
-    // X-Forwarded-For, X-Real-IP 헤더 우선 확인(프록시/로드밸런서 대응)
-    private String getClientIp(HttpServletRequest request) {
-
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty()) {
-            ip = request.getHeader("X-Real-IP");
-        }
-        if (ip == null || ip.isEmpty()) {
-            ip = request.getRemoteAddr();
-        }
-        // X-Forwarded-For는 "client, proxy1, proxy2" 형식일 수 있음
-        if (ip != null && ip.contains(",")) {
-            ip = ip.split(",")[0].trim();
-        }
-        return ip;
     }
 }
