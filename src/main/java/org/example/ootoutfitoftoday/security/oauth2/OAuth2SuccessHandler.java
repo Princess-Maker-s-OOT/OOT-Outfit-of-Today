@@ -122,7 +122,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         catch (AuthException ae) {
             log.warn("OAuth2 인증 실패: {}", ae.getMessage());
             sendErrorResponse(response, ae.getMessage());
-            
+
         } catch (Exception e) {
             log.error("OAuth2 인증 처리 중 오류 발생", e);
             sendErrorResponse(response, "OAuth2 인증 처리 중 오류가 발생했습니다.");
@@ -169,7 +169,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     // 액세스 & 리프레시 토큰 발급 후 JSON으로 반환
-    private void issueTokensAndRespond(HttpServletResponse response, User user, boolean isNewUser) throws IOException {
+    private void issueTokensAndRespond(
+            HttpServletResponse response,
+            User user,
+            boolean isNewUser
+    ) throws IOException {
 
         // 액세스 토큰 생성
         String accessToken = jwtUtil.createAccessToken(user.getId(), user.getRole());
