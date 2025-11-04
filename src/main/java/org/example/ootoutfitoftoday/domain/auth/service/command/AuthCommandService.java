@@ -31,5 +31,8 @@ public interface AuthCommandService {
     // 모든 디바이스에서 로그아웃
     void logoutAll(AuthUser authUser);
 
+    // 특정 디바이스 강제 제거
+    void removeDevice(AuthUser authUser, String deviceId);
+
     void withdraw(AuthWithdrawRequest request, AuthUser authUser);
 }

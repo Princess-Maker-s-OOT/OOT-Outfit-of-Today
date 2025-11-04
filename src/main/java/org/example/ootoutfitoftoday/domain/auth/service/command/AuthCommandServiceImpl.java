@@ -215,6 +215,13 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         refreshTokenRepository.deleteByUserId(authUser.getUserId());
     }
 
+    // 특정 디바이스 강제 제거
+    @Override
+    public void removeDevice(AuthUser authUser, String deviceId) {
+
+        refreshTokenRepository.deleteByUserIdAndDeviceId(authUser.getUserId(), deviceId);
+    }
+
     // 회원탈퇴
     @Override
     public void withdraw(AuthWithdrawRequest request, AuthUser authUser) {

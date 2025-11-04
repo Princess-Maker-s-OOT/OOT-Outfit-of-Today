@@ -129,6 +129,27 @@ public class AuthController {
         return Response.success(null, AuthSuccessCode.USER_LOGOUT);
     }
 
+    // 특정 디바이스 강제 로그아웃
+    @Operation(
+            summary = "디바이스 제거",
+            description = "특정 디바이스를 강제로 로그아웃합니다.\n\n" +
+                    "- 분실한 디바이스 또는 의심스러운 디바이스 제거\n" +
+                    "- 해당 디바이스의 리프레시 토큰 삭제",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "디바이스 제거 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            })
+    @DeleteMapping("/devices/{deviceId}")
+    public ResponseEntity<Response<Void>> removeDevice(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable String deviceId
+    ) {
+        authCommandService.removeDevice(authUser, deviceId);
+
+        return Response.success(null, AuthSuccessCode.DEVICE_REMOVED);
+    }
+
     // 회원탈퇴
     @Operation(
             summary = "회원 삭제",
