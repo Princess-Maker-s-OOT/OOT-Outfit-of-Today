@@ -146,6 +146,10 @@ public class KakaoMapClient {
             throw new KakaoMapException(KakaoMapErrorCode.INVALID_API_KEY);
         } else if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
             throw new KakaoMapException(KakaoMapErrorCode.API_QUOTA_EXCEEDED);
+        } else if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+            throw new KakaoMapException(KakaoMapErrorCode.INVALID_SEARCH_KEYWORD);
         }
+        // 그 외의 클라이언트 오류에 대해서도 기본 예외를 던짐
+        throw new KakaoMapException(KakaoMapErrorCode.API_CALL_FAILED);
     }
 }
