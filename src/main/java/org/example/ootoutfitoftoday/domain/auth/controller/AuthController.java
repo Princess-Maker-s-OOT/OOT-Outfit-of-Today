@@ -109,6 +109,26 @@ public class AuthController {
         return Response.success(null, AuthSuccessCode.USER_LOGOUT);
     }
 
+    // 모든 디바이스에서 로그아웃
+    @Operation(
+            summary = "전체 로그아웃",
+            description = "모든 디바이스에서 로그아웃합니다.\n\n" +
+                    "- 모든 디바이스의 리프레시 토큰 삭제\n" +
+                    "- 보안 위협 발생 시 사용",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "전체 로그아웃 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
+            })
+    @PostMapping("/logout/all")
+    public ResponseEntity<Response<Void>> logoutAll(
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+        authCommandService.logoutAll(authUser);
+
+        return Response.success(null, AuthSuccessCode.USER_LOGOUT);
+    }
+
     // 회원탈퇴
     @Operation(
             summary = "회원 삭제",

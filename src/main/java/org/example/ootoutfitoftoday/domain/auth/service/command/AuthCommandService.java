@@ -28,5 +28,8 @@ public interface AuthCommandService {
     // deviceId 파라미터 추가(특정 디바이스만 로그아웃)
     void logout(AuthUser authUser, String deviceId);
 
+    // 모든 디바이스에서 로그아웃
+    void logoutAll(AuthUser authUser);
+
     void withdraw(AuthWithdrawRequest request, AuthUser authUser);
 }

@@ -208,6 +208,13 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         refreshTokenRepository.deleteByUserIdAndDeviceId(user.getId(), deviceId);
     }
 
+    // 모든 디바이스에서 로그아웃
+    @Override
+    public void logoutAll(AuthUser authUser) {
+
+        refreshTokenRepository.deleteByUserId(authUser.getUserId());
+    }
+
     // 회원탈퇴
     @Override
     public void withdraw(AuthWithdrawRequest request, AuthUser authUser) {
