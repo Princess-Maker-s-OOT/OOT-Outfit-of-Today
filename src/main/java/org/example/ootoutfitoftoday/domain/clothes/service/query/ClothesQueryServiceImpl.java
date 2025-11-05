@@ -12,6 +12,7 @@ import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesErrorCode;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesException;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
 import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
@@ -132,5 +133,11 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
     public List<ClothesWearCount> leastWornClothes(Long userId) {
 
         return clothesRepository.leastWornClothes(userId);
+    }
+
+    @Override
+    public List<NotWornOverPeriod> notWornOverPeriod(Long userId) {
+
+        return clothesRepository.notWornOverPeriod(userId);
     }
 }
