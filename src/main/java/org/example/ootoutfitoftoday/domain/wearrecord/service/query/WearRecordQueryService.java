@@ -1,7 +1,6 @@
 package org.example.ootoutfitoftoday.domain.wearrecord.service.query;
 
 import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
 import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.WearRecordGetMyResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +21,4 @@ public interface WearRecordQueryService {
 
     // 자주 입은 옷 (전체 기간)
     List<ClothesWearCount> topWornClothes(Long userId);
-
-    // 옷 미착용 기간
-    List<NotWornOverPeriod> notWornOverPeriod(Long userId);
 }

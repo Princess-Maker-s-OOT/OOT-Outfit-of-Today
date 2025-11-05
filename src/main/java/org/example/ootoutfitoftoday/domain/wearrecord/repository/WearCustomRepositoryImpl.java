@@ -4,9 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.clothes.entity.QClothes;
 import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
 import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.QClothesWearCount;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.QNotWornOverPeriod;
 import org.example.ootoutfitoftoday.domain.wearrecord.entity.QWearRecord;
 
 import java.time.DayOfWeek;
@@ -55,7 +53,7 @@ public class WearCustomRepositoryImpl implements WearCustomRepository {
                         wearRecord.wornAt.between(startOfWeek, endOfWeek)
                 )
                 .groupBy(wearRecord.clothes.id, wearRecord.clothes.description)
-                .orderBy(wearRecord.id.count().desc(), clothes.id.count().asc())
+                .orderBy(wearRecord.id.count().desc(), wearRecord.clothes.id.count().asc())
                 .limit(10)
                 .fetch();
     }
@@ -74,27 +72,8 @@ public class WearCustomRepositoryImpl implements WearCustomRepository {
                 .leftJoin(wearRecord.clothes, clothes)
                 .where(wearRecord.user.id.eq(userId))
                 .groupBy(wearRecord.clothes.id, wearRecord.clothes.description)
-                .orderBy(wearRecord.id.count().desc(), clothes.id.count().asc())
+                .orderBy(wearRecord.id.count().desc(), wearRecord.clothes.id.count().asc())
                 .limit(5)
-                .fetch();
-    }
-
-    // 옷 미착용 기간
-    @Override
-    public List<NotWornOverPeriod> notWornOverPeriod(Long userId) {
-
-        return jpaQueryFactory
-                .select(new QNotWornOverPeriod(
-                        wearRecord.clothes.id,
-                        wearRecord.clothes.description,
-                        wearRecord.clothes.lastWornAt
-                ))
-                .from(wearRecord)
-                .leftJoin(wearRecord.clothes, clothes)
-                .where(wearRecord.user.id.eq(userId))
-                .groupBy(wearRecord.clothes.id, wearRecord.clothes.description)
-                .orderBy(wearRecord.clothes.lastWornAt.asc(), wearRecord.clothes.id.asc())
-                .limit(10)
                 .fetch();
     }
 }

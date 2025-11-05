@@ -2,7 +2,6 @@ package org.example.ootoutfitoftoday.domain.wearrecord.service.query;
 
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
 import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.WearRecordGetMyResponse;
 import org.example.ootoutfitoftoday.domain.wearrecord.entity.WearRecord;
 import org.example.ootoutfitoftoday.domain.wearrecord.repository.WearRecordRepository;
@@ -47,11 +46,5 @@ public class WearRecordQueryServiceImpl implements WearRecordQueryService {
     public List<ClothesWearCount> topWornClothes(Long userId) {
 
         return wearRecordRepository.topWornClothes(userId);
-    }
-
-    @Override
-    public List<NotWornOverPeriod> notWornOverPeriod(Long userId) {
-
-        return wearRecordRepository.notWornOverPeriod(userId);
     }
 }
