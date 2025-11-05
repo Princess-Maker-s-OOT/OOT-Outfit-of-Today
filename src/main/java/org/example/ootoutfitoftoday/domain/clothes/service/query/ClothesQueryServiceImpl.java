@@ -11,11 +11,15 @@ import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesErrorCode;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesException;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -125,5 +129,27 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
     public List<Clothes> findAllClothesByUserId(Long userId) {
 
         return clothesRepository.findAllByUserIdAndIsDeletedFalse(userId);
+    }
+
+    @Override
+    public List<ClothesWearCount> leastWornClothes(Long userId) {
+
+        return clothesRepository.leastWornClothes(userId);
+    }
+
+    @Override
+    public List<NotWornOverPeriod> notWornOverPeriod(Long userId) {
+
+        return clothesRepository.notWornOverPeriod(userId)
+                .stream()
+                .map(dto -> NotWornOverPeriod.builder()
+                        .clothesId(dto.getClothesId())
+                        .clothesDescription(dto.getClothesDescription())
+                        .lastWornAt(dto.getLastWornAt())
+                        .daysNotWorn(dto.getLastWornAt() == null
+                                ? 0L
+                                : ChronoUnit.DAYS.between(dto.getLastWornAt(), LocalDateTime.now()))
+                        .build())
+                .toList();
     }
 }
