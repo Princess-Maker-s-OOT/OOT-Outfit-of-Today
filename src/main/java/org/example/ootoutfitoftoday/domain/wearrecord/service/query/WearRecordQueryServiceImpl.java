@@ -1,6 +1,8 @@
 package org.example.ootoutfitoftoday.domain.wearrecord.service.query;
 
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
 import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.WearRecordGetMyResponse;
 import org.example.ootoutfitoftoday.domain.wearrecord.entity.WearRecord;
 import org.example.ootoutfitoftoday.domain.wearrecord.repository.WearRecordRepository;
@@ -8,6 +10,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,5 +35,23 @@ public class WearRecordQueryServiceImpl implements WearRecordQueryService {
                 );
 
         return wearRecords.map(WearRecordGetMyResponse::from);
+    }
+
+    @Override
+    public List<ClothesWearCount> wornThisWeek(Long userId, LocalDate baseDate) {
+
+        return wearRecordRepository.wornThisWeek(userId, baseDate);
+    }
+
+    @Override
+    public List<ClothesWearCount> topWornClothes(Long userId) {
+
+        return wearRecordRepository.topWornClothes(userId);
+    }
+
+    @Override
+    public List<NotWornOverPeriod> notWornOverPeriod(Long userId) {
+
+        return wearRecordRepository.notWornOverPeriod(userId);
     }
 }
