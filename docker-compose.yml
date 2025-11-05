@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine                                       # 7-alpine: 최신 안정 버전 + 가벼운 이미지(용량 절약)
+    container_name: oot-redis
+    ports:
+      - "6379:6379"                                             # Redis 기본 포트
+    volumes:
+      - redis-data:/data                                        # 데이터 영속성: Redis 재시작해도 데이터 유지
+    # Redis 설정 옵션들
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass oot
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    # appendonly yes: AOF 방식 영속성(데이터 손실 최소화)
+    # requirepass: 비밀번호 설정(보안 강화, 실제로는 환경변수 권장)
+    # maxmemory: 최대 메모리 제한(로컬 환경 고려)
+    # maxmemory-policy allkeys-lru: 메모리 부족 시 가장 오래된 키 삭제
+    restart: unless-stopped                                    # Docker 재시작 시 자동 실행(수동 중지 제외)
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]    # 헬스체크 개선
+      interval: 10s                                            # 10초마다 체크
+      timeout: 3s                                              # 3초 이내 응답 없으면 실패
+      retries: 3                                               # 3번 실패하면 unhealthy 상태
+    environment:
+      - TZ=Asia/Seoul                                          # 타임존 설정(로그 시간 한국 시간으로)
+    networks:
+      - oot-network                                            # 네트워크 분리(추후 MySQL 등 추가 시 같은 네트워크 사용)
+
+  # Redis 모니터링 도구(선택사항 - 개발 시 편리)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: oot-redis-commander
+    ports:
+      - "8081:8081"                                            # 브라우저에서 localhost:8081 접속하면 Redis GUI 사용 가능
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:oot                     # Redis 연결 정보
+    depends_on:
+      - redis                                                  # Redis 실행 후 Commander 실행
+    networks:
+      - oot-network
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+    driver: local                                              # 로컬 볼륨 사용(데이터는 Docker 볼륨에 저장)
+
+networks:
+  oot-network:
+    driver: bridge                                             # 브릿지 네트워크로 컨테이너 간 통신 가능
