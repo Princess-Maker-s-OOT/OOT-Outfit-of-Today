@@ -99,6 +99,22 @@ public class RefreshToken {
                 .build();
     }
 
+    // TODO: 임시용. 추후 삭제 예정
+    public static RefreshToken create(
+            User user,
+            String token,
+            LocalDateTime expiresAt) {
+        return RefreshToken.builder()
+                .user(user)
+                .deviceId("social-login")
+                .deviceName("OAuth2")
+                .token(token)
+                .expiresAt(expiresAt)
+                .ipAddress(null)
+                .userAgent(null)
+                .build();
+    }
+
     // 리프레시 토큰 업데이트(RTR: Refresh Token Rotation)
     // 액세스 토큰 재발급 시, 리프레시 토큰도 갱신
     public void updateToken(String newToken, LocalDateTime newExpiresAt) {

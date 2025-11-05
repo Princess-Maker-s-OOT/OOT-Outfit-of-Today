@@ -41,4 +41,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     // 특정 사용자의 디바이스 수 카운트(제한 체크용)
     long countByUserId(Long userId);
+
+    // TODO: 임시용. 추후 삭제 예정
+    Optional<RefreshToken> findByUserId(Long userId);
 }

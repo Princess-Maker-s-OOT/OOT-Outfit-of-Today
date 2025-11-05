@@ -39,9 +39,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
 
-    // 리프레시 토큰 만료 시간 (기본값 7일) 주입
-    @Value("${jwt.refresh-expiration:604800000}")
-    private long refreshTokenExpiration;
+    @Value("${jwt.max-devices-per-user:5}")
+    private int maxDevicesPerUser;
 
     @Override
     public void onAuthenticationSuccess(
@@ -202,7 +201,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private void saveRefreshToken(User user, String token) {
 
         // 만료 시간 계산
-        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(refreshTokenExpiration / 1000);
+        LocalDateTime expiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
 
         // 사용자 ID로 기존 리프레시 토큰 조회
         refreshTokenRepository.findByUserId(user.getId())
