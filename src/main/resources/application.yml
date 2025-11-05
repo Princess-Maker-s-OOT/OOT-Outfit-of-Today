@@ -56,7 +56,7 @@ spring:
       region:
         static: ap-northeast-2
         ## Spring Cloud AWS(버전 3.x) 라이브러리의 정적 리전 설정 표준 키
-        ## 따라서 static -> staticRegion 수정
+        ## 따라서 staticRegion -> static 수정
 
 server:
   port: 8080
