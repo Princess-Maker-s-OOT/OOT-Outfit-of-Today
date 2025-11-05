@@ -41,7 +41,7 @@ public class DashboardUserQueryServiceImpl implements DashboardUserQueryService 
 
         List<ClothesWearCount> leastWornClothes = clothesQueryService.leastWornClothes(userId);
 
-        List<NotWornOverPeriod> notWornOverPeriod = wearRecordQueryService.notWornOverPeriod(userId);
+        List<NotWornOverPeriod> notWornOverPeriod = clothesQueryService.notWornOverPeriod(userId);
 
         return new DashboardUserWearStatisticsResponse(
                 wornThisWeek,
