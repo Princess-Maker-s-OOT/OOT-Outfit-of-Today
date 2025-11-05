@@ -75,6 +75,9 @@ logging:
 jwt:
   secret:
     key: ${jwt.secret.key}
+  # TODO: 추후 리팩토링 대상
+  refresh-expiration: 604800000  # 7일(밀리초)
+  max-devices-per-user: 5        # 기본값 5개, 필요시 변경 가능
 
 cloud:
   aws:
