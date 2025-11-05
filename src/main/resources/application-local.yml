@@ -5,7 +5,42 @@ spring:
     password: ${PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update # 로컬 개발 시 DDL 자동 업데이트 허용
+      ddl-auto: update                 # 로컬 개발 시 DDL 자동 업데이트 허용
+
+  # Redis 연결 설정(로컬 개발용)
+  data:
+    redis:
+      host: localhost                  # Docker Compose로 실행한 Redis 주소
+      port: 6379                       # Redis 기본 포트
+      password: ${REDIS_PASSWORD}      # docker-compose.yml의 requirepass와 동일
+      timeout: 3000ms                  # 연결 타임아웃(3초)
+      lettuce: # Lettuce 클라이언트 설정(기본 클라이언트)
+        pool:
+          max-active: 8                # 최대 연결 수
+          max-idle: 8                  # 유휴 상태 최대 연결 수
+          min-idle: 2                  # 유휴 상태 최소 연결 수
+          max-wait: -1ms               # 연결 대기 시간(-1은 무제한)
+
+  # 캐시 설정
+  cache:
+    type: redis                        # 캐시 타입을 Redis로 지정
+    redis:
+      time-to-live: 3600000            # 기본 TTL 1시간(밀리초) - 캐시 유효 시간
+      cache-null-values: false         # null 값은 캐싱하지 않음
+      key-prefix: "oot:cache:"         # 캐시 키 앞에 붙을 접두사(다른 프로젝트와 구분)
+      use-key-prefix: true
+
+# Redisson 설정(분산 락 등 고급 기능용)
+redisson:
+  single-server:
+    address: redis://localhost:6379    # Redis 서버 주소
+    password: ${REDIS_PASSWORD}
+    connection-pool-size: 64           # 연결 풀 크기
+    connection-minimum-idle-size: 10
+    idle-connection-timeout: 10000
+    timeout: 3000
+    retry-attempts: 3                  # 재시도 횟수
+    retry-interval: 1500
 
 springdoc:
   api-docs:
