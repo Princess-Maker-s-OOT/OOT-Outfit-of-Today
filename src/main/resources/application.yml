@@ -42,6 +42,22 @@ spring:
             # 백엔드 콜백 URI(Google Console에 등록한 주소와 일치해야 함)
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
+  cloud:
+    aws:
+      # AWS Parameter Store 자동 설정 비활성화(로컬 실행 오류 방지)
+      parameter-store:
+        enabled: false
+
+      # S3 버킷 설정
+      s3:
+        bucket: ${aws.s3.bucket}
+
+      # 리전 설정
+      region:
+        static: ap-northeast-2
+        ## Spring Cloud AWS(버전 3.x) 라이브러리의 정적 리전 설정 표준 키
+        ## 따라서 static -> staticRegion 수정
+
 server:
   port: 8080
   servlet:
@@ -76,15 +92,8 @@ jwt:
   secret:
     key: ${jwt.secret.key}
   # TODO: 추후 리팩토링 대상
-  refresh-expiration: 604800000  # 7일(밀리초)
-  max-devices-per-user: 5        # 기본값 5개, 필요시 변경 가능
-
-cloud:
-  aws:
-    s3:
-      bucket: ${aws.s3.bucket}
-    region:
-      staticRegion: ap-northeast-2
+  refresh-expiration: 604800000    # 7일(밀리초)
+  max-devices-per-user: 5          # 기본값 5개, 필요시 변경 가능
 
 kakao:
   map:
