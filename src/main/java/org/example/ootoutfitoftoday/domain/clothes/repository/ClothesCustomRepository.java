@@ -6,6 +6,7 @@ import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
 import org.springframework.data.domain.Slice;
 
 import java.util.List;
@@ -31,4 +32,7 @@ public interface ClothesCustomRepository {
     List<ClothesSizeCount> clothesSizesCount();
 
     List<CategoryStat> findTopCategoryStats();
+
+    // 자주 입지 않은 옷 (전체 기간)
+    List<ClothesWearCount> leastWornClothes(Long userId);
 }

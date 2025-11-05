@@ -16,6 +16,9 @@ import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothesImage.entity.QClothesImage;
 import org.example.ootoutfitoftoday.domain.image.entity.QImage;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.QClothesWearCount;
+import org.example.ootoutfitoftoday.domain.wearrecord.entity.QWearRecord;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -203,6 +206,28 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .groupBy(category.id, category.name)
                 .orderBy(clothes.count().desc())
                 .limit(10)
+                .fetch();
+    }
+
+    @Override
+    public List<ClothesWearCount> leastWornClothes(Long userId) {
+
+        QWearRecord wearRecord = QWearRecord.wearRecord;
+
+        return jpaQueryFactory
+                .select(new QClothesWearCount(
+                        clothes.id,
+                        clothes.description,
+                        wearRecord.id.count()
+                ))
+                .from(clothes)
+                .leftJoin(wearRecord)
+                .on(wearRecord.clothes.id.eq(clothes.id)
+                        .and(wearRecord.user.id.eq(userId)))
+                .where(clothes.user.id.eq(userId))
+                .groupBy(clothes.id, clothes.description)
+                .orderBy(wearRecord.id.count().asc(), clothes.id.asc())
+                .limit(5)
                 .fetch();
     }
 }
