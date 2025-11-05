@@ -31,22 +31,27 @@ services:
       - oot-network                                            # 네트워크 분리(추후 MySQL 등 추가 시 같은 네트워크 사용)
 
   # Redis 모니터링 도구(선택사항 - 개발 시 편리)
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: oot-redis-commander
+  # Redis Insight: Redis 공식 GUI 도구(Commander보다 기능 풍부)
+  redis-insight:
+    image: redis/redisinsight:latest                          # Redis 공식 모니터링 도구 최신 버전
+    container_name: oot-redis-insight
     ports:
-      - "8081:8081"                                            # 브라우저에서 localhost:8081 접속하면 Redis GUI 사용 가능
-    environment:
-      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD}       # Redis 연결 정보
+      - "5540:5540"                                           # 브라우저에서 localhost:5540 접속하면 Redis GUI 사용 가능
+    volumes:
+      - redisinsight-data:/data                               # Redis Insight 설정 및 연결 정보 저장용(재시작 시에도 유지)
     depends_on:
-      - redis                                                  # Redis 실행 후 Commander 실행
+      - redis                                                 # Redis 실행 후 Insight 실행
     networks:
       - oot-network
     restart: unless-stopped
+    environment:
+      - TZ=Asia/Seoul                                         # 타임존 설정(로그 시간 한국 시간으로)
 
 volumes:
   redis-data:
-    driver: local                                              # 로컬 볼륨 사용(데이터는 Docker 볼륨에 저장)
+    driver: local                                             # 로컬 볼륨 사용(Redis 데이터는 Docker 볼륨에 저장)
+  redisinsight-data:
+    driver: local                                             # Redis Insight 설정 저장용 볼륨(데이터베이스 연결 정보 등)
 
 networks:
   oot-network:
