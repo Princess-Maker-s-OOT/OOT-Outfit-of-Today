@@ -85,3 +85,8 @@ cloud:
       bucket: ${aws.s3.bucket}
     region:
       staticRegion: ap-northeast-2
+
+kakao:
+  map:
+    api-key: ${KAKAO_MAP_API_KEY}
+    base-url: https://dapi.kakao.com
