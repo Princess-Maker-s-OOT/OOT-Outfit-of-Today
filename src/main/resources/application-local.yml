@@ -12,7 +12,7 @@ spring:
     redis:
       host: localhost                  # Docker Compose로 실행한 Redis 주소
       port: 6379                       # Redis 기본 포트
-      password: oot                    # docker-compose.yml의 requirepass와 동일
+      password: ${REDIS_PASSWORD}      # docker-compose.yml의 requirepass와 동일
       timeout: 3000ms                  # 연결 타임아웃(3초)
       lettuce: # Lettuce 클라이언트 설정(기본 클라이언트)
         pool:
@@ -34,7 +34,7 @@ spring:
 redisson:
   single-server:
     address: redis://localhost:6379    # Redis 서버 주소
-    password: oot
+    password: ${REDIS_PASSWORD}
     connection-pool-size: 64           # 연결 풀 크기
     connection-minimum-idle-size: 10
     idle-connection-timeout: 10000

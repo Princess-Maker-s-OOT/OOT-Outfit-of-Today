@@ -12,7 +12,7 @@ services:
     command: >
       redis-server
       --appendonly yes
-      --requirepass oot
+      --requirepass ${REDIS_PASSWORD}
       --maxmemory 256mb
       --maxmemory-policy allkeys-lru
     # appendonly yes: AOF 방식 영속성(데이터 손실 최소화)
@@ -37,7 +37,7 @@ services:
     ports:
       - "8081:8081"                                            # 브라우저에서 localhost:8081 접속하면 Redis GUI 사용 가능
     environment:
-      - REDIS_HOSTS=local:redis:6379:0:oot                     # Redis 연결 정보
+      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD}       # Redis 연결 정보
     depends_on:
       - redis                                                  # Redis 실행 후 Commander 실행
     networks:
