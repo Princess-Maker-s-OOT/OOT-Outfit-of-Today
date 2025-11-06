@@ -92,6 +92,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
+    // Point 객체를 사용한 위치 정보(위도/경도) 처리용
+    implementation 'org.locationtech.jts:jts-core:1.20.0'
+
     // HTTP Client (토스페이먼츠 API 호출용)
     implementation 'org.apache.httpcomponents.client5:httpclient5'
 }

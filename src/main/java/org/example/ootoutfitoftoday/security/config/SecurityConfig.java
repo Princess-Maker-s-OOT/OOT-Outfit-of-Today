@@ -147,9 +147,7 @@ public class SecurityConfig {
                                 "/v1/closets/{closetId}",  // 추가 추천
                                 // "/v1/sale-posts",
                                 // "/v1/sale-posts/{salePostId}",
-                                "/v1/categories",
-                                "/api/oauth2/**",                      // OAuth2 URL 생성 API 추가
-                                "/api/login/oauth2/**").permitAll()    // OAuth2 URL 생성 API 추가
+                                "/v1/categories").permitAll()
 
                         // 소셜 로그인
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()

@@ -182,6 +182,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return true;
         }
 
+        // 소셜 로그인
+        if (uri.startsWith("/oauth2/") || uri.startsWith("/login/oauth2/")) {
+
+            return true;
+        }
+
         // WebSocket
         if (uri.startsWith("/ws") || uri.startsWith("/stomp")) {
 

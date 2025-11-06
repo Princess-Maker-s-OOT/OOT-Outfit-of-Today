@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -166,6 +167,16 @@ public class JwtUtil {
     public long getRefreshTokenExpirationMillis() {
 
         return REFRESH_TOKEN_TIME;
+    }
+
+    /**
+     * 리프레시 토큰 만료 시간 계산
+     *
+     * @return 현재 시간 + 리프레시 토큰 유효 기간
+     */
+    public LocalDateTime calculateRefreshTokenExpiresAt() {
+
+        return LocalDateTime.now().plusSeconds(REFRESH_TOKEN_TIME / 1000);
     }
 
     /**

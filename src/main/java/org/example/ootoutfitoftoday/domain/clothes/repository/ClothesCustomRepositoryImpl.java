@@ -16,6 +16,11 @@ import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
 import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothesImage.entity.QClothesImage;
 import org.example.ootoutfitoftoday.domain.image.entity.QImage;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.QClothesWearCount;
+import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.QNotWornOverPeriod;
+import org.example.ootoutfitoftoday.domain.wearrecord.entity.QWearRecord;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -29,6 +34,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
     private final JPAQueryFactory jpaQueryFactory;
     private final QClothes clothes = QClothes.clothes;
     private final QCategory category = QCategory.category;
+    private final QWearRecord wearRecord = QWearRecord.wearRecord;
 
     /**
      * 아래와 같이 동적 조건 메서드로 구현했을 때의 장점
@@ -202,6 +208,46 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .where(isDeletedFalse())
                 .groupBy(category.id, category.name)
                 .orderBy(clothes.count().desc())
+                .limit(10)
+                .fetch();
+    }
+
+    @Override
+    public List<ClothesWearCount> leastWornClothes(Long userId) {
+
+        return jpaQueryFactory
+                .select(new QClothesWearCount(
+                        clothes.id,
+                        clothes.description,
+                        wearRecord.id.count()
+                ))
+                .from(clothes)
+                .leftJoin(wearRecord)
+                .on(wearRecord.clothes.id.eq(clothes.id)
+                        .and(wearRecord.user.id.eq(userId)))
+                .where(clothes.user.id.eq(userId))
+                .groupBy(clothes.id, clothes.description)
+                .orderBy(wearRecord.id.count().asc(), clothes.id.asc())
+                .limit(5)
+                .fetch();
+    }
+
+    @Override
+    public List<NotWornOverPeriod> notWornOverPeriod(Long userId) {
+
+        return jpaQueryFactory
+                .select(new QNotWornOverPeriod(
+                        clothes.id,
+                        clothes.description,
+                        clothes.lastWornAt
+                ))
+                .from(clothes)
+                .leftJoin(wearRecord)
+                .on(wearRecord.clothes.id.eq(clothes.id)
+                        .and(wearRecord.user.id.eq(userId)))
+                .where(clothes.user.id.eq(userId))
+                .groupBy(clothes.id, clothes.description)
+                .orderBy(clothes.lastWornAt.asc().nullsFirst(), clothes.id.asc())
                 .limit(10)
                 .fetch();
     }

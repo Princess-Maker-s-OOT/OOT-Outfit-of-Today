@@ -1,15 +1,18 @@
 package org.example.ootoutfitoftoday.domain.auth.service.command;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
+import org.example.ootoutfitoftoday.common.util.HttpRequestUtil;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.entity.RefreshToken;
+import org.example.ootoutfitoftoday.domain.auth.enums.LoginType;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.auth.repository.RefreshTokenRepository;
@@ -21,6 +24,7 @@ import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.example.ootoutfitoftoday.security.jwt.JwtUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +45,10 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+
+    // 사용자당 최대 디바이스 수 설정(application.yml에서 주입)
+    @Value("${jwt.max-devices-per-user:5}")
+    private int maxDevicesPerUser;
 
     // 관리자 계정 초기 생성 자동
     @Override
@@ -106,12 +114,23 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     // 로그인
     // 액세스 토큰, 리프레시 토큰 모두 응답 바디로 발급
     @Override
-    public AuthLoginResponse login(AuthLoginRequest request) {
+    public AuthLoginResponse login(AuthLoginRequest request, HttpServletRequest httpRequest) {
 
         User user = userQueryService.findByLoginIdAndIsDeletedFalse(request.getLoginId());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS);
+        }
+
+        // 단일 쿼리로 디바이스 수 확인 및 정리
+        List<RefreshToken> tokens = refreshTokenRepository.findAllByUserIdOrderByLastUsedAtDesc(user.getId());
+
+        if (tokens.size() >= maxDevicesPerUser) {
+            // 가장 오래된 디바이스 삭제
+            RefreshToken oldestToken = tokens.get(tokens.size() - 1);
+            refreshTokenRepository.delete(oldestToken);
+            log.info("최대 디바이스 수 초과로 가장 오래된 디바이스 삭제: userId={}, deviceId={}",
+                    user.getId(), oldestToken.getDeviceId());
         }
 
         // 액세스 토큰 생성
@@ -120,7 +139,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         // 리프레시 토큰 생성 및 DB 저장
         String refreshToken = jwtUtil.createRefreshToken(user.getId());
 
-        saveOrUpdateRefreshToken(user, refreshToken);
+        // 유저 정보와 함께 리프레시 토큰 저장
+        saveOrUpdateRefreshToken(user, request.getDeviceId(), request.getDeviceName(), refreshToken, httpRequest);
 
         return new AuthLoginResponse(accessToken, refreshToken);
     }
@@ -128,7 +148,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     // 토큰 재발급(액세스 토큰 만료 시 클라이언트가 저장해둔 리프레시 토큰으로 새 액세스 토큰 발급)
     // 바디로 전달받은 리프레시 토큰을 파라미터로 받음
     @Override
-    public AuthLoginResponse refresh(String refreshToken) {
+    public AuthLoginResponse refresh(String refreshToken, String deviceId) {
 
         // 리프레시 토큰 타입 검증 추가
         if (!jwtUtil.isRefreshToken(refreshToken)) {
@@ -144,6 +164,13 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         // 탈취한 토큰인지, 로그아웃 및 회원탈퇴로 무효화된 토큰인지 확인
         RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken).orElseThrow(
                 () -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+
+        // 디바이스 ID 검증(보안 강화)
+        if (!storedToken.getDeviceId().equals(deviceId)) {
+            log.warn("사용자 Device ID 불일치: {}, stored: {}, requested: {}",
+                    storedToken.getUser().getId(), storedToken.getDeviceId(), deviceId);
+            throw new AuthException(AuthErrorCode.DEVICE_MISMATCH);
+        }
 
         // 리프레시 토큰 유효성 확인
         if (!storedToken.isValid(LocalDateTime.now())) {
@@ -161,8 +188,10 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         // 새로운 리프레시 토큰 생성(RTR)
         // RTR(Refresh Token Rotation): 보안을 위해 리프레시 토큰도 재사용하지 않고 폐기 & 새로 발급
         String newRefreshToken = jwtUtil.createRefreshToken(user.getId());
-        LocalDateTime newExpiresAt = LocalDateTime.now()
-                .plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
+
+        LocalDateTime newExpiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
+
+        // updateToken 호출 시 lastUsedAt도 자동 갱신됨
         storedToken.updateToken(newRefreshToken, newExpiresAt);
 
         return new AuthLoginResponse(newAccessToken, newRefreshToken);
@@ -170,12 +199,28 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
     // 로그아웃
     // DB에서 리프레시 토큰 삭제
+    // deviceId 파라미터 추가 -> 특정 디바이스만 로그아웃
     @Override
-    public void logout(AuthUser authUser) {
+    public void logout(AuthUser authUser, String deviceId) {
+
         User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
 
         // DB에서 리프레시 토큰 삭제
-        refreshTokenRepository.deleteByUserId(user.getId());
+        refreshTokenRepository.deleteByUserIdAndDeviceId(user.getId(), deviceId);
+    }
+
+    // 모든 디바이스에서 로그아웃
+    @Override
+    public void logoutAll(AuthUser authUser) {
+
+        refreshTokenRepository.deleteByUserId(authUser.getUserId());
+    }
+
+    // 특정 디바이스 강제 제거
+    @Override
+    public void removeDevice(AuthUser authUser, String deviceId) {
+
+        refreshTokenRepository.deleteByUserIdAndDeviceId(authUser.getUserId(), deviceId);
     }
 
     // 회원탈퇴
@@ -184,9 +229,19 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
+        // 일반 회원만 비밀번호 검증
+        if (user.getLoginType() == LoginType.LOGIN_ID) {
+            // 비밀번호가 제공되지 않은 경우 예외 발생
+            // 민감 작업이므로 보안을 위해 null과 불일치 동일하게 처리
+            if (request.getPassword() == null || request.getPassword().isBlank()) {
+                throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
+            }
+
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
+            }
         }
+        // 소셜 회원은 비밀번호 검증 없이 바로 탈퇴 처리
 
         // 리프레시 토큰 삭제
         refreshTokenRepository.deleteByUserId(user.getId());
@@ -209,19 +264,35 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     // 리프레시 토큰 저장 또는 업데이트
-    private void saveOrUpdateRefreshToken(User user, String refreshToken) {
+    private void saveOrUpdateRefreshToken(
+            User user,
+            String deviceId,
+            String deviceName,
+            String refreshToken,
+            HttpServletRequest httpRequest
+    ) {
+        LocalDateTime newExpiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
 
-        LocalDateTime expiresAt = LocalDateTime.now()
-                .plusSeconds(jwtUtil.getRefreshTokenExpirationMillis() / 1000);
+        // 클라이언트 IP 추출
+        String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
 
-        refreshTokenRepository.findByUserId(user.getId())
+        // User-Agent 추출
+        String userAgent = httpRequest.getHeader("User-Agent");
+
+        refreshTokenRepository.findByUserIdAndDeviceId(user.getId(), deviceId)
                 .ifPresentOrElse(
-                        existingToken -> existingToken.updateToken(refreshToken, expiresAt),
+                        // 기존 토큰이 있으면 갱신(lastUsedAt도 자동 갱신됨)
+                        existingToken -> existingToken.updateToken(refreshToken, newExpiresAt),
                         () -> {
+                            // 없으면 새로 생성하여 저장(모든 필드 포함)
                             RefreshToken newToken = RefreshToken.create(
                                     user,
+                                    deviceId,
+                                    deviceName,
                                     refreshToken,
-                                    expiresAt
+                                    newExpiresAt,
+                                    ipAddress,
+                                    userAgent
                             );
                             refreshTokenRepository.save(newToken);
                         }

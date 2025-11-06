@@ -2,6 +2,7 @@ package org.example.ootoutfitoftoday.domain.user.service.command;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
@@ -83,7 +84,13 @@ public class UserCommandServiceImpl implements UserCommandService {
                 socialId
         );
 
-        return userRepository.save(socialUser);
+        User updateLocationUser = userRepository.save(socialUser);
+
+        updateLocationUser.updateTradeLocation(DefaultLocationConstants.DEFAULT_TRADE_ADDRESS, DefaultLocationConstants.DEFAULT_TRADE_LOCATION);
+
+        userRepository.updateTradeLocationAsNativeQuery(updateLocationUser.getId(), updateLocationUser.getTradeAddress(), updateLocationUser.getTradeLocation());
+
+        return socialUser;
     }
 
     // 일반 계정에 소셜 정보를 연동하고 DB에 저장
@@ -121,7 +128,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     public void softDeleteUser(User user) {
 
         if (user.isDeleted()) {
-            throw new UserException(UserErrorCode.USER_ALREADY_WITHDRAWN);
+            throw new AuthException(AuthErrorCode.USER_ALREADY_WITHDRAWN);
         }
 
         LocalDateTime now = LocalDateTime.now();

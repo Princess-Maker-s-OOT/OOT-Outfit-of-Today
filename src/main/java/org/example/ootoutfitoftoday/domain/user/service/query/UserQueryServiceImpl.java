@@ -2,6 +2,7 @@ package org.example.ootoutfitoftoday.domain.user.service.query;
 
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
+import org.example.ootoutfitoftoday.domain.auth.enums.LoginType;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
@@ -93,6 +94,19 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         User user = findByIdAndIsDeletedFalse(authUser.getUserId());
 
+        // 소셜 로그인 사용자는 비밀번호 검증 스킵(성공)
+        if (user.getLoginType() == LoginType.SOCIAL) {
+
+            return;
+        }
+
+        // 일반 유저는 비밀번호 필수
+        // 비민감 작업이므로 명확한 에러 메시지
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new AuthException(AuthErrorCode.VALIDATION_FAILED);
+        }
+
+        // 일반 회원만 비밀번호 검증 진행
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
         }
