@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.common.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -10,6 +11,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 
 @ActiveProfiles("test")
 @SpringBootTest
+@EnabledIfEnvironmentVariable(named = "RUN_S3_TESTS", matches = "true")
 public class S3ConnectionTest {
 
     private static final String BUCKET_NAME = "oot-dev-image";
