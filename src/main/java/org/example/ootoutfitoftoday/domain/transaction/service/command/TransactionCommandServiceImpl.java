@@ -1,15 +1,20 @@
 package org.example.ootoutfitoftoday.domain.transaction.service.command;
 
 import lombok.RequiredArgsConstructor;
+import org.example.ootoutfitoftoday.common.client.payment.TossPaymentsClient;
 import org.example.ootoutfitoftoday.domain.chat.service.query.ChatQueryService;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
 import org.example.ootoutfitoftoday.domain.chatroom.service.query.ChatroomQueryService;
 import org.example.ootoutfitoftoday.domain.payment.entity.Payment;
 import org.example.ootoutfitoftoday.domain.payment.enums.PaymentMethod;
+import org.example.ootoutfitoftoday.domain.payment.enums.PaymentStatus;
+import org.example.ootoutfitoftoday.domain.payment.exception.PaymentErrorCode;
+import org.example.ootoutfitoftoday.domain.payment.exception.PaymentException;
 import org.example.ootoutfitoftoday.domain.payment.repository.PaymentRepository;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
+import org.example.ootoutfitoftoday.domain.transaction.dto.request.ConfirmTransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 import org.example.ootoutfitoftoday.domain.transaction.entity.Transaction;
@@ -22,6 +27,8 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +43,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
     private final UserQueryService userQueryService;
     private final ChatroomQueryService chatroomQueryService;
     private final ChatQueryService chatQueryService;
+    private final TossPaymentsClient tossPaymentsClient;
 
     @Override
     public TransactionResponse requestTransaction(
@@ -78,7 +86,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
 
         // 7. 중복 주문 ID 확인
         if (paymentRepository.findByTossOrderId(request.getTossOrderId()).isPresent()) {
-            throw new TransactionException(TransactionErrorCode.DUPLICATE_ORDER_ID);
+            throw new PaymentException(PaymentErrorCode.DUPLICATE_ORDER_ID);
         }
 
         // 8. 진행 중인 거래 확인
@@ -88,8 +96,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
         );
 
         if (transactionRepository.findBySalePostIdAndStatusIn(lockedSalePost.getId(), activeStatuses).isPresent()) {
-            throw new TransactionException(TransactionErrorCode.ALREADY_IN_TRANSACTION
-            );
+            throw new TransactionException(TransactionErrorCode.ALREADY_IN_TRANSACTION);
         }
 
         // 9. 구매자 조회
@@ -108,9 +115,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
         if (request.getMethod() == PaymentMethod.EASY_PAY) {
 
             if (request.getEasyPayProvider() == null) {
-                throw new TransactionException(
-                        TransactionErrorCode.EASY_PAY_PROVIDER_REQUIRED
-                );
+                throw new PaymentException(PaymentErrorCode.EASY_PAY_PROVIDER_REQUIRED);
             }
 
             payment = Payment.createEasyPay(
@@ -129,10 +134,71 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
 
         paymentRepository.save(payment);
 
-        // 12. 판매글 상태 변경
-        lockedSalePost.updateStatus(SaleStatus.RESERVED);
+        // 12. 응답 반환
+        return TransactionResponse.from(transaction);
+    }
 
-        // 13. 응답 반환
+
+    @Override
+    public TransactionResponse confirmTransaction(
+            Long userId,
+            Long transactionId,
+            ConfirmTransactionRequest request
+    ) {
+        // 1. Transaction 조회
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new TransactionException(TransactionErrorCode.TRANSACTION_NOT_FOUND));
+
+        // 2. 권한 확인
+        if (!transaction.getBuyer().getId().equals(userId)) {
+            throw new TransactionException(TransactionErrorCode.UNAUTHORIZED_TRANSACTION_ACCESS);
+        }
+
+        // 3. 상태 검증 (오승인 방지)
+        if (transaction.getStatus() != TransactionStatus.PENDING_APPROVAL) {
+            throw new TransactionException(TransactionErrorCode.INVALID_TRANSACTION_STATUS);
+        }
+
+        // 4. Payment 조회
+        Payment payment = transaction.getPayment();
+        if (payment == null) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+        }
+
+        // 5. 결제 상태 검증
+        if (payment.getStatus() != PaymentStatus.ESCROWED) {
+            throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
+
+        // 6. 멱등성 체크
+        if (payment.getTossPaymentKey() != null) {
+
+            return TransactionResponse.from(transaction);
+        }
+
+        // 6-1. 10분 초과 확인
+        LocalDateTime createdAt = transaction.getCreatedAt();
+        LocalDateTime now = LocalDateTime.now();
+
+        if (Duration.between(createdAt, now).toMinutes() > 10) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_CONFIRMATION_TIMEOUT);
+        }
+
+        // 7. 토스 confirm API 호출
+        tossPaymentsClient.confirmPayment(
+                    request.getPaymentKey(),
+                    payment.getTossOrderId(),
+                    payment.getAmount()
+        );
+
+        // 8. Payment 승인
+        payment.approve(request.getPaymentKey());
+
+        // 9. 판매글 상태 변경
+        SalePost salePost = transaction.getSalePost();
+        salePost.updateStatus(SaleStatus.RESERVED);
+
+        // 10. 응답
         return TransactionResponse.from(transaction);
     }
 }
