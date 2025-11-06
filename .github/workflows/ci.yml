@@ -42,6 +42,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -57,12 +58,16 @@ jobs:
           cache-read-only: false
 
       # 💡 2단계: Spring Boot 접속 정보 설정
-      - name: Configure DB Connection
+      - name: Configure DB Connection & Redis Connection
         run: |
           # 127.0.0.1:3306으로 접속하도록 환경 변수 설정
           echo "SPRING_DATASOURCE_URL=jdbc:mysql://127.0.0.1:3306/test_db?useSSL=false&allowPublicKeyRetrieval=true" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_USERNAME=root" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_PASSWORD=root" >> $GITHUB_ENV
+          
+          echo "SPRING_DATA_REDIS_HOST=127.0.0.1" >> $GITHUB_ENV
+          echo "SPRING_DATA_REDIS_PORT=6379" >> $GITHUB_ENV
+          echo "SPRING_DATA_REDIS_PASSWORD="" >> $GITHUB_ENV
 
       - name: Grant execute permission for Gradlew
         run: chmod +x gradlew
