@@ -10,6 +10,8 @@ import org.example.ootoutfitoftoday.domain.payment.enums.EasyPayProvider;
 import org.example.ootoutfitoftoday.domain.payment.enums.PaymentMethod;
 import org.example.ootoutfitoftoday.domain.payment.enums.PaymentStatus;
 import org.example.ootoutfitoftoday.domain.payment.enums.RefundType;
+import org.example.ootoutfitoftoday.domain.payment.exception.PaymentErrorCode;
+import org.example.ootoutfitoftoday.domain.payment.exception.PaymentException;
 import org.example.ootoutfitoftoday.domain.transaction.entity.Transaction;
 
 import java.math.BigDecimal;
@@ -148,5 +150,15 @@ public class Payment extends BaseEntity {
         this.transaction = tx;
         tx.setPayment(this);
         return this;
+    }
+
+    public void approve(String tossPaymentKey) {
+
+        // 이미 승인됐는지 확인
+        if (this.tossPaymentKey != null) {
+            throw new PaymentException(PaymentErrorCode.ALREADY_APPROVED_PAYMENT);
+        }
+        this.tossPaymentKey = tossPaymentKey;
+        this.approvedAt = LocalDateTime.now();
     }
 }
