@@ -25,7 +25,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile("!test")  // 테스트에서 실제 클라이언트 빈 미로딩
+// @Profile("!test")  // 테스트에서 실제 클라이언트 빈 미로딩
 public class TossPaymentsClientImpl implements TossPaymentsClient {
 
     @Value("${toss.secret-key}")
