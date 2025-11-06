@@ -7,7 +7,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-// @Profile("!test")  // 테스트 프로필에서는 로딩하지 않음
+@Profile("!test")  // 테스트 프로필에서는 로딩하지 않음
 public class RestTemplateConfig {
 
     @Bean(name = "tossRestTemplate")
