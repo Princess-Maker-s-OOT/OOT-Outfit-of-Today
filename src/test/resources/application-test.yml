@@ -24,6 +24,20 @@ spring:
   cache:
     type: none  # <- 이 부분 변경(기존: redis)
 
+  # Redis 연결 설정(로컬 개발용)
+  data:
+    redis:
+      host: 127.0.0.1                  # Docker Compose로 실행한 Redis 주소
+      port: 6379                       # Redis 기본 포트
+      password: oot
+      timeout: 3000ms                  # 연결 타임아웃(3초)
+      lettuce: # Lettuce 클라이언트 설정(기본 클라이언트)
+        pool:
+          max-active: 8                # 최대 연결 수
+          max-idle: 8                  # 유휴 상태 최대 연결 수
+          min-idle: 2                  # 유휴 상태 최소 연결 수
+          max-wait: -1ms               # 연결 대기 시간(-1은 무제한)
+
 jwt:
   secret:
     key: JUeuMQYOTYa1zq2TSHmzZz5BnHf8hHQnkGeT9aRuAAr05a32bspdCHH8B+3sNcfOV5tYe5yfyypgF9lWV68zEA==
