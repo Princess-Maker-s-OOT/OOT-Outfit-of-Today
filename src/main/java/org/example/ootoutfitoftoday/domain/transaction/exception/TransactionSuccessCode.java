@@ -9,7 +9,11 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum TransactionSuccessCode implements SuccessCode {
 
-    TRANSACTION_REQUESTED("TRANSACTION_REQUESTED", HttpStatus.CREATED, "거래가 요청되었습니다.");
+    TRANSACTION_REQUESTED(
+            "TRANSACTION_REQUESTED",
+            HttpStatus.CREATED,
+            "거래가 요청되었습니다."
+    );
 
     private final String code;
     private final HttpStatus httpStatus;
