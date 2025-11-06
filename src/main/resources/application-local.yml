@@ -25,3 +25,6 @@ cloud:
       enabled: false
     stack:
       auto: true
+
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
