@@ -29,7 +29,7 @@ spring:
     redis:
       host: 127.0.0.1                  # Docker Compose로 실행한 Redis 주소
       port: 6379                       # Redis 기본 포트
-      password: oot
+      password:
       timeout: 3000ms                  # 연결 타임아웃(3초)
       lettuce: # Lettuce 클라이언트 설정(기본 클라이언트)
         pool:
@@ -37,6 +37,20 @@ spring:
           max-idle: 8                  # 유휴 상태 최대 연결 수
           min-idle: 2                  # 유휴 상태 최소 연결 수
           max-wait: -1ms               # 연결 대기 시간(-1은 무제한)
+
+  redisson:
+    config: |
+      singleServerConfig:
+        address: "redis://127.0.0.1:6379"
+        password: null
+        connectionPoolSize: 64
+        connectionMinimumIdleSize: 10
+        idleConnectionTimeout: 10000
+        timeout: 3000
+        retryAttempts: 3
+        retryInterval: 1500
+      threads: 4
+      nettyThreads: 4
 
 jwt:
   secret:
