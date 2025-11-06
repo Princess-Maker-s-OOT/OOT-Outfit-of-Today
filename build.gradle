@@ -91,6 +91,9 @@ dependencies {
     // Monitoring
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    // HTTP Client (토스페이먼츠 API 호출용)
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
 }
 
 // Spring Cloud AWS BOM (버전 통합 관리)
