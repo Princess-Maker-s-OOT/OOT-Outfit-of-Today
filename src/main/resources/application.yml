@@ -44,9 +44,9 @@ spring:
 
   cloud:
     aws:
-      # AWS Parameter Store 자동 설정 비활성화(로컬 실행 오류 방지)
+      # AWS Parameter Store 자동 설정 활성화
       parameter-store:
-        enabled: false
+        enabled: true
 
       # S3 버킷 설정
       s3:
