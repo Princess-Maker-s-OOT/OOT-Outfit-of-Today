@@ -22,7 +22,7 @@ spring:
     import: optional:file:.env[.properties]
 
   cache:
-    type: none  # <- 이 부분 변경(기존: redis)
+    type: redis # <- 이 부분 변경(기존: redis)none
 
   # Redis 연결 설정(로컬 개발용)
   data:
