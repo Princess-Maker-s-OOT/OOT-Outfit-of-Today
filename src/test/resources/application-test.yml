@@ -4,7 +4,7 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/test_db?useSSL=false&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver # MySQL JDBC 드라이버 명시
     username: root # CI Docker Compose에서 설정한 사용자 이름
-    password: 12345678 # CI Docker Compose에서 설정한 비밀번호
+    password: root # CI Docker Compose에서 설정한 비밀번호
   #    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
   #    driver-class-name: org.h2.Driver
   #    username: ${USER_NAME:sa}
@@ -23,6 +23,20 @@ spring:
 
   cache:
     type: none  # <- 이 부분 변경(기존: redis)
+
+  # Redis 연결 설정(로컬 개발용)
+  data:
+    redis:
+      host: 127.0.0.1                  # Docker Compose로 실행한 Redis 주소
+      port: 6379                       # Redis 기본 포트
+      password: oot
+      timeout: 3000ms                  # 연결 타임아웃(3초)
+      lettuce: # Lettuce 클라이언트 설정(기본 클라이언트)
+        pool:
+          max-active: 8                # 최대 연결 수
+          max-idle: 8                  # 유휴 상태 최대 연결 수
+          min-idle: 2                  # 유휴 상태 최소 연결 수
+          max-wait: -1ms               # 연결 대기 시간(-1은 무제한)
 
 jwt:
   secret:
