@@ -4,7 +4,7 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/test_db?useSSL=false&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver # MySQL JDBC 드라이버 명시
     username: root # CI Docker Compose에서 설정한 사용자 이름
-    password: root # CI Docker Compose에서 설정한 비밀번호
+    password: 12345678 # CI Docker Compose에서 설정한 비밀번호
   #    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
   #    driver-class-name: org.h2.Driver
   #    username: ${USER_NAME:sa}

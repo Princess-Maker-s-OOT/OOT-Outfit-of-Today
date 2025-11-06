@@ -30,13 +30,13 @@ import java.time.Duration;
 @EnableCaching    // @Cacheable, @CacheEvict 등 캐시 애노테이션 활성화
 public class RedisConfig {
 
-    @Value("${spring.data.redis.host}")
+    @Value("${spring.data.redis.host:}")
     private String host;
 
-    @Value("${spring.data.redis.port}")
+    @Value("${spring.data.redis.port:}")
     private int port;
 
-    @Value("${spring.data.redis.password}")
+    @Value("${spring.data.redis.password:}")
     private String password;
 
     /**
