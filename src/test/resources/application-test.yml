@@ -4,7 +4,7 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/test_db?useSSL=false&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver # MySQL JDBC 드라이버 명시
     username: root # CI Docker Compose에서 설정한 사용자 이름
-    password: root # CI Docker Compose에서 설정한 비밀번호
+    password: 12345678 # CI Docker Compose에서 설정한 비밀번호
   #    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
   #    driver-class-name: org.h2.Driver
   #    username: ${USER_NAME:sa}
@@ -17,12 +17,12 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect # MySQL 방언 설정
-  #        dialect: org.hibernate.dialect.H2Dialect
-  config:
-    import: optional:file:.env[.properties]
+    #        dialect: org.hibernate.dialect.H2Dialect
+    #config:
+    #import: optional:file:.env[.properties]
 
   cache:
-    type: none  # <- 이 부분 변경(기존: redis)
+    type: none
 
 jwt:
   secret:
@@ -31,9 +31,6 @@ jwt:
 cloud:
   aws:
     s3:
-      bucket: ${AWS_S3_BUCKET}
+      bucket: ${AWS_S3_BUCKET:}
     region:
-      static: ${AWS_REGION}
-    credentials:
-      access-key: ${AWS_ACCESS_KEY_ID}
-      secret-key: ${AWS_SECRET_ACCESS_KEY}
+      static-region: ap-northeast-2

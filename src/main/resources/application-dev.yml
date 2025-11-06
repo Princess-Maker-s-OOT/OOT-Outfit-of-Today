@@ -4,9 +4,9 @@ spring:
       - "aws-parameterstore:/config/common/"
       - "aws-parameterstore:/config/dev/"
   datasource:
-    url: jdbc:mysql://${db.host}:${db.port:3306}/${db.name}?useSSL=false&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
-    username: ${db.username}
-    password: ${db.password}
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:oot_test}?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/S
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -19,9 +19,9 @@ spring:
   # AWS Parameter Store에서 불러올 값들(보안 강화)
   data:
     redis:
-      host: ${redis.host}           # Parameter Store에 저장: /config/dev/redis.host
-      port: ${redis.port:6379}      # Parameter Store에 저장: /config/dev/redis.port
-      password: ${redis.password}   # Parameter Store에 저장: /config/dev/redis.password
+      host: ${REDIS_HOST:localhost}           # Parameter Store에 저장: /config/dev/redis.host
+      port: ${REDIS_PORT:6379}      # Parameter Store에 저장: /config/dev/redis.port
+      password: ${REDIS_PASSWORD:}   # Parameter Store에 저장: /config/dev/redis.password
       timeout: 3000ms
       lettuce:
         pool:
@@ -42,8 +42,8 @@ spring:
 # Redisson 설정(개발 서버용)
 redisson:
   single-server:
-    address: redis://${redis.host}:${redis.port:6379}
-    password: ${redis.password}
+    address: redis://${REDIS_HOST:localhost}:${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
     connection-pool-size: 128       # 서버 환경이므로 더 크게
     connection-minimum-idle-size: 20
     idle-connection-timeout: 10000

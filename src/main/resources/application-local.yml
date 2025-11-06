@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/${DB_NAME}
-    username: ${USER_NAME}
-    password: ${PASSWORD}
+    url: jdbc:mysql://localhost:3306/${DB_NAME:}
+    username: ${DB_USER_NAME:}
+    password: ${DB_PASSWORD:}
   jpa:
     hibernate:
       ddl-auto: update                 # 로컬 개발 시 DDL 자동 업데이트 허용
@@ -12,7 +12,7 @@ spring:
     redis:
       host: localhost                  # Docker Compose로 실행한 Redis 주소
       port: 6379                       # Redis 기본 포트
-      password: ${REDIS_PASSWORD}      # docker-compose.yml의 requirepass와 동일
+      password: ${REDIS_PASSWORD:}      # docker-compose.yml의 requirepass와 동일
       timeout: 3000ms                  # 연결 타임아웃(3초)
       lettuce: # Lettuce 클라이언트 설정(기본 클라이언트)
         pool:
@@ -34,7 +34,7 @@ spring:
 redisson:
   single-server:
     address: redis://localhost:6379    # Redis 서버 주소
-    password: ${REDIS_PASSWORD}
+    password: ${REDIS_PASSWORD:}
     connection-pool-size: 64           # 연결 풀 크기
     connection-minimum-idle-size: 10
     idle-connection-timeout: 10000
@@ -55,7 +55,7 @@ cloud:
     region:
       static-region: ap-northeast-2
     s3:
-      bucket: ${AWS_S3_BUCKET}
+      bucket: ${AWS_S3_BUCKET:}
     parameter-store:
       enabled: false
     stack:

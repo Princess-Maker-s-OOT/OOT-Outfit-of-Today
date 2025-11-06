@@ -12,7 +12,7 @@ spring:
 
   # CORS 설정 추가
   cors:
-    allowed-origins: http://localhost:3000
+    allowed-origins: ${SPRING_CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
   # 데이터소스 드라이버만 공통으로 정의
   datasource:
@@ -34,8 +34,8 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
             scope:
               - email
               - profile
@@ -47,16 +47,6 @@ spring:
       # AWS Parameter Store 자동 설정 비활성화(로컬 실행 오류 방지)
       parameter-store:
         enabled: true
-
-      # S3 버킷 설정
-      s3:
-        bucket: ${aws.s3.bucket}
-
-      # 리전 설정
-      region:
-        static: ap-northeast-2
-        ## Spring Cloud AWS(버전 3.x) 라이브러리의 정적 리전 설정 표준 키
-        ## 따라서 staticRegion -> static 수정
 
 server:
   port: 8080
@@ -90,12 +80,19 @@ logging:
 
 jwt:
   secret:
-    key: ${jwt.secret.key}
+    key: ${JWT_SECRET_KEY:}
   # TODO: 추후 리팩토링 대상
   refresh-expiration: 604800000    # 7일(밀리초)
   max-devices-per-user: 5          # 기본값 5개, 필요시 변경 가능
 
 kakao:
   map:
-    api-key: ${KAKAO_MAP_API_KEY}
+    api-key: ${KAKAO_MAP_API_KEY:}
     base-url: https://dapi.kakao.com
+
+cloud:
+  aws:
+    s3:
+      bucket: ${AWS_S3_BUCKET:}
+    region:
+      staticRegion: ap-northeast-2

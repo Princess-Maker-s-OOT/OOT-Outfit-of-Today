@@ -47,7 +47,7 @@ public class SecurityConfig {
     private final ObjectMapper objectMapper;
 
     // TODO: CORS 설정(추후 수정 예정)
-    @Value("${spring.cors.allowed-origins}")
+    @Value("${SPRING_CORS_ALLOWED_ORIGINS:}")
     private String allowedOrigins;
 
     // 순환참조 문제 발생 -> 해결을 위해 @Lazy(수동 생성자 필요) 사용
