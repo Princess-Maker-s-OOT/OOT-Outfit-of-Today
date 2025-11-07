@@ -25,22 +25,9 @@ spring:
   cache:
     type: redis                        # 캐시 타입을 Redis로 지정
     redis:
-      time-to-live: 3600000            # 기본 TTL 1시간(밀리초) - 캐시 유효 시간
       cache-null-values: false         # null 값은 캐싱하지 않음
       key-prefix: "oot:cache:"         # 캐시 키 앞에 붙을 접두사(다른 프로젝트와 구분)
       use-key-prefix: true
-
-# Redisson 설정(분산 락 등 고급 기능용)
-redisson:
-  single-server:
-    address: redis://localhost:6379    # Redis 서버 주소
-    password: ${REDIS_PASSWORD}
-    connection-pool-size: 64           # 연결 풀 크기
-    connection-minimum-idle-size: 10
-    idle-connection-timeout: 10000
-    timeout: 3000
-    retry-attempts: 3                  # 재시도 횟수
-    retry-interval: 1500
 
 springdoc:
   api-docs:

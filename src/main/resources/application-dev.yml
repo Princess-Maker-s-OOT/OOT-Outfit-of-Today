@@ -34,22 +34,9 @@ spring:
   cache:
     type: redis
     redis:
-      time-to-live: 1800000         # 30분(개발 서버는 짧게 설정해서 테스트 용이)
       cache-null-values: false
       key-prefix: "oot:dev:cache:"  # 환경별로 prefix 다르게(dev, prod 구분)
       use-key-prefix: true
-
-# Redisson 설정(개발 서버용)
-redisson:
-  single-server:
-    address: redis://${redis.host}:${redis.port:6379}
-    password: ${redis.password}
-    connection-pool-size: 128       # 서버 환경이므로 더 크게
-    connection-minimum-idle-size: 20
-    idle-connection-timeout: 10000
-    timeout: 3000
-    retry-attempts: 3
-    retry-interval: 1500
 
 springdoc:
   api-docs.enabled: true
