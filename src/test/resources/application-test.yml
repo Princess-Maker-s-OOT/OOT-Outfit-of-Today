@@ -29,7 +29,7 @@ spring:
     redis:
       host: 127.0.0.1                  # Docker Compose로 실행한 Redis 주소
       port: 6379                       # Redis 기본 포트
-      password: ${REDIS_PASSWORD:}
+      password: ${REDIS_PASSWORD:}     # 환경변수 우선, 없으면 빈 문자열(CI 호환)
       timeout: 3000ms                  # 연결 타임아웃(3초)
       lettuce: # Lettuce 클라이언트 설정(기본 클라이언트)
         pool:
