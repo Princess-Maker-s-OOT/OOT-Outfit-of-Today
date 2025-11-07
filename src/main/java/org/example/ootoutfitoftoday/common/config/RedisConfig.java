@@ -125,15 +125,13 @@ public class RedisConfig {
         return RedisCacheManager.builder(redisConnectionFactory())
                 .cacheDefaults(defaultConfig)
                 // 특정 캐시는 다른 TTL 적용 가능
+                // 옷 정보는 30분 캐싱
                 .withCacheConfiguration("clothesCache",
-                        RedisCacheConfiguration.defaultCacheConfig()
-                                // 옷 정보는 30분 캐싱
-                                .entryTtl(Duration.ofMinutes(30))
+                        defaultConfig.entryTtl(Duration.ofMinutes(30))
                 )
+                // 사용자 정보는 10분 캐싱
                 .withCacheConfiguration("userCache",
-                        RedisCacheConfiguration.defaultCacheConfig()
-                                // 사용자 정보는 10분 캐싱
-                                .entryTtl(Duration.ofMinutes(10))
+                        defaultConfig.entryTtl(Duration.ofMinutes(10))
                 )
                 .build();
     }
