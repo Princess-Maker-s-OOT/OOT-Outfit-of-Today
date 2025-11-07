@@ -15,6 +15,29 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
 
+  # Redis 연결 설정(개발 서버용)
+  # AWS Parameter Store에서 불러올 값들(보안 강화)
+  data:
+    redis:
+      host: ${redis.host}           # Parameter Store에 저장: /config/dev/redis.host
+      port: ${redis.port:6379}      # Parameter Store에 저장: /config/dev/redis.port
+      password: ${redis.password}   # Parameter Store에 저장: /config/dev/redis.password
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 10            # 개발 서버는 동시 접속 많으므로 로컬보다 크게
+          max-idle: 10
+          min-idle: 2
+          max-wait: -1ms
+
+  # 캐시 설정(개발 서버용)
+  cache:
+    type: redis
+    redis:
+      cache-null-values: false
+      key-prefix: "oot:dev:cache:"  # 환경별로 prefix 다르게(dev, prod 구분)
+      use-key-prefix: true
+
 springdoc:
   api-docs.enabled: true
   swagger-ui:
