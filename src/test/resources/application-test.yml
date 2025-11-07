@@ -38,19 +38,17 @@ spring:
           min-idle: 2                  # 유휴 상태 최소 연결 수
           max-wait: -1ms               # 연결 대기 시간(-1은 무제한)
 
-  redisson:
-    config: |
-      singleServerConfig:
-        address: "redis://127.0.0.1:6379"
-        password: null
-        connectionPoolSize: 64
-        connectionMinimumIdleSize: 10
-        idleConnectionTimeout: 10000
-        timeout: 3000
-        retryAttempts: 3
-        retryInterval: 1500
-      threads: 4
-      nettyThreads: 4
+redisson:
+  single-server:
+    address: redis://127.0.0.1:6379
+    connection-pool-size: 64
+    connection-minimum-idle-size: 10
+    idle-connection-timeout: 10000
+    timeout: 3000
+    retry-attempts: 3
+    retry-interval: 1500
+  threads: 4
+  netty-threads: 4
 
 jwt:
   secret:
