@@ -17,6 +17,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 
@@ -36,7 +37,7 @@ public class RedisConfig {
     @Value("${spring.data.redis.port}")
     private int port;
 
-    @Value("${spring.data.redis.password}")
+    @Value("${spring.data.redis.password:}")
     private String password;
 
     /**
@@ -50,8 +51,11 @@ public class RedisConfig {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         config.setHostName(host);
         config.setPort(port);
-        // 비밀번호 설정
-        config.setPassword(password);
+
+        // 비밀번호가 있는 경우에만 설정(CI 환경 대응)
+        if (StringUtils.hasText(password)) {
+            config.setPassword(password);
+        }
 
         return new LettuceConnectionFactory(config);
     }
