@@ -128,7 +128,7 @@ public class AuthController {
             @Valid @RequestBody TokenExchangeRequest request
     ) {
 
-        AuthLoginResponse response = authCommandService.exchangeOAuthToken(request.getCode());
+        AuthLoginResponse response = authCommandService.exchangeOAuthToken(request.getCode(), request.getDeviceId(), request.getDeviceName());
 
         return Response.success(response, AuthSuccessCode.TOKEN_EXCHANGE);
     }

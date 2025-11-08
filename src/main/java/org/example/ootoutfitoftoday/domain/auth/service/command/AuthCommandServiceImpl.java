@@ -43,6 +43,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
     // 래디스 키 접두사
     private static final String REDIS_KEY_PREFIX = "oauth:temp:code:";
+
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
     private final ChatParticipatingUserQueryService chatParticipatingUserQueryService;
@@ -52,6 +53,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+
     // 사용자당 최대 디바이스 수 설정(application.yml에서 주입)
     @Value("${jwt.max-devices-per-user:5}")
     private int maxDevicesPerUser;
@@ -207,8 +209,11 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     // 임시 코드는 3분간 유효하며 1회용
     // 래디스에서 토큰 정보 조회 후 삭제
     @Override
-    public AuthLoginResponse exchangeOAuthToken(String code) {
-
+    public AuthLoginResponse exchangeOAuthToken(
+            String code,
+            String deviceId,
+            String deviceName
+    ) {
         log.info("OAuth2 임시 코드 교환 시작 - code: {}", code);
 
         // 래디스에서 임시 코드로 토큰 정보 조회
@@ -230,6 +235,42 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             String userId = tokenData.get("userId");
 
             log.info("토큰 정보 파싱 완료 - userId: {}", userId);
+
+            // 디바이스 정보로 RefreshToken 저장
+            User user = userQueryService.findByIdAndIsDeletedFalse(Long.parseLong(userId));
+
+            LocalDateTime expiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
+
+            // 멀티 디바이스 제한 확인
+            List<RefreshToken> tokens = refreshTokenRepository.findAllByUserIdOrderByLastUsedAtDesc(user.getId());
+
+            if (tokens.size() >= maxDevicesPerUser) {
+                RefreshToken oldestToken = tokens.get(tokens.size() - 1);
+                refreshTokenRepository.delete(oldestToken);
+                log.info("최대 디바이스 수 초과로 가장 오래된 디바이스 삭제: userId={}, deviceId={}",
+                        user.getId(), oldestToken.getDeviceId());
+            }
+
+            // 디바이스별 토큰 저장(일반 로그인과 동일!)
+            refreshTokenRepository.findByUserIdAndDeviceId(user.getId(), deviceId)
+                    .ifPresentOrElse(
+                            existingToken -> existingToken.updateToken(refreshToken, expiresAt),
+                            () -> {
+                                RefreshToken newToken = RefreshToken.create(
+                                        user,
+                                        deviceId,
+                                        deviceName,
+                                        refreshToken,
+                                        expiresAt,
+                                        null,    // IP는 null(OAuth는 IP 추적 어려움)
+                                        null               // User-Agent도 null
+                                );
+                                refreshTokenRepository.save(newToken);
+                            }
+                    );
+
+            log.info("Refresh Token 저장 완료 - userId: {}, deviceId: {}", userId, deviceId);
+
 
             // 래디스에서 임시 코드(1회용) 삭제
             redisTemplate.delete(redisKey);

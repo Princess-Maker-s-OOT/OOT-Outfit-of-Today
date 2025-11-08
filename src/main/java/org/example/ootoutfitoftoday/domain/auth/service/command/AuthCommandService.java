@@ -25,7 +25,7 @@ public interface AuthCommandService {
     // deviceId 파라미터 추가 (디바이스 검증용)
     AuthLoginResponse refresh(String refreshToken, String deviceId);
 
-    AuthLoginResponse exchangeOAuthToken(String code);
+    AuthLoginResponse exchangeOAuthToken(String code, String deviceId, String deviceName);
 
     // deviceId 파라미터 추가(특정 디바이스만 로그아웃)
     void logout(AuthUser authUser, String deviceId);
