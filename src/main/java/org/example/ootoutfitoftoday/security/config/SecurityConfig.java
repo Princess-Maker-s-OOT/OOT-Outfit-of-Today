@@ -141,7 +141,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/v1/auth/signup",
                                 "/v1/auth/login",
-                                "/v1/auth/refresh").permitAll()
+                                "/v1/auth/refresh",
+                                "/v1/auth/oauth2/token/exchange").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/v1/closets/public",
                                 "/v1/closets/{closetId}",  // 추가 추천

@@ -198,7 +198,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if ("POST".equalsIgnoreCase(method) &&
                 (uri.startsWith("/v1/auth/signup") ||
                         uri.startsWith("/v1/auth/login") ||
-                        uri.startsWith("/v1/auth/refresh"))) {
+                        uri.startsWith("/v1/auth/refresh") ||
+                        uri.startsWith("/v1/auth/oauth2/token/exchange"))) {
 
             return true;
         }
