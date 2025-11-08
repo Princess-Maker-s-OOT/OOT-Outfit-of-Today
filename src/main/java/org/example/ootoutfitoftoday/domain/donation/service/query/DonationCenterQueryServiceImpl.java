@@ -16,6 +16,7 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,12 +74,10 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
         List<DonationCenterSearchResponse> allResults = searchKeywords.stream()
                 .flatMap(kw -> searchByKeyword(kw, latitude, longitude, searchRadius).stream())
                 .distinct()  // 중복 제거 (kakaoPlaceId 기준으로 중복이 발생할 수 있음)
-                .sorted((a, b) -> {
-                    // 거리순 정렬 (null은 마지막으로)
-                    if (a.distance() == null) return 1;
-                    if (b.distance() == null) return -1;
-                    return a.distance().compareTo(b.distance());
-                })
+                .sorted(Comparator.comparing(
+                        DonationCenterSearchResponse::distance,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                ))
                 .collect(Collectors.toList());
 
         log.info("기부처 검색 완료: 총 {}개 발견", allResults.size());
