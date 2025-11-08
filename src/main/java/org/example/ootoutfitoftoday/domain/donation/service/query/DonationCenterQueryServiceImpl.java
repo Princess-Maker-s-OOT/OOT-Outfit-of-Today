@@ -6,7 +6,7 @@ import org.example.ootoutfitoftoday.domain.donation.dto.response.DonationCenterS
 import org.example.ootoutfitoftoday.domain.donation.entity.DonationCenter;
 import org.example.ootoutfitoftoday.domain.donation.exception.DonationErrorCode;
 import org.example.ootoutfitoftoday.domain.donation.exception.DonationException;
-import org.example.ootoutfitoftoday.domain.donation.repository.DonationCenterRepository;
+import org.example.ootoutfitoftoday.domain.donation.service.command.DonationCenterCommandService;
 import org.example.ootoutfitoftoday.kakao.client.KakaoMapClient;
 import org.example.ootoutfitoftoday.kakao.dto.KakaoPlaceResponse;
 import org.locationtech.jts.geom.Coordinate;
@@ -19,9 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 기부처 조회 서비스 구현체
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,7 +35,7 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
             "의류수거함"
     );
     private final KakaoMapClient kakaoMapClient;
-    private final DonationCenterRepository donationCenterRepository;
+    private final DonationCenterCommandService donationCenterCommandService;
 
     /**
      * 주변 기부처 검색
@@ -89,9 +86,7 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
         return allResults;
     }
 
-    /**
-     * 특정 키워드로 기부처 검색
-     */
+    //특정 키워드로 기부처 검색
     private List<DonationCenterSearchResponse> searchByKeyword(
             String keyword,
             Double latitude,
@@ -120,38 +115,27 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 카카오맵 API 응답을 DonationCenter 엔티티로 변환 및 저장
-     */
     private DonationCenterSearchResponse processDonationCenter(KakaoPlaceResponse.Document document) {
 
-        // DB에서 기존 기부처 조회 또는 새로 생성
-        DonationCenter center = donationCenterRepository
-                .findByKakaoPlaceId(document.id())
-                .orElseGet(() -> {
-                    // 새로운 기부처 생성
-                    Point location = createPoint(
-                            Double.parseDouble(document.x()),  // 경도
-                            Double.parseDouble(document.y())   // 위도
-                    );
+        // Point 객체 생성
+        Point location = createPoint(
+                Double.parseDouble(document.x()),  // 경도
+                Double.parseDouble(document.y())   // 위도
+        );
 
-                    DonationCenter newCenter = DonationCenter.createFromKakaoMap(
-                            document.id(),
-                            document.placeName(),
-                            document.roadAddressName() != null && !document.roadAddressName().isBlank()
-                                    ? document.roadAddressName()
-                                    : document.addressName(),
-                            document.phone() != null && !document.phone().isBlank()
-                                    ? document.phone()
-                                    : null,
-                            null,  // 운영시간 정보는 카카오맵 기본 API에서 제공하지 않음
-                            location,
-                            document.categoryName()
-                    );
-
-                    // DB에 저장
-                    return donationCenterRepository.save(newCenter);
-                });
+        // CommandService를 통해 기부처 생성 또는 조회 (Command 책임 분리)
+        DonationCenter center = donationCenterCommandService.createOrGet(
+                document.id(),
+                document.placeName(),
+                document.roadAddressName() != null && !document.roadAddressName().isBlank()
+                        ? document.roadAddressName()
+                        : document.addressName(),
+                document.phone() != null && !document.phone().isBlank()
+                        ? document.phone()
+                        : null,
+                location,
+                document.categoryName()
+        );
 
         // 거리 정보 포함하여 응답 DTO 생성
         Integer distance = document.distance() != null && !document.distance().isBlank()
@@ -161,9 +145,7 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
         return DonationCenterSearchResponse.fromWithDistance(center, distance);
     }
 
-    /**
-     * 좌표 유효성 검증
-     */
+    // 좌표 유효성 검증
     private void validateCoordinates(Double latitude, Double longitude) {
         if (latitude == null || longitude == null) {
             throw new DonationException(DonationErrorCode.INVALID_COORDINATES);
@@ -175,13 +157,12 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
         }
     }
 
-    /**
-     * Point 객체 생성
-     */
+    // Point 객체 생성
     private Point createPoint(double longitude, double latitude) {
 
         Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
         point.setSRID(SRID);
+
         return point;
     }
 }
