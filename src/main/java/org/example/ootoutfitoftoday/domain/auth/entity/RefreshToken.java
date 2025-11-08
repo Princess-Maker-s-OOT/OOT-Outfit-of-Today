@@ -45,6 +45,7 @@ public class RefreshToken {
     private LocalDateTime expiresAt;
 
     // 마지막 사용 시간(디바이스 활동 추적)
+    // 토큰 갱신 시
     @Column(name = "last_used_at")
     private LocalDateTime lastUsedAt;
 
