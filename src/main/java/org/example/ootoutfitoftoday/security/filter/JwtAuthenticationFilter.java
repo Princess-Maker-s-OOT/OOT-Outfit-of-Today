@@ -209,7 +209,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         uri.startsWith("/v1/closets/{closetId}") ||
                         // uri.startsWith("/v1/sale-posts") ||
                         // uri.startsWith("/v1/sale-posts/{salePostId}") ||
-                        uri.startsWith("/v1/categories"))) {
+                        uri.startsWith("/v1/categories") ||
+                        uri.startsWith("/v1/donation-centers/search"))) {  // 기부처 검색 (Public API)
 
             return true;
         }
