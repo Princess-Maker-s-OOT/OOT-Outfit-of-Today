@@ -5,11 +5,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.ootoutfitoftoday.domain.auth.entity.RefreshToken;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
-import org.example.ootoutfitoftoday.domain.auth.repository.RefreshTokenRepository;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandService;
@@ -26,7 +24,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -41,21 +38,20 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     // 래디스 키 접두사
     private static final String REDIS_KEY_PREFIX = "oauth:temp:code:";
+
     private final UserQueryService userQueryService;
     private final UserCommandService userCommandService;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
     private final StringRedisTemplate redisTemplate;  // Redis 추가
     private final ObjectMapper objectMapper;          // JSON 직렬화용
+
     // 임시 코드 TTL(3분)
     @Value("${oauth.temp-code-ttl-minutes:3}")
     private long tempCodeTtlMinutes;
+
     // 프론트엔드 URL 설정
     @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
-
-//    @Value("${jwt.max-devices-per-user:5}")
-//    private int maxDevicesPerUser;
 
     @Override
     public void onAuthenticationSuccess(
@@ -86,8 +82,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             log.info("JWT 토큰 생성 완료 - userId: {}", user.getId());
 
-            // 리프레시 토큰 DB 저장
-            saveRefreshToken(user, refreshToken);
 
             // 임시 코드 생성 및 래디스 저장
             String tempCode = generateAndSaveTempCode(user.getId(), accessToken, refreshToken);
@@ -221,24 +215,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         log.warn("에러로 인한 리다이렉트 - message: {}", errorMessage);
         response.sendRedirect(redirectUrl);
-    }
-
-    // 리프레시 토큰 저장 또는 갱신
-    private void saveRefreshToken(User user, String token) {
-
-        // 만료 시간 계산
-        LocalDateTime expiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
-
-        // 사용자 ID로 기존 리프레시 토큰 조회
-        refreshTokenRepository.findByUserId(user.getId())
-                .ifPresentOrElse(
-                        // 기존 토큰이 있으면 갱신
-                        existing -> existing.updateToken(token, expiresAt),
-                        // 없으면 새로 생성하여 저장
-                        () -> refreshTokenRepository.save(RefreshToken.create(user, token, expiresAt))
-                );
-
-        log.info("Refresh Token 저장 완료 - userId: {}", user.getId());
     }
 
     // 요청 경로에서 소셜 제공자 ID 추출(예: /.../google -> google)
