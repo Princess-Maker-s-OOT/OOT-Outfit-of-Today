@@ -22,6 +22,9 @@ public enum AuthErrorCode implements ErrorCode {
     INVALID_REFRESH_TOKEN("INVALID_REFRESH_TOKEN", HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다."),
     REFRESH_TOKEN_NOT_FOUND("REFRESH_TOKEN_NOT_FOUND", HttpStatus.UNAUTHORIZED, "리프레시 토큰을 찾을 수 없습니다."),
     INVALID_TOKEN_TYPE("INVALID_TOKEN_TYPE", HttpStatus.BAD_REQUEST, "잘못된 토큰 타입입니다."),
+    OAUTH_LOGIN_FAILED("OAUTH_LOGIN_FAILED", HttpStatus.INTERNAL_SERVER_ERROR, "임시 코드 생성 실패입니다"),
+    TOKEN_EXCHANGE_FAILED("TOKEN_EXCHANGE_FAILED", HttpStatus.INTERNAL_SERVER_ERROR, "토큰 교환에 실패했습니다"),
+    INVALID_OR_EXPIRED_CODE("INVALID_OR_EXPIRED_CODE", HttpStatus.BAD_REQUEST, "유효하지 않거나 만료된 임시 코드입니다"),
 
     DEVICE_MISMATCH("DEVICE_MISMATCH", HttpStatus.UNAUTHORIZED, "디바이스 정보가 일치하지 않습니다."),
 
