@@ -9,10 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.RefreshTokenRequest;
+import org.example.ootoutfitoftoday.domain.auth.dto.request.*;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.DeviceInfoResponse;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthSuccessCode;
@@ -111,6 +108,29 @@ public class AuthController {
         AuthLoginResponse response = authCommandService.refresh(request.getRefreshToken(), request.getDeviceId());
 
         return Response.success(response, AuthSuccessCode.TOKEN_REFRESH);
+    }
+
+    // OAuth2 임시 코드를 JWT 토큰으로 교환
+    // OAuth2 로그인 후 프론트엔드가 받은 임시 코드를 실제 토큰으로 교환
+    // 임시 코드는 3분간 유효하며 1회용
+    @Operation(
+            summary = "OAuth2 임시 코드 교환",
+            description = "OAuth2 로그인 후 발급된 임시 코드를 JWT 토큰으로 교환합니다.\n\n" +
+                    "- 임시 코드는 3분간 유효\n" +
+                    "- 1회용(사용 후 자동 삭제)\n" +
+                    "- Redis에서 토큰 정보 조회",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "토큰 교환 성공"),
+                    @ApiResponse(responseCode = "400", description = "유효하지 않거나 만료된 코드")
+            })
+    @PostMapping("/oauth2/token/exchange")
+    public ResponseEntity<Response<AuthLoginResponse>> exchangeOAuthToken(
+            @Valid @RequestBody TokenExchangeRequest request
+    ) {
+
+        AuthLoginResponse response = authCommandService.exchangeOAuthToken(request.getCode());
+
+        return Response.success(response, AuthSuccessCode.TOKEN_EXCHANGE);
     }
 
     // 로그아웃
