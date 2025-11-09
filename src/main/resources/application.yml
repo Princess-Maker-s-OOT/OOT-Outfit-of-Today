@@ -99,3 +99,8 @@ kakao:
   map:
     api-key: ${KAKAO_MAP_API_KEY}
     base-url: https://dapi.kakao.com
+
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
+  api:
+    confirm-url: https://api.tosspayments.com/v1/payments/confirm
