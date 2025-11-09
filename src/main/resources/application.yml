@@ -103,4 +103,5 @@ kakao:
 toss:
   secret-key: ${TOSS_SECRET_KEY}
   api:
-    confirm-url: https://api.tosspayments.com/v1/payments/confirm
+    url:
+      confirm: https://api.tosspayments.com/v1/payments/confirm

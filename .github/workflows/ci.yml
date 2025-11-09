@@ -76,9 +76,6 @@ jobs:
         run: |
           echo "TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}" >> $GITHUB_ENV
 
-      - name: Debug environment variables
-        run: env | grep TOSS
-
       - name: Run tests (verbose)
         run: ./gradlew clean test --stacktrace --info --warning-mode all
 
