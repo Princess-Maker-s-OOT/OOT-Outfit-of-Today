@@ -1,6 +1,6 @@
 package org.example.ootoutfitoftoday.domain.transaction.service.command;
 
-import org.example.ootoutfitoftoday.domain.transaction.dto.request.ConfirmTransactionRequest;
+import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 
@@ -18,6 +18,6 @@ public interface TransactionCommandService {
     TransactionResponse confirmTransaction(
             Long userId,
             Long transactionId,
-            ConfirmTransactionRequest request
+            TransactionConfirmRequest request
     );
 }

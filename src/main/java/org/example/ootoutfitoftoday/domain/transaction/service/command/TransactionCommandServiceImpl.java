@@ -14,7 +14,7 @@ import org.example.ootoutfitoftoday.domain.payment.repository.PaymentRepository;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
-import org.example.ootoutfitoftoday.domain.transaction.dto.request.ConfirmTransactionRequest;
+import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 import org.example.ootoutfitoftoday.domain.transaction.entity.Transaction;
@@ -143,7 +143,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
     public TransactionResponse confirmTransaction(
             Long userId,
             Long transactionId,
-            ConfirmTransactionRequest request
+            TransactionConfirmRequest request
     ) {
         // 1. Transaction 조회
         Transaction transaction = transactionRepository.findById(transactionId)

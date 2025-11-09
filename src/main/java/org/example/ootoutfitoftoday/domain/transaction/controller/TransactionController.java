@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.payment.exception.PaymentSuccessCode;
-import org.example.ootoutfitoftoday.domain.transaction.dto.request.ConfirmTransactionRequest;
+import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 import org.example.ootoutfitoftoday.domain.transaction.exception.TransactionSuccessCode;
@@ -53,7 +53,7 @@ public class TransactionController {
     public ResponseEntity<Response<TransactionResponse>> confirmTransaction(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long transactionId,
-            @Valid @RequestBody ConfirmTransactionRequest request
+            @Valid @RequestBody TransactionConfirmRequest request
     ) {
         TransactionResponse response = transactionCommandService.confirmTransaction(
                 authUser.getUserId(),

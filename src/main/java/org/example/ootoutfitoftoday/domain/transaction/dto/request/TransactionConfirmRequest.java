@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class ConfirmTransactionRequest {
+public class TransactionConfirmRequest {
 
     @NotBlank(message = "결제 키는 필수입니다.")
     private String paymentKey;
