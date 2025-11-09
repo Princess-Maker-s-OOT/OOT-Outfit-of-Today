@@ -6,7 +6,6 @@ import org.example.ootoutfitoftoday.domain.payment.exception.PaymentErrorCode;
 import org.example.ootoutfitoftoday.domain.payment.exception.PaymentException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,10 +24,9 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile("!test")  // 테스트에서 실제 클라이언트 빈 미로딩
 public class TossPaymentsClientImpl implements TossPaymentsClient {
 
-    @Value("${toss.secret-key}")
+    @Value("${TOSS_SECRET_KEY}")
     private String secretKey;
 
     private static final String TOSS_API_URL = "https://api.tosspayments.com/v1/payments/confirm";
