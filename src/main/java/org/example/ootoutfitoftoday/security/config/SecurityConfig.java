@@ -144,10 +144,11 @@ public class SecurityConfig {
                                 "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/v1/closets/public",
-                                "/v1/closets/{closetId}",  // 추가 추천
+                                "/v1/closets/{closetId}",
                                 // "/v1/sale-posts",
                                 // "/v1/sale-posts/{salePostId}",
-                                "/v1/categories").permitAll()
+                                "/v1/categories",
+                                "/v1/donation-centers/search").permitAll()
 
                         // 소셜 로그인
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()

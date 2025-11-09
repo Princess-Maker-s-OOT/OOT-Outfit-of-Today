@@ -13,8 +13,8 @@ import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetCreateReques
 import org.example.ootoutfitoftoday.domain.closet.dto.request.ClosetUpdateRequest;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.*;
 import org.example.ootoutfitoftoday.domain.closet.exception.ClosetSuccessCode;
-import org.example.ootoutfitoftoday.domain.closet.service.command.ClosetCommandServiceImpl;
-import org.example.ootoutfitoftoday.domain.closet.service.query.ClosetQueryServiceImpl;
+import org.example.ootoutfitoftoday.domain.closet.service.command.ClosetCommandService;
+import org.example.ootoutfitoftoday.domain.closet.service.query.ClosetQueryService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,8 +26,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/closets")
 public class ClosetController {
 
-    private final ClosetCommandServiceImpl closetCommandService;
-    private final ClosetQueryServiceImpl closetQueryService;
+    private final ClosetCommandService closetCommandService;
+    private final ClosetQueryService closetQueryService;
 
     /**
      * 옷장 등록
