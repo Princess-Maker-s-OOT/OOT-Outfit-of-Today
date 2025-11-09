@@ -76,6 +76,9 @@ jobs:
         run: |
           echo "TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}" >> $GITHUB_ENV
 
-      # check를 통해서 빌드와 테스트 동시에 진행 / test 설정을 CI에 사용
+      - name: Debug environment variables
+        run: env | grep TOSS
+
+    # check를 통해서 빌드와 테스트 동시에 진행 / test 설정을 CI에 사용
       - name: Run tests with coverage check
         run: ./gradlew clean check
