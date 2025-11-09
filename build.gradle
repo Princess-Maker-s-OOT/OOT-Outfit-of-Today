@@ -103,6 +103,9 @@ dependencies {
     // Redisson - 분산 락(Distributed Lock) 구현을 위한 고급 Redis 클라이언트
     // 기본 Lettuce보다 락, pub/sub 등 고급 기능에 강력
     implementation 'org.redisson:redisson-spring-boot-starter:3.52.0'
+
+    // HTTP Client (토스페이먼츠 API 호출용)
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
 }
 
 // Spring Cloud AWS BOM (버전 통합 관리)
