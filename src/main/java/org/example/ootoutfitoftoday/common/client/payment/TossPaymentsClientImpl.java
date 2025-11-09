@@ -26,10 +26,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TossPaymentsClientImpl implements TossPaymentsClient {
 
-    @Value("${TOSS_SECRET_KEY}")
+    @Value("${toss.secret-key}")
     private String secretKey;
 
-    private static final String TOSS_API_URL = "https://api.tosspayments.com/v1/payments/confirm";
+    @Value("${toss.api.url.confirm}")
+    private String confirmUrl;
 
     private final @Qualifier("tossRestTemplate") RestTemplate restTemplate;
 
@@ -58,7 +59,7 @@ public class TossPaymentsClientImpl implements TossPaymentsClient {
             // HTTP 요청
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-            restTemplate.postForEntity(TOSS_API_URL, entity, String.class);
+            restTemplate.postForEntity(confirmUrl, entity, String.class);
 
         } catch (HttpClientErrorException e) {
             // 예: 잘못된 paymentKey (400 Bad Request)
