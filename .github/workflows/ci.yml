@@ -42,7 +42,6 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-      TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
 
     steps:
       - uses: actions/checkout@v3
@@ -72,6 +71,10 @@ jobs:
 
       - name: Grant execute permission for Gradlew
         run: chmod +x gradlew
+
+      - name: Export environment variables
+        run: |
+          echo "TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}" >> $GITHUB_ENV
 
       # check를 통해서 빌드와 테스트 동시에 진행 / test 설정을 CI에 사용
       - name: Run tests with coverage check
