@@ -214,7 +214,10 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             String deviceId,
             String deviceName
     ) {
-        log.info("OAuth2 임시 코드 교환 시작 - code: {}", code);
+        log.info("=== OAuth2 임시 코드 교환 시작 ===");
+        log.info("Code: {}", code);
+        log.info("Device ID: {}", deviceId);
+        log.info("Device Name: {}", deviceName);
 
         // 래디스에서 임시 코드로 토큰 정보 조회
         String redisKey = REDIS_KEY_PREFIX + code;

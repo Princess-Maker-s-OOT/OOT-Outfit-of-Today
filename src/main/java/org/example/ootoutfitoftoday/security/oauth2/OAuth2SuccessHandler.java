@@ -1,8 +1,10 @@
 package org.example.ootoutfitoftoday.security.oauth2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
@@ -24,10 +26,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -61,6 +60,36 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     ) throws IOException {
 
         try {
+            log.info("=== OAuth2 인증 성공 시작 ===");
+
+            // 기존 세션 완전히 무효화하고 새 세션 생성
+            HttpSession oldSession = request.getSession(false);
+            if (oldSession != null) {
+                log.info("기존 세션 무효화: {}", oldSession.getId());
+                oldSession.invalidate();
+            }
+
+            // 새 세션 생성
+            HttpSession session = request.getSession(true);
+            log.info("새 세션 생성: {}", session.getId());
+
+            log.info("Request URI: {}", request.getRequestURI());
+            log.info("Session ID: {}", session.getId());
+            log.info("Session Creation Time: {}", new Date(session.getCreationTime()));
+
+            // 쿠키 상세 로깅
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    log.info("Cookie - Name: {}, Value: {}, Path: {}, MaxAge: {}",
+                            cookie.getName(),
+                            cookie.getValue(),
+                            cookie.getPath(),
+                            cookie.getMaxAge());
+                }
+            } else {
+                log.warn("쿠키가 없음");
+            }
+
             // OAuth2 인증 객체에서 사용자 정보(Principal) 추출
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
@@ -181,7 +210,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             String redisKey = REDIS_KEY_PREFIX + tempCode;
             redisTemplate.opsForValue().set(redisKey, tokenJson, tempCodeTtlMinutes, TimeUnit.MINUTES);
 
-            log.debug("Redis 저장 완료 - key: {}, TTL: {}분", redisKey, tempCodeTtlMinutes);
+            // 래디스 저장 즉시 검증
+            String storedValue = redisTemplate.opsForValue().get(redisKey);
+            if (storedValue != null) {
+                log.info("Redis 저장 검증 성공 - key: {}, TTL: {}분", redisKey, tempCodeTtlMinutes);
+            } else {
+                log.error("Redis 저장 검증 실패 - key: {}", redisKey);
+                throw new RuntimeException("Redis 저장 실패");
+            }
 
             return tempCode;
 
@@ -196,6 +232,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // 프론트엔드 콜백 URL 생성
         String redirectUrl = String.format("%s/auth/callback?code=%s", frontendUrl, tempCode);
+
+        log.info("=== 리다이렉트 직전 상태 ===");
+        log.info("Temp Code: {}", tempCode);
+        log.info("Redirect URL: {}", redirectUrl);
+        log.info("Response committed: {}", response.isCommitted());
 
         // 민감정보는 debug 레벨로
         log.debug("프론트엔드로 리다이렉트 - code: {}", tempCode);
