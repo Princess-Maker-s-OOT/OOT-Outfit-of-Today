@@ -47,8 +47,16 @@ spring:
             scope:
               - email
               - profile
-            # 백엔드 콜백 URI(Google Console에 등록한 주소와 일치해야 함)
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+
+        provider:
+          google:
+            # prompt 파라미터를 URL에 직접 추가
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?prompt=select_account    # 사용자가 로그인할 때 브라우저가 이동하는 URL(Google 로그인 화면)
+            token-uri: https://www.googleapis.com/oauth2/v4/token                                    # 로그인 완료 후 서버가 Google에게 access token 전송 요청을 보내는 URL
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo                             # 발급받은 token으로 사용자 정보(email, name 등)를 가져오는 API
+            user-name-attribute: sub                                                                 # 사용자 정보 중 고유 식별자로 쓸 필드명(sub = Google의 unique user id)
 
   cloud:
     aws:
@@ -70,6 +78,20 @@ server:
   port: 8080
   servlet:
     context-path: /api
+    # 세션 쿠키 설정 추가
+    session:
+      cookie:
+        # SameSite 정책 설정
+        same-site: lax
+        secure: false      # 로컬 개발(HTTP)에서는 false, 프로덕션(HTTPS)에서는 true
+        http-only: true    # JavaScript 접근 차단
+        path: /
+        max-age: 1800      # 30분 (OAuth2 flow 완료까지 충분한 시간)
+      timeout: 30m         # 세션 타임아웃
+
+  session:
+    # 세션 저장소를 Redis로 변경(선택사항, 더 안정적)
+    store-type: none    # 기본값은 none(메모리)
 
 # OAuth 커스텀 설정
 oauth:
