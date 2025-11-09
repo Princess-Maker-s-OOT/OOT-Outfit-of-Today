@@ -26,7 +26,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TossPaymentsClientImpl implements TossPaymentsClient {
 
-    @Value("${toss.secret-key}")
+    @Value("${TOSS_SECRET_KEY}")
     private String secretKey;
 
     @Value("${toss.api.url.confirm}")
