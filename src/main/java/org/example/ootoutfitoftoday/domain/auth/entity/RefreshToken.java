@@ -45,6 +45,7 @@ public class RefreshToken {
     private LocalDateTime expiresAt;
 
     // 마지막 사용 시간(디바이스 활동 추적)
+    // 토큰 갱신 시
     @Column(name = "last_used_at")
     private LocalDateTime lastUsedAt;
 
@@ -65,6 +66,7 @@ public class RefreshToken {
             String deviceName,
             String token,
             LocalDateTime expiresAt,
+            LocalDateTime lastUsedAt,
             String ipAddress,
             String userAgent
     ) {
@@ -73,6 +75,7 @@ public class RefreshToken {
         this.deviceName = deviceName;
         this.token = token;
         this.expiresAt = expiresAt;
+        this.lastUsedAt = lastUsedAt;
         this.ipAddress = ipAddress;
         this.userAgent = userAgent;
     }
@@ -94,24 +97,9 @@ public class RefreshToken {
                 .deviceName(deviceName)
                 .token(token)
                 .expiresAt(expiresAt)
+                .lastUsedAt(LocalDateTime.now())
                 .ipAddress(ipAddress)
                 .userAgent(userAgent)
-                .build();
-    }
-
-    // TODO: 임시용. 추후 삭제 예정
-    public static RefreshToken create(
-            User user,
-            String token,
-            LocalDateTime expiresAt) {
-        return RefreshToken.builder()
-                .user(user)
-                .deviceId("social-login")
-                .deviceName("OAuth2")
-                .token(token)
-                .expiresAt(expiresAt)
-                .ipAddress(null)
-                .userAgent(null)
                 .build();
     }
 

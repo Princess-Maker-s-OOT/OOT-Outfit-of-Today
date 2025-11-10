@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.domain.auth.service.command;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +26,13 @@ import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandServi
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.example.ootoutfitoftoday.security.jwt.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -38,6 +41,9 @@ import java.util.Objects;
 @Transactional
 public class AuthCommandServiceImpl implements AuthCommandService {
 
+    // 래디스 키 접두사
+    private static final String REDIS_KEY_PREFIX = "oauth:temp:code:";
+
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
     private final ChatParticipatingUserQueryService chatParticipatingUserQueryService;
@@ -45,6 +51,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
 
     // 사용자당 최대 디바이스 수 설정(application.yml에서 주입)
     @Value("${jwt.max-devices-per-user:5}")
@@ -195,6 +203,101 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         storedToken.updateToken(newRefreshToken, newExpiresAt);
 
         return new AuthLoginResponse(newAccessToken, newRefreshToken);
+    }
+
+    // OAuth2 임시 코드를 JWT 토큰으로 교환
+    // 임시 코드는 3분간 유효하며 1회용
+    // 래디스에서 토큰 정보 조회 후 삭제
+    @Override
+    public AuthLoginResponse exchangeOAuthToken(
+            String code,
+            String deviceId,
+            String deviceName,
+            HttpServletRequest httpRequest
+    ) {
+        log.info("=== OAuth2 임시 코드 교환 시작 ===");
+        log.info("Code: {}", code);
+        log.info("Device ID: {}", deviceId);
+        log.info("Device Name: {}", deviceName);
+
+        // 래디스에서 임시 코드로 토큰 정보 조회
+        String redisKey = REDIS_KEY_PREFIX + code;
+        String tokenJson = redisTemplate.opsForValue().get(redisKey);
+
+        // 코드가 없거나 만료된 경우
+        if (tokenJson == null) {
+            log.warn("유효하지 않거나 만료된 임시 코드 - code: {}", code);
+            throw new AuthException(AuthErrorCode.INVALID_OR_EXPIRED_CODE);
+        }
+
+        try {
+            // JSON 파싱하여 토큰 정보 추출
+            Map<String, String> tokenData = objectMapper.readValue(tokenJson, Map.class);
+
+            String accessToken = tokenData.get("accessToken");
+            String refreshToken = tokenData.get("refreshToken");
+            String userId = tokenData.get("userId");
+
+            log.info("토큰 정보 파싱 완료 - userId: {}", userId);
+
+            // 디바이스 정보로 RefreshToken 저장
+            User user = userQueryService.findByIdAndIsDeletedFalse(Long.parseLong(userId));
+
+            LocalDateTime expiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
+
+            // 멀티 디바이스 제한 확인
+            List<RefreshToken> tokens = refreshTokenRepository.findAllByUserIdOrderByLastUsedAtDesc(user.getId());
+
+            if (tokens.size() >= maxDevicesPerUser) {
+                RefreshToken oldestToken = tokens.get(tokens.size() - 1);
+                refreshTokenRepository.delete(oldestToken);
+                log.info("최대 디바이스 수 초과로 가장 오래된 디바이스 삭제: userId={}, deviceId={}",
+                        user.getId(), oldestToken.getDeviceId());
+            }
+
+            String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
+            String userAgent = httpRequest.getHeader("User-Agent");
+
+            log.info("=== 클라이언트 정보 추출 ===");
+            log.info("IP Address: {}", ipAddress);
+            log.info("User-Agent: {}", userAgent);
+            log.info("Remote Addr: {}", httpRequest.getRemoteAddr());
+            log.info("X-Forwarded-For: {}", httpRequest.getHeader("X-Forwarded-For"));
+            log.info("X-Real-IP: {}", httpRequest.getHeader("X-Real-IP"));
+
+            // 디바이스별 토큰 저장(일반 로그인과 동일!)
+            refreshTokenRepository.findByUserIdAndDeviceId(user.getId(), deviceId)
+                    .ifPresentOrElse(
+                            existingToken -> existingToken.updateToken(refreshToken, expiresAt),
+                            () -> {
+                                RefreshToken newToken = RefreshToken.create(
+                                        user,
+                                        deviceId,
+                                        deviceName,
+                                        refreshToken,
+                                        expiresAt,
+                                        ipAddress,
+                                        userAgent
+                                );
+                                refreshTokenRepository.save(newToken);
+                            }
+                    );
+
+            log.info("Refresh Token 저장 완료 - userId: {}, deviceId: {}", userId, deviceId);
+
+
+            // 래디스에서 임시 코드(1회용) 삭제
+            redisTemplate.delete(redisKey);
+            log.info("임시 코드(1회용) 삭제 완료 - code: {}", code);
+
+            log.info("OAuth2 토큰 교환 성공 - userId: {}", userId);
+
+            return new AuthLoginResponse(accessToken, refreshToken);
+
+        } catch (Exception e) {
+            log.error("토큰 교환 중 오류 발생 - code: {}", code, e);
+            throw new AuthException(AuthErrorCode.TOKEN_EXCHANGE_FAILED);
+        }
     }
 
     // 로그아웃
