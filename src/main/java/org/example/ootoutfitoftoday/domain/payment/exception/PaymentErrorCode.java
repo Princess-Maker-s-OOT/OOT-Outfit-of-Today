@@ -84,6 +84,12 @@ public enum PaymentErrorCode implements ErrorCode {
             "TOSS_API_ERROR",
             HttpStatus.BAD_REQUEST,
             "토스 결제 승인에 실패했습니다."
+    ),
+
+    TOSS_API_INVALID_RESPONSE(
+            "TOSS_API_INVALID_RESPONSE",
+            HttpStatus.BAD_GATEWAY,
+            "토스 API 응답 형식이 올바르지 않습니다."
     );
 
     private final String code;
