@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryService;
+import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
@@ -20,6 +21,7 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j
@@ -68,6 +70,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 salePost.getTradeLocation(),
                 user.getId(),
                 category.getId(),
+                null, // recommendationId - 직접 작성된 판매글은 null
                 false
         );
 
@@ -75,6 +78,63 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
+
+        return SalePostCreateResponse.from(savedSalePost);
+    }
+
+    // 추천으로부터 판매글 생성
+    @Override
+    public SalePostCreateResponse createSalePostFromRecommendation(
+            Recommendation recommendation,
+            Long categoryId,
+            String title,
+            String content,
+            BigDecimal price,
+            String tradeAddress,
+            BigDecimal tradeLatitude,
+            BigDecimal tradeLongitude,
+            List<String> imageUrls
+    ) {
+        Category category = categoryQueryService.findById(categoryId);
+
+        String tradeLocation = PointFormatAndParse.format(
+                tradeLatitude,
+                tradeLongitude
+        );
+
+        SalePost salePost = SalePost.createFromRecommendation(
+                recommendation,
+                category,
+                title,
+                content,
+                price,
+                tradeAddress,
+                tradeLocation,
+                imageUrls
+        );
+
+        String status = salePost.getStatus().name();
+
+        salePostRepository.saveAsNativeQuery(
+                salePost.getTitle(),
+                salePost.getContent(),
+                salePost.getPrice(),
+                status,
+                salePost.getTradeAddress(),
+                salePost.getTradeLocation(),
+                recommendation.getUser().getId(),
+                category.getId(),
+                recommendation.getId(),
+                false
+        );
+
+        Long salePostId = salePostRepository.findLastInsertId();
+
+        SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
+
+        log.info("Created sale post from recommendation - recommendationId: {}, salePostId: {}",
+                recommendation.getId(), salePostId);
 
         return SalePostCreateResponse.from(savedSalePost);
     }
