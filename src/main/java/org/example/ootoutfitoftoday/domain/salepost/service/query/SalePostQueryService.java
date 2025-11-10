@@ -11,6 +11,7 @@ import org.springframework.data.domain.Slice;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface SalePostQueryService {
 
@@ -37,4 +38,7 @@ public interface SalePostQueryService {
             SaleStatus status,
             Pageable pageable
     );
+
+    // 추천 ID로 판매글 조회 (중복 방지용)
+    Optional<SalePost> findByRecommendationId(Long recommendationId);
 }

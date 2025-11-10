@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -202,5 +203,12 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
 
         // 7. SliceImpl 반환
         return new SliceImpl<>(responseContent, pageable, sliceContent.hasNext());
+    }
+
+    // 추천 ID로 판매글 조회 (중복 방지용)
+    @Override
+    public Optional<SalePost> findByRecommendationId(Long recommendationId) {
+
+        return salePostRepository.findByRecommendationIdAndIsDeletedFalse(recommendationId);
     }
 }
