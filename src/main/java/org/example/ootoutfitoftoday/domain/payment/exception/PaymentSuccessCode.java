@@ -1,4 +1,4 @@
-package org.example.ootoutfitoftoday.domain.transaction.exception;
+package org.example.ootoutfitoftoday.domain.payment.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -7,12 +7,12 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum TransactionSuccessCode implements SuccessCode {
+public enum PaymentSuccessCode implements SuccessCode {
 
-    TRANSACTION_REQUESTED(
-            "TRANSACTION_REQUESTED",
-            HttpStatus.CREATED,
-            "거래가 요청되었습니다."
+    PAYMENT_APPROVED(
+            "PAYMENT_APPROVED",
+            HttpStatus.OK,
+            "결제가 승인되었습니다."
     );
 
     private final String code;

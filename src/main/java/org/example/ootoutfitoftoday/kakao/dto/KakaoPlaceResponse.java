@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.kakao.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
@@ -8,6 +9,7 @@ import java.util.List;
 /**
  * 카카오맵 장소 검색 API 응답 DTO
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record KakaoPlaceResponse(
 
         @JsonProperty("meta")
@@ -20,6 +22,7 @@ public record KakaoPlaceResponse(
     /**
      * 검색 메타 정보
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Meta(
 
             @JsonProperty("total_count")
@@ -29,13 +32,34 @@ public record KakaoPlaceResponse(
             Integer pageableCount,
 
             @JsonProperty("is_end")
-            Boolean isEnd
+            Boolean isEnd,
+
+            @JsonProperty("same_name")
+            SameName sameName
+    ) {
+    }
+
+    /**
+     * 질의어의 지역 및 키워드 분석 정보
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record SameName(
+
+            @JsonProperty("region")
+            List<String> region,
+
+            @JsonProperty("keyword")
+            String keyword,
+
+            @JsonProperty("selected_region")
+            String selectedRegion
     ) {
     }
 
     /**
      * 장소 상세 정보
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Document(
 
             @JsonProperty("id")

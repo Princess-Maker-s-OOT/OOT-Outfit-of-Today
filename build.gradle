@@ -94,6 +94,7 @@ dependencies {
 
     // Point 객체를 사용한 위치 정보(위도/경도) 처리용
     implementation 'org.locationtech.jts:jts-core:1.20.0'
+    implementation 'org.hibernate.orm:hibernate-spatial:6.6.29.Final'
 
     // Redis - 캐싱, 분산 락, 세션 관리 등을 위한 필수 의존성
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -102,6 +103,9 @@ dependencies {
     // Redisson - 분산 락(Distributed Lock) 구현을 위한 고급 Redis 클라이언트
     // 기본 Lettuce보다 락, pub/sub 등 고급 기능에 강력
     implementation 'org.redisson:redisson-spring-boot-starter:3.52.0'
+
+    // HTTP Client (토스페이먼츠 API 호출용)
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
 }
 
 // Spring Cloud AWS BOM (버전 통합 관리)
