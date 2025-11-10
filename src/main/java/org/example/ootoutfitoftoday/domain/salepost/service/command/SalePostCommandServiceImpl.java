@@ -59,27 +59,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 imageUrls
         );
 
-        String status = salePost.getStatus().name();
-
-        salePostRepository.saveAsNativeQuery(
-                salePost.getTitle(),
-                salePost.getContent(),
-                salePost.getPrice(),
-                status,
-                salePost.getTradeAddress(),
-                salePost.getTradeLocation(),
-                user.getId(),
-                category.getId(),
-                null, // recommendationId - 직접 작성된 판매글은 null
-                false
-        );
-
-        Long salePostId = salePostRepository.findLastInsertId();
-
-        SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
-                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
-
-        return SalePostCreateResponse.from(savedSalePost);
+        return saveSalePostAndCreateResponse(salePost);
     }
 
     // 추천으로부터 판매글 생성
@@ -113,7 +93,19 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 imageUrls
         );
 
+        SalePostCreateResponse response = saveSalePostAndCreateResponse(salePost);
+
+        log.info("Created sale post from recommendation - recommendationId: {}, salePostId: {}",
+                recommendation.getId(), response.salePostId());
+
+        return response;
+    }
+
+    // 판매글 저장 및 응답 생성 헬퍼 메서드
+    private SalePostCreateResponse saveSalePostAndCreateResponse(SalePost salePost) {
         String status = salePost.getStatus().name();
+        Long recommendationId = (salePost.getRecommendation() != null)
+                ? salePost.getRecommendation().getId() : null;
 
         salePostRepository.saveAsNativeQuery(
                 salePost.getTitle(),
@@ -122,9 +114,9 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 status,
                 salePost.getTradeAddress(),
                 salePost.getTradeLocation(),
-                recommendation.getUser().getId(),
-                category.getId(),
-                recommendation.getId(),
+                salePost.getUser().getId(),
+                salePost.getCategory().getId(),
+                recommendationId,
                 false
         );
 
@@ -132,9 +124,6 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
-
-        log.info("Created sale post from recommendation - recommendationId: {}, salePostId: {}",
-                recommendation.getId(), salePostId);
 
         return SalePostCreateResponse.from(savedSalePost);
     }
