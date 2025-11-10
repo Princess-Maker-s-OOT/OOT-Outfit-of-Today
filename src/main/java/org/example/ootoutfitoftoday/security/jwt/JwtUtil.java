@@ -60,7 +60,7 @@ public class JwtUtil {
                         .id(UUID.randomUUID().toString())                            // jti: 토큰 고유 식별자 (블랙리스트용)
                         .subject(String.valueOf(userId))
                         .claim(USER_ROLE_CLAIM, userRole.getUserRole())              // 인가용
-                        .claim(TOKEN_TYPE_CLAIM, "access")                           // 토큰 타입 구분
+                        .claim(TOKEN_TYPE_CLAIM, "access")                     // 토큰 타입 구분
                         .expiration(new Date(date.getTime() + ACCESS_TOKEN_TIME))
                         .issuedAt(date)                                              // 발급일
                         .signWith(key, Jwts.SIG.HS256)                               // 암호화 알고리즘
