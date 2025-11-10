@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.dashboard.service.query.admin;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
@@ -15,6 +16,7 @@ import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.service.query.SalePostQueryService;
 import org.example.ootoutfitoftoday.domain.user.dto.response.NewUsers;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(readOnly = true)
 public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryService {
 
@@ -35,6 +38,11 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
     private final SalePostQueryService salePostQueryService;
 
     @Override
+    @Cacheable(
+            value = "dashboard:admin:user",
+            key = "#baseDate != null ? #baseDate.toString() : T(java.time.LocalDate).now().toString()",
+            unless = "#result == null"
+    )
     public AdminUserStatisticsResponse adminUserStatistics(LocalDate baseDate) {
 
         if (baseDate == null) {
@@ -65,6 +73,7 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
     }
 
     @Override
+    @Cacheable(value = "dashboard:admin:clothes", unless = "#result == null")
     public AdminClothesStatisticsResponse adminClothesStatistics() {
 
         long totalClothes = clothesQueryService.countClothesByIsDeletedFalse(); // 전체 옷 수량
@@ -84,6 +93,11 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
     }
 
     @Override
+    @Cacheable(
+            value = "dashboard:admin:salePost",
+            key = "#baseDate != null ? #baseDate.toString() : T(java.time.LocalDate).now().toString()",
+            unless = "#result == null"
+    )
     public AdminSalePostStatisticsResponse adminSalePostStatistics(LocalDate baseDate) {
 
         if (baseDate == null) {
@@ -131,6 +145,7 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
     }
 
     @Override
+    @Cacheable(value = "dashboard:admin:category", unless = "#result == null")
     public AdminTopCategoryStatisticsResponse adminTopCategoryStatistics() {
 
         return new AdminTopCategoryStatisticsResponse(clothesQueryService.findTopCategoryStats());
