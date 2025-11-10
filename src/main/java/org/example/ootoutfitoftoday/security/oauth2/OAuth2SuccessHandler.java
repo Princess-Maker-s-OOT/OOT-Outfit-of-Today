@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.security.oauth2;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import org.example.ootoutfitoftoday.domain.user.service.command.UserCommandServi
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.example.ootoutfitoftoday.security.jwt.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -204,25 +206,39 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             tokenData.put("refreshToken", refreshToken);
 
             // Map을 JSON 문자열로 직렬화
-            String tokenJson = objectMapper.writeValueAsString(tokenData);
+            String tokenJson;
+            try {
+                tokenJson = objectMapper.writeValueAsString(tokenData);
+            } catch (JsonProcessingException e) {
+                log.error("토큰 정보 JSON 직렬화 실패", e);
+                throw new AuthException(AuthErrorCode.TOKEN_SERIALIZATION_FAILED);
+            }
 
             // 래디스에 저장(키: oauth:temp:code:{UUID}, TTL: 3분)
             String redisKey = REDIS_KEY_PREFIX + tempCode;
-            redisTemplate.opsForValue().set(redisKey, tokenJson, tempCodeTtlMinutes, TimeUnit.MINUTES);
+            try {
+                redisTemplate.opsForValue().set(redisKey, tokenJson, tempCodeTtlMinutes, TimeUnit.MINUTES);
+            } catch (RedisConnectionFailureException e) {
+                log.error("Redis 연결 실패", e);
+                throw new AuthException(AuthErrorCode.REDIS_CONNECTION_FAILED);
+            }
 
             // 래디스 저장 즉시 검증
             String storedValue = redisTemplate.opsForValue().get(redisKey);
-            if (storedValue != null) {
-                log.info("Redis 저장 검증 성공 - key: {}, TTL: {}분", redisKey, tempCodeTtlMinutes);
-            } else {
+            if (storedValue == null) {
                 log.error("Redis 저장 검증 실패 - key: {}", redisKey);
-                throw new RuntimeException("Redis 저장 실패");
+                throw new AuthException(AuthErrorCode.REDIS_SAVE_FAILED);
             }
+
+            log.info("Redis 저장 검증 성공 - key: {}, TTL: {}분", redisKey, tempCodeTtlMinutes);
 
             return tempCode;
 
+        } catch (AuthException e) {
+            // AuthException은 그대로 전파
+            throw e;
         } catch (Exception e) {
-            log.error("임시 코드 생성 실패", e);
+            log.error("임시 코드 생성 중 예상치 못한 오류", e);
             throw new AuthException(AuthErrorCode.OAUTH_LOGIN_FAILED);
         }
     }
