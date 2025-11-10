@@ -32,6 +32,7 @@ public enum AuthErrorCode implements ErrorCode {
 
 
     DEVICE_MISMATCH("DEVICE_MISMATCH", HttpStatus.UNAUTHORIZED, "디바이스 정보가 일치하지 않습니다."),
+    INVALID_DEVICE("INVALID_DEVICE", HttpStatus.BAD_REQUEST, "유효하지 않은 디바이스 ID입니다."),
 
     ACCOUNT_ALREADY_LINKED("ACCOUNT_ALREADY_LINKED", HttpStatus.BAD_REQUEST, "이미 다른 계정에 연결된 이메일입니다."),
 

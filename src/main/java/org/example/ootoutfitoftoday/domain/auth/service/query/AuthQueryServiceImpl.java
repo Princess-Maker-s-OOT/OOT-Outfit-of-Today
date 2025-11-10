@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.DeviceInfoResponse;
 import org.example.ootoutfitoftoday.domain.auth.entity.RefreshToken;
+import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
+import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
 import org.example.ootoutfitoftoday.domain.auth.repository.RefreshTokenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,19 @@ public class AuthQueryServiceImpl implements AuthQueryService {
 
         // 최근 사용 순으로 모든 디바이스 토큰 조회
         List<RefreshToken> tokens = refreshTokenRepository.findAllByUserIdOrderByLastUsedAtDesc(authUser.getUserId());
+
+        // currentDeviceId가 실제로 이 유저의 디바이스인지 검증
+        boolean isValidDevice = false;
+        for (RefreshToken token : tokens) {
+            if (token.getDeviceId().equals(currentDeviceId)) {
+                isValidDevice = true;
+                break;
+            }
+        }
+
+        if (!isValidDevice) {
+            throw new AuthException(AuthErrorCode.INVALID_DEVICE);
+        }
 
         // 조회 결과 리스트 생성
         List<DeviceInfoResponse> deviceList = new ArrayList<>();
