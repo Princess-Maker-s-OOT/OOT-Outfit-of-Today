@@ -321,9 +321,27 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
     // 특정 디바이스 강제 제거
     @Override
-    public void removeDevice(AuthUser authUser, String deviceId) {
+    public void removeDevice(
+            AuthUser authUser,
+            String deviceId,
+            String currentDeviceId
+    ) {
+        // 현재 로그인한 디바이스 제거 시도 차단
+        if (deviceId.equals(currentDeviceId)) {
+            throw new AuthException(AuthErrorCode.CANNOT_REMOVE_CURRENT_DEVICE);
+        }
 
-        refreshTokenRepository.deleteByUserIdAndDeviceId(authUser.getUserId(), deviceId);
+        // 해당 디바이스가 실제로 사용자의 것인지 검증
+        RefreshToken token = refreshTokenRepository.findByUserIdAndDeviceId(authUser.getUserId(), deviceId).orElseThrow(
+                () -> new AuthException(AuthErrorCode.DEVICE_NOT_FOUND));
+
+        // 본인 디바이스인지 재확인(보안)
+        if (!Objects.equals(token.getUser().getId(), authUser.getUserId())) {
+            throw new AuthException(AuthErrorCode.UNAUTHORIZED_DEVICE_ACCESS);
+        }
+
+        // 삭제
+        refreshTokenRepository.delete(token);
     }
 
     // 회원탈퇴
