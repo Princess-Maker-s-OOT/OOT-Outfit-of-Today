@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.recommendation.service.query;
 
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationGetMyResponse;
+import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -11,4 +12,7 @@ public interface RecommendationQueryService {
             Long userId,
             Pageable pageable
     );
+
+    // 추천 ID로 추천 조회
+    Recommendation findById(Long recommendationId);
 }

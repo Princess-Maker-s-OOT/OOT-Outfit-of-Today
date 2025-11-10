@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryService;
+import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
@@ -20,6 +21,7 @@ import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j
@@ -57,7 +59,53 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 imageUrls
         );
 
+        return saveSalePostAndCreateResponse(salePost);
+    }
+
+    // 추천으로부터 판매글 생성
+    @Override
+    public SalePostCreateResponse createSalePostFromRecommendation(
+            Recommendation recommendation,
+            Long categoryId,
+            String title,
+            String content,
+            BigDecimal price,
+            String tradeAddress,
+            BigDecimal tradeLatitude,
+            BigDecimal tradeLongitude,
+            List<String> imageUrls
+    ) {
+        Category category = categoryQueryService.findById(categoryId);
+
+        String tradeLocation = PointFormatAndParse.format(
+                tradeLatitude,
+                tradeLongitude
+        );
+
+        SalePost salePost = SalePost.createFromRecommendation(
+                recommendation,
+                category,
+                title,
+                content,
+                price,
+                tradeAddress,
+                tradeLocation,
+                imageUrls
+        );
+
+        SalePostCreateResponse response = saveSalePostAndCreateResponse(salePost);
+
+        log.info("Created sale post from recommendation - recommendationId: {}, salePostId: {}",
+                recommendation.getId(), response.getSalePostId());
+
+        return response;
+    }
+
+    // 판매글 저장 및 응답 생성 헬퍼 메서드
+    private SalePostCreateResponse saveSalePostAndCreateResponse(SalePost salePost) {
         String status = salePost.getStatus().name();
+        Long recommendationId = (salePost.getRecommendation() != null)
+                ? salePost.getRecommendation().getId() : null;
 
         salePostRepository.saveAsNativeQuery(
                 salePost.getTitle(),
@@ -66,8 +114,9 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 status,
                 salePost.getTradeAddress(),
                 salePost.getTradeLocation(),
-                user.getId(),
-                category.getId(),
+                salePost.getUser().getId(),
+                salePost.getCategory().getId(),
+                recommendationId,
                 false
         );
 

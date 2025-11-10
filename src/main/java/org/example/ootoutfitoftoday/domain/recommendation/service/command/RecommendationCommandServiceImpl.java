@@ -1,12 +1,22 @@
 package org.example.ootoutfitoftoday.domain.recommendation.service.command;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
+import org.example.ootoutfitoftoday.domain.recommendation.dto.request.RecommendationSalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationCreateResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
+import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationErrorCode;
+import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationException;
 import org.example.ootoutfitoftoday.domain.recommendation.repository.RecommendationRepository;
+import org.example.ootoutfitoftoday.domain.recommendation.service.query.RecommendationQueryService;
+import org.example.ootoutfitoftoday.domain.recommendation.status.RecommendationStatus;
 import org.example.ootoutfitoftoday.domain.recommendation.type.RecommendationType;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
+import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
+import org.example.ootoutfitoftoday.domain.salepost.service.command.SalePostCommandService;
+import org.example.ootoutfitoftoday.domain.salepost.service.query.SalePostQueryService;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.stereotype.Service;
@@ -17,7 +27,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -26,6 +38,9 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
     private static final String UNWORN_REASON = "마지막 착용일이 1년 이상 경과";
 
     private final RecommendationRepository recommendationRepository;
+    private final RecommendationQueryService recommendationQueryService;
+    private final SalePostCommandService salePostCommandService;
+    private final SalePostQueryService salePostQueryService;
     private final ClothesQueryService clothesQueryService;
     private final UserQueryService userQueryService;
     private final Clock clock;
@@ -73,5 +88,54 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
         LocalDate oneYearAgo = LocalDate.now(clock).minusYears(1);
 
         return lastWornDate.isBefore(oneYearAgo);
+    }
+
+    // 추천으로부터 판매글 생성
+    @Override
+    public SalePostCreateResponse createSalePostFromRecommendation(
+            Long recommendationId,
+            Long userId,
+            RecommendationSalePostCreateRequest request
+    ) {
+        Recommendation recommendation = recommendationQueryService.findById(recommendationId);
+
+        if (recommendation.getStatus() != RecommendationStatus.ACCEPTED) {
+            log.warn("Recommendation is not ACCEPTED - recommendationId: {}, status: {}",
+                    recommendationId, recommendation.getStatus());
+            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_ACCEPTED);
+        }
+
+        if (recommendation.getType() != RecommendationType.SALE) {
+            log.warn("Recommendation is not SALE type - recommendationId: {}, type: {}",
+                    recommendationId, recommendation.getType());
+            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_SALE_TYPE);
+        }
+
+        if (!recommendation.getUser().getId().equals(userId)) {
+            log.warn("Unauthorized access to recommendation - recommendationId: {}, userId: {}",
+                    recommendationId, userId);
+            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND);
+        }
+
+        Optional<SalePost> existingSalePost = salePostQueryService.findByRecommendationId(recommendationId);
+
+        if (existingSalePost.isPresent()) {
+            log.info("Sale post already exists for recommendation - recommendationId: {}, salePostId: {}",
+                    recommendationId, existingSalePost.get().getId());
+
+            return SalePostCreateResponse.from(existingSalePost.get());
+        }
+
+        return salePostCommandService.createSalePostFromRecommendation(
+                recommendation,
+                request.categoryId(),
+                request.title(),
+                request.content(),
+                request.price(),
+                request.tradeAddress(),
+                request.tradeLatitude(),
+                request.tradeLongitude(),
+                request.imageUrls()
+        );
     }
 }
