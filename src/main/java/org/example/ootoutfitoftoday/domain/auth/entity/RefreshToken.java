@@ -28,7 +28,6 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-
     // 디바이스 고유 식별자(클라이언트에서 생성한 UUID)
     @Column(name = "device_id", nullable = false, length = 255)
     private String deviceId;
@@ -37,8 +36,7 @@ public class RefreshToken {
     @Column(name = "device_name", length = 100)
     private String deviceName;
 
-    // 유니크 제거 조건 제거 -> 디바이스별로 여러 토큰 허용
-    @Column(name = "token", nullable = false, length = 500)
+    @Column(name = "token", nullable = false, unique = true, length = 500)
     private String token;
 
     @Column(name = "expires_at", nullable = false)
@@ -105,11 +103,17 @@ public class RefreshToken {
 
     // 리프레시 토큰 업데이트(RTR: Refresh Token Rotation)
     // 액세스 토큰 재발급 시, 리프레시 토큰도 갱신
-    public void updateToken(String newToken, LocalDateTime newExpiresAt) {
-
+    public void updateToken(
+            String newToken,
+            LocalDateTime newExpiresAt,
+            String ipAddress,
+            String userAgent
+    ) {
         this.token = newToken;
         this.expiresAt = newExpiresAt;
         this.lastUsedAt = LocalDateTime.now();    // 업데이트 시 마지막 사용 시간도 갱신
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
     }
 
     // 리프레시 토큰 만료 여부 확인
