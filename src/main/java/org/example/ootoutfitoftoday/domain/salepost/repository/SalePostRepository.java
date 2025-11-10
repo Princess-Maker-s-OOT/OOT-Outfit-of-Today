@@ -144,6 +144,7 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
                             ST_AsText(s.trade_location) AS trade_location,
                             s.user_id,
                             s.category_id,
+                            s.recommendation_id,
                             s.created_at,
                             s.updated_at,
                             s.is_deleted,
