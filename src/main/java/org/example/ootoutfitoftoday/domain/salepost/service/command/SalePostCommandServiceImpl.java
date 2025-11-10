@@ -96,7 +96,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         SalePostCreateResponse response = saveSalePostAndCreateResponse(salePost);
 
         log.info("Created sale post from recommendation - recommendationId: {}, salePostId: {}",
-                recommendation.getId(), response.salePostId());
+                recommendation.getId(), response.getSalePostId());
 
         return response;
     }
