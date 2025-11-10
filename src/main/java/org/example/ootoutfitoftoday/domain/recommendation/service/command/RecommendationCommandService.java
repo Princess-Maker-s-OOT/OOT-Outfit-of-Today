@@ -10,7 +10,6 @@ public interface RecommendationCommandService {
 
     /**
      * 사용자에게 기부/판매 추천 기록을 생성
-     * <p>
      * 초기 성능 기준선 확보를 위해 동기적으로 구현
      * (추후 Spring Batch로 고도화될 예정)
      *
@@ -21,7 +20,6 @@ public interface RecommendationCommandService {
 
     /**
      * 추천 수락 상태에서 판매글 생성
-     * <p>
      * ACCEPTED 상태의 판매 추천으로부터 판매글을 생성
      * 중복 생성을 방지하며, 이미 존재하는 경우 기존 판매글을 반환
      *
