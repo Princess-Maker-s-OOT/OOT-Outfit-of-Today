@@ -1,13 +1,16 @@
 package org.example.ootoutfitoftoday.common.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -60,6 +63,17 @@ public class RedisConfig {
         return new LettuceConnectionFactory(config);
     }
 
+    // 1. "글로벌" @Primary ObjectMapper (타입 정보 비활성화) - 아무 데코 없음!
+    @Bean
+    @Primary
+    public ObjectMapper globalObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        // activateDefaultTyping 미적용!
+        return mapper;
+    }
+
     /**
      * ObjectMapper 설정
      * - Java 객체 ↔ JSON 변환용
@@ -67,12 +81,18 @@ public class RedisConfig {
      */
     @Bean
     public ObjectMapper redisObjectMapper() {
-
         ObjectMapper mapper = new ObjectMapper();
         // LocalDateTime, LocalDate 등 지원
         mapper.registerModule(new JavaTimeModule());
         // ISO-8601 형식으로 날짜 직렬화
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        // Jackson 2.10 이상 권장 타입 정보 활성화 설정
+        mapper.activateDefaultTyping(
+                LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                JsonTypeInfo.As.PROPERTY
+        );
 
         return mapper;
     }
@@ -132,6 +152,18 @@ public class RedisConfig {
                 // 사용자 정보는 10분 캐싱
                 .withCacheConfiguration("userCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(10))
+                )
+                .withCacheConfiguration("dashboard:admin:user",
+                        defaultConfig.entryTtl(Duration.ofMinutes(2))
+                )
+                .withCacheConfiguration("dashboard:admin:clothes",
+                        defaultConfig.entryTtl(Duration.ofMinutes(2))
+                )
+                .withCacheConfiguration("dashboard:admin:salePost",
+                        defaultConfig.entryTtl(Duration.ofMinutes(2))
+                )
+                .withCacheConfiguration("dashboard:admin:category",
+                        defaultConfig.entryTtl(Duration.ofMinutes(2))
                 )
                 .build();
     }
