@@ -23,7 +23,10 @@ public interface AuthCommandService {
     AuthLoginResponse login(AuthLoginRequest request, HttpServletRequest httpRequest);
 
     // deviceId 파라미터 추가 (디바이스 검증용)
-    AuthLoginResponse refresh(String refreshToken, String deviceId);
+    AuthLoginResponse refresh(
+            String refreshToken,
+            String deviceId,
+            HttpServletRequest httpRequest);
 
     AuthLoginResponse exchangeOAuthToken(String code, String deviceId, String deviceName, HttpServletRequest httpRequest);
 
@@ -34,7 +37,10 @@ public interface AuthCommandService {
     void logoutAll(AuthUser authUser);
 
     // 특정 디바이스 강제 제거
-    void removeDevice(AuthUser authUser, String deviceId);
+    void removeDevice(
+            AuthUser authUser,
+            String deviceId,
+            String currentDeviceId);
 
     void withdraw(AuthWithdrawRequest request, AuthUser authUser);
 }
