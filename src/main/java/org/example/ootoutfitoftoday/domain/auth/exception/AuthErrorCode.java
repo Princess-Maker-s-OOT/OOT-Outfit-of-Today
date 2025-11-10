@@ -26,6 +26,11 @@ public enum AuthErrorCode implements ErrorCode {
     TOKEN_EXCHANGE_FAILED("TOKEN_EXCHANGE_FAILED", HttpStatus.INTERNAL_SERVER_ERROR, "토큰 교환에 실패했습니다"),
     INVALID_OR_EXPIRED_CODE("INVALID_OR_EXPIRED_CODE", HttpStatus.BAD_REQUEST, "유효하지 않거나 만료된 임시 코드입니다"),
 
+    TOKEN_SERIALIZATION_FAILED("TOKEN_SERIALIZATION_FAILED", HttpStatus.INTERNAL_SERVER_ERROR, "토큰 정보 직렬화에 실패했습니다"),
+    REDIS_CONNECTION_FAILED("REDIS_CONNECTION_FAILED", HttpStatus.INTERNAL_SERVER_ERROR, "Redis 연결에 실패했습니다"),
+    REDIS_SAVE_FAILED("REDIS_SAVE_FAILED", HttpStatus.INTERNAL_SERVER_ERROR, "Redis 저장에 실패했습니다"),
+
+
     DEVICE_MISMATCH("DEVICE_MISMATCH", HttpStatus.UNAUTHORIZED, "디바이스 정보가 일치하지 않습니다."),
 
     ACCOUNT_ALREADY_LINKED("ACCOUNT_ALREADY_LINKED", HttpStatus.BAD_REQUEST, "이미 다른 계정에 연결된 이메일입니다."),
