@@ -342,11 +342,6 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         RefreshToken token = refreshTokenRepository.findByUserIdAndDeviceId(authUser.getUserId(), deviceId).orElseThrow(
                 () -> new AuthException(AuthErrorCode.DEVICE_NOT_FOUND));
 
-        // 본인 디바이스인지 재확인(보안)
-        if (!Objects.equals(token.getUser().getId(), authUser.getUserId())) {
-            throw new AuthException(AuthErrorCode.UNAUTHORIZED_DEVICE_ACCESS);
-        }
-
         // 삭제
         refreshTokenRepository.delete(token);
     }
