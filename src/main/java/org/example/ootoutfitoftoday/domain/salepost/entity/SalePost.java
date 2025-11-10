@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
+import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
@@ -58,9 +59,13 @@ public class SalePost extends BaseEntity {
     @BatchSize(size = 100)
     private List<SalePostImage> images = new ArrayList<>();
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "clothes_id")
-//    private Clothes clothes;
+    /**
+     * [연관관계] Recommendation과의 N:1 단방향 관계
+     * - nullable: 추천 없이 직접 작성된 판매글도 존재 가능
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recommendation_id")
+    private Recommendation recommendation;
 
     @Builder(access = AccessLevel.PROTECTED)
     private SalePost(
@@ -71,7 +76,8 @@ public class SalePost extends BaseEntity {
             BigDecimal price,
             SaleStatus status,
             String tradeAddress,
-            String tradeLocation
+            String tradeLocation,
+            Recommendation recommendation
     ) {
         this.user = user;
         this.category = category;
@@ -81,6 +87,7 @@ public class SalePost extends BaseEntity {
         this.status = status;
         this.tradeAddress = tradeAddress;
         this.tradeLocation = tradeLocation;
+        this.recommendation = recommendation;
     }
 
     public static SalePost create(
@@ -105,6 +112,40 @@ public class SalePost extends BaseEntity {
                 .status(SaleStatus.AVAILABLE)
                 .tradeAddress(tradeAddress)
                 .tradeLocation(tradeLocation)
+                .build();
+
+        // 이미지 URL 리스트를 순서대로 SalePostImage 엔티티로 변환 (displayOrder: 1, 2, 3, ...)
+        for (int i = 0; i < imageUrls.size(); i++) {
+            SalePostImage image = SalePostImage.create(imageUrls.get(i), i + 1);
+            salePost.addImage(image);
+        }
+
+        return salePost;
+    }
+
+    public static SalePost createFromRecommendation(
+            Recommendation recommendation,
+            Category category,
+            String title,
+            String content,
+            BigDecimal price,
+            String tradeAddress,
+            String tradeLocation,
+            List<String> imageUrls
+    ) {
+        validatePrice(price);
+        validateImages(imageUrls);
+
+        SalePost salePost = SalePost.builder()
+                .user(recommendation.getUser())
+                .category(category)
+                .title(title)
+                .content(content)
+                .price(price)
+                .status(SaleStatus.AVAILABLE)
+                .tradeAddress(tradeAddress)
+                .tradeLocation(tradeLocation)
+                .recommendation(recommendation)
                 .build();
 
         // 이미지 URL 리스트를 순서대로 SalePostImage 엔티티로 변환 (displayOrder: 1, 2, 3, ...)
@@ -180,6 +221,7 @@ public class SalePost extends BaseEntity {
     }
 
     public User getSeller() {
+
         return user;
     }
 }

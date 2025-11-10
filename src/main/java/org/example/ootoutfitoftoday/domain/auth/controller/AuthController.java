@@ -9,10 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
-import org.example.ootoutfitoftoday.domain.auth.dto.request.RefreshTokenRequest;
+import org.example.ootoutfitoftoday.domain.auth.dto.request.*;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.DeviceInfoResponse;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthSuccessCode;
@@ -105,12 +102,37 @@ public class AuthController {
             })
     @PostMapping("/refresh")
     public ResponseEntity<Response<AuthLoginResponse>> refresh(
-            @Valid @RequestBody RefreshTokenRequest request
+            @Valid @RequestBody RefreshTokenRequest request,
+            HttpServletRequest httpRequest
     ) {
         // deviceId 전달
-        AuthLoginResponse response = authCommandService.refresh(request.getRefreshToken(), request.getDeviceId());
+        AuthLoginResponse response = authCommandService.refresh(request.getRefreshToken(), request.getDeviceId(), httpRequest);
 
         return Response.success(response, AuthSuccessCode.TOKEN_REFRESH);
+    }
+
+    // OAuth2 임시 코드를 JWT 토큰으로 교환
+    // OAuth2 로그인 후 프론트엔드가 받은 임시 코드를 실제 토큰으로 교환
+    // 임시 코드는 3분간 유효하며 1회용
+    @Operation(
+            summary = "OAuth2 임시 코드 교환",
+            description = "OAuth2 로그인 후 발급된 임시 코드를 JWT 토큰으로 교환합니다.\n\n" +
+                    "- 임시 코드는 3분간 유효\n" +
+                    "- 1회용(사용 후 자동 삭제)\n" +
+                    "- Redis에서 토큰 정보 조회",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "토큰 교환 성공"),
+                    @ApiResponse(responseCode = "400", description = "유효하지 않거나 만료된 코드")
+            })
+    @PostMapping("/oauth2/token/exchange")
+    public ResponseEntity<Response<AuthLoginResponse>> exchangeOAuthToken(
+            @Valid @RequestBody TokenExchangeRequest request,
+            HttpServletRequest httpRequest
+    ) {
+
+        AuthLoginResponse response = authCommandService.exchangeOAuthToken(request.getCode(), request.getDeviceId(), request.getDeviceName(), httpRequest);
+
+        return Response.success(response, AuthSuccessCode.TOKEN_EXCHANGE);
     }
 
     // 로그아웃
@@ -158,20 +180,24 @@ public class AuthController {
     // 특정 디바이스 강제 로그아웃
     @Operation(
             summary = "디바이스 제거",
-            description = "특정 디바이스를 강제로 로그아웃합니다.\n\n" +
+            description = "다른 디바이스를 원격으로 로그아웃합니다.\n\n" +
+                    "- 현재 사용 중인 디바이스는 제거 불가 (로그아웃 사용)\n" +
                     "- 분실한 디바이스 또는 의심스러운 디바이스 제거\n" +
                     "- 해당 디바이스의 리프레시 토큰 삭제",
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "디바이스 제거 성공"),
-                    @ApiResponse(responseCode = "401", description = "인증 실패")
+                    @ApiResponse(responseCode = "400", description = "현재 디바이스는 제거 불가"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "디바이스를 찾을 수 없음")
             })
     @DeleteMapping("/devices/{deviceId}")
     public ResponseEntity<Response<Void>> removeDevice(
             @AuthenticationPrincipal AuthUser authUser,
-            @PathVariable String deviceId
+            @PathVariable String deviceId,
+            @RequestParam String currentDeviceId
     ) {
-        authCommandService.removeDevice(authUser, deviceId);
+        authCommandService.removeDevice(authUser, deviceId, currentDeviceId);
 
         return Response.success(null, AuthSuccessCode.DEVICE_REMOVED);
     }

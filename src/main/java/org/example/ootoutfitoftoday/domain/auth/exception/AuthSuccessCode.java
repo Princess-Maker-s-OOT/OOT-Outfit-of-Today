@@ -15,6 +15,7 @@ public enum AuthSuccessCode implements SuccessCode {
 
     TOKEN_REFRESH("TOKEN_REFRESH", HttpStatus.OK, "토큰이 재발급되었습니다."),
     USER_LOGOUT("USER_LOGOUT", HttpStatus.OK, "로그아웃이 완료되었습니다."),
+    TOKEN_EXCHANGE("TOKEN_EXCHANGE", HttpStatus.OK, "토큰 교환이 완료되었습니다"),
 
     DEVICE_LIST_RETRIEVED("DEVICE_LIST_RETRIEVED", HttpStatus.OK, "디바이스 목록 조회가 완료되었습니다."),
     DEVICE_REMOVED("DEVICE_REMOVED", HttpStatus.OK, "디바이스가 제거되었습니다.");

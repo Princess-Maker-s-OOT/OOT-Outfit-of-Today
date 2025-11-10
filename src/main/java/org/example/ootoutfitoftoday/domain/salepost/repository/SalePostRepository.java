@@ -90,11 +90,11 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
     @Modifying
     @Transactional
     @Query(value = """
-            INSERT INTO sale_posts 
-            (title, content, price, status, 
-            trade_address, trade_location, user_id, 
-            category_id, is_deleted, created_at, updated_at)
-            VALUES (?1, ?2, ?3, ?4, ?5, ST_GeomFromText(?6, 4326), ?7, ?8, ?9, NOW(), NOW())
+            INSERT INTO sale_posts
+            (title, content, price, status,
+            trade_address, trade_location, user_id,
+            category_id, recommendation_id, is_deleted, created_at, updated_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ST_GeomFromText(?6, 4326), ?7, ?8, ?9, ?10, NOW(), NOW())
             """, nativeQuery = true)
     void saveAsNativeQuery(
             String title,
@@ -105,6 +105,7 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
             String tradeLocation,
             Long userId,
             Long categoryId,
+            Long recommendationId,
             boolean isDeleted
     );
 
@@ -143,6 +144,7 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
                             ST_AsText(s.trade_location) AS trade_location,
                             s.user_id,
                             s.category_id,
+                            s.recommendation_id,
                             s.created_at,
                             s.updated_at,
                             s.is_deleted,
@@ -166,4 +168,12 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
          AND sp.status = 'AVAILABLE'
     """)
     Optional<SalePost> findAvailableByIdForUpdate(@Param("id") Long id);
+
+    // 추천 ID로 판매글 조회 (중복 방지용)
+    @Query("""
+        SELECT sp FROM SalePost sp
+        WHERE sp.recommendation.id = :recommendationId
+        AND sp.isDeleted = false
+        """)
+    Optional<SalePost> findByRecommendationIdAndIsDeletedFalse(@Param("recommendationId") Long recommendationId);
 }
