@@ -137,6 +137,7 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
         return clothesRepository.leastWornClothes(userId);
     }
 
+    // Todo: 리턴을 변수에 담아서 반환하기!!
     @Override
     public List<NotWornOverPeriod> notWornOverPeriod(Long userId) {
 
