@@ -125,10 +125,11 @@ public class AuthController {
             })
     @PostMapping("/oauth2/token/exchange")
     public ResponseEntity<Response<AuthLoginResponse>> exchangeOAuthToken(
-            @Valid @RequestBody TokenExchangeRequest request
+            @Valid @RequestBody TokenExchangeRequest request,
+            HttpServletRequest httpRequest
     ) {
 
-        AuthLoginResponse response = authCommandService.exchangeOAuthToken(request.getCode(), request.getDeviceId(), request.getDeviceName());
+        AuthLoginResponse response = authCommandService.exchangeOAuthToken(request.getCode(), request.getDeviceId(), request.getDeviceName(), httpRequest);
 
         return Response.success(response, AuthSuccessCode.TOKEN_EXCHANGE);
     }

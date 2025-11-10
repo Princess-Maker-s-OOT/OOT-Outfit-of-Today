@@ -212,7 +212,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     public AuthLoginResponse exchangeOAuthToken(
             String code,
             String deviceId,
-            String deviceName
+            String deviceName,
+            HttpServletRequest httpRequest
     ) {
         log.info("=== OAuth2 임시 코드 교환 시작 ===");
         log.info("Code: {}", code);
@@ -254,6 +255,16 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                         user.getId(), oldestToken.getDeviceId());
             }
 
+            String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
+            String userAgent = httpRequest.getHeader("User-Agent");
+
+            log.info("=== 클라이언트 정보 추출 ===");
+            log.info("IP Address: {}", ipAddress);
+            log.info("User-Agent: {}", userAgent);
+            log.info("Remote Addr: {}", httpRequest.getRemoteAddr());
+            log.info("X-Forwarded-For: {}", httpRequest.getHeader("X-Forwarded-For"));
+            log.info("X-Real-IP: {}", httpRequest.getHeader("X-Real-IP"));
+
             // 디바이스별 토큰 저장(일반 로그인과 동일!)
             refreshTokenRepository.findByUserIdAndDeviceId(user.getId(), deviceId)
                     .ifPresentOrElse(
@@ -265,8 +276,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                                         deviceName,
                                         refreshToken,
                                         expiresAt,
-                                        null,    // IP는 null(OAuth는 IP 추적 어려움)
-                                        null               // User-Agent도 null
+                                        ipAddress,
+                                        userAgent
                                 );
                                 refreshTokenRepository.save(newToken);
                             }
