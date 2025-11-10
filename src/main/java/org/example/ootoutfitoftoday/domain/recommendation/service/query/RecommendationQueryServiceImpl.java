@@ -3,6 +3,8 @@ package org.example.ootoutfitoftoday.domain.recommendation.service.query;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationGetMyResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
+import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationErrorCode;
+import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationException;
 import org.example.ootoutfitoftoday.domain.recommendation.repository.RecommendationRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,27 +37,24 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
             Long userId,
             Pageable pageable
     ) {
-        // 1단계: 페이징을 적용하여 추천 ID 목록만 조회 (DB 레벨 LIMIT, OFFSET 적용)
         Page<Recommendation> idsPage = recommendationRepository.findRecommendationIdsByUserId(
                 userId,
                 pageable
         );
 
-        // 데이터가 없는 경우 빈 페이지 반환
         if (idsPage.isEmpty()) {
+
             return Page.empty(pageable);
         }
 
-        // 조회된 Recommendation 엔티티에서 ID 목록 추출
         List<Long> ids = idsPage.getContent().stream()
                 .map(Recommendation::getId)
                 .toList();
 
-        // 2단계: ID 목록으로 JOIN FETCH를 통한 전체 엔티티 그래프 로드 (N+1 방지)
+        // ID 목록으로 JOIN FETCH를 통한 전체 엔티티 그래프 로드 (N+1 방지)
         List<Recommendation> recommendations =
                 recommendationRepository.findRecommendationsWithDetailsByIds(ids);
 
-        // ID 기반으로 Map을 생성하여 빠른 조회 가능하도록 최적화
         Map<Long, Recommendation> recommendationMap = recommendations.stream()
                 .collect(Collectors.toMap(Recommendation::getId, r -> r));
 
@@ -66,6 +65,24 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
                 .toList();
 
         // 페이징 메타데이터를 유지하면서 새로운 Page 객체 생성
-        return new PageImpl<>(content, pageable, idsPage.getTotalElements());
+        return new PageImpl<>(
+                content,
+                pageable,
+                idsPage.getTotalElements()
+        );
+    }
+
+    /**
+     * 추천 ID로 추천 조회
+     *
+     * @param recommendationId 조회할 추천 ID
+     * @return 조회된 추천 엔티티
+     * @throws RecommendationException 추천을 찾을 수 없는 경우
+     */
+    @Override
+    public Recommendation findById(Long recommendationId) {
+
+        return recommendationRepository.findById(recommendationId)
+                .orElseThrow(() -> new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND));
     }
 }
