@@ -3,6 +3,8 @@ package org.example.ootoutfitoftoday.security.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 import org.example.ootoutfitoftoday.security.filter.JwtAuthenticationFilter;
 import org.example.ootoutfitoftoday.security.oauth2.CustomOAuth2UserService;
@@ -29,12 +31,12 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+@Slf4j
 @Configuration
 //@RequiredArgsConstructor
 @EnableWebSecurity                              // Spring Security 활성화
@@ -49,6 +51,10 @@ public class SecurityConfig {
     // TODO: CORS 설정(추후 수정 예정)
     @Value("${spring.cors.allowed-origins}")
     private String allowedOrigins;
+
+    // 프론트엔드 URL 설정
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     // 순환참조 문제 발생 -> 해결을 위해 @Lazy(수동 생성자 필요) 사용
     public SecurityConfig(
@@ -81,8 +87,12 @@ public class SecurityConfig {
                 "Authorization",      // JWT 토큰
                 "Content-Type",       // 요청 본문 타입
                 "Accept",             // 응답 타입
-                "X-Requested-With"    // AJAX 식별
+                "X-Requested-With",   // AJAX 식별
+                "Cookie",
+                "Set-Cookie"
         ));
+        // 응답 헤더 노출
+        configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));
 
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
@@ -99,8 +109,18 @@ public class SecurityConfig {
         return http
                 .cors(Customizer.withDefaults())    // CORS 규칙 활성화를 위해 위에서 정의한 빈을 Spring Security 내에 적용하는 코드
                 .csrf(AbstractHttpConfigurer::disable)
+                /**
+                 * OAuth2는 다단계 인증 플로우(authorization code → token exchange) 거치고 있음
+                 * 위 과정에서 Spring Security가 중간 상태를 세션에 저장해야 함
+                 * 이전의 STATELESS로 설정으로 세션을 아예 사용하지 않아서 상태 소실 문제 발생
+                 * 따라서 아래와 같이 고침
+                 */
+                // OAuth2 경로는 세션 기반으로 동작해야 하므로 허용, 나머지 JWT API는는 STATELESS
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)    // OAuth2 경로에서만 세션 생성
+                        .sessionFixation().migrateSession()                          // 세션 고정 공격 방지
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)                             // 새 세션 생성 즉 동시 로그인 허용
                 )
                 .addFilterBefore(jwtAuthenticationFilter, SecurityContextHolderAwareRequestFilter.class)    // JwtAuthenticationFilter를 스프링 시큐리티 인증 프로세스 전에 진행
 
@@ -112,8 +132,15 @@ public class SecurityConfig {
                 .rememberMe(AbstractHttpConfigurer::disable)     // 서버가 쿠키 발급하여 자동 로그인
 
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((request, response, authException) ->
-                                writeErrorResponse(response, request, HttpStatus.UNAUTHORIZED, "인증이 필요합니다."))
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // OAuth2 경로는 에러 핸들러 적용 제외
+                            if (request.getRequestURI().startsWith("/oauth2") || request.getRequestURI().startsWith("/login/oauth2")) {
+                                response.sendRedirect(frontendUrl + "/login?error=auth_failed");
+
+                                return;
+                            }
+                            writeErrorResponse(response, request, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
+                        })
                         .accessDeniedHandler((request, response, accessDeniedException) ->
                                 writeErrorResponse(response, request, HttpStatus.FORBIDDEN, "접근 권한이 없습니다."))
                 )
@@ -124,6 +151,22 @@ public class SecurityConfig {
                                 .userService(customOAuth2UserService)
                         )
                         .successHandler(oAuth2SuccessHandler)    // 인증 성공 후 처리할 핸들러 지정
+                        // 실패 핸들러 추가(디버깅용)
+                        .failureHandler((request, response, exception) -> {
+                            log.error("OAuth2 로그인 실패", exception);
+
+                            // 세션 정보 상세 로깅
+                            HttpSession session = request.getSession(false);
+                            if (session != null) {
+                                log.error("세션 정보 - ID: {}, CreationTime: {}, LastAccessedTime: {}", session.getId(), new Date(session.getCreationTime()), new Date(session.getLastAccessedTime()));
+                            } else {
+                                log.error("세션을 찾을 수 없습니다");
+                            }
+
+                            String encodedMessage = URLEncoder.encode("OAuth2 인증 실패: " + exception.getMessage(), StandardCharsets.UTF_8);
+
+                            response.sendRedirect(frontendUrl + "/login?error=" + encodedMessage);
+                        })
                 )
 
                 .authorizeHttpRequests(auth -> auth
@@ -141,7 +184,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/v1/auth/signup",
                                 "/v1/auth/login",
-                                "/v1/auth/refresh").permitAll()
+                                "/v1/auth/refresh",
+                                "/v1/auth/oauth2/token/exchange").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/v1/closets/public",
                                 "/v1/closets/{closetId}",
@@ -184,9 +228,7 @@ public class SecurityConfig {
         errorResponse.put("httpStatus", status.name());
         errorResponse.put("statusValue", status.value());
         errorResponse.put("success", false);
-        errorResponse.put("code", status == HttpStatus.UNAUTHORIZED
-                ? "AUTHENTICATION_ERROR"
-                : "ACCESS_DENIED");
+        errorResponse.put("code", status == HttpStatus.UNAUTHORIZED ? "AUTHENTICATION_ERROR" : "ACCESS_DENIED");
         errorResponse.put("message", message);
         errorResponse.put("timestamp", LocalDateTime.now());
 
