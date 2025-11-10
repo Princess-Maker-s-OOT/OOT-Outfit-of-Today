@@ -66,6 +66,7 @@ public class RefreshToken {
             String deviceName,
             String token,
             LocalDateTime expiresAt,
+            LocalDateTime lastUsedAt,
             String ipAddress,
             String userAgent
     ) {
@@ -74,6 +75,7 @@ public class RefreshToken {
         this.deviceName = deviceName;
         this.token = token;
         this.expiresAt = expiresAt;
+        this.lastUsedAt = lastUsedAt;
         this.ipAddress = ipAddress;
         this.userAgent = userAgent;
     }
@@ -95,6 +97,7 @@ public class RefreshToken {
                 .deviceName(deviceName)
                 .token(token)
                 .expiresAt(expiresAt)
+                .lastUsedAt(LocalDateTime.now())
                 .ipAddress(ipAddress)
                 .userAgent(userAgent)
                 .build();
