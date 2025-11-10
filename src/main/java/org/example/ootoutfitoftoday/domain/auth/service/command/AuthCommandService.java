@@ -23,7 +23,10 @@ public interface AuthCommandService {
     AuthLoginResponse login(AuthLoginRequest request, HttpServletRequest httpRequest);
 
     // deviceId 파라미터 추가 (디바이스 검증용)
-    AuthLoginResponse refresh(String refreshToken, String deviceId);
+    AuthLoginResponse refresh(
+            String refreshToken,
+            String deviceId,
+            HttpServletRequest httpRequest);
 
     AuthLoginResponse exchangeOAuthToken(String code, String deviceId, String deviceName, HttpServletRequest httpRequest);
 

@@ -105,11 +105,18 @@ public class RefreshToken {
 
     // 리프레시 토큰 업데이트(RTR: Refresh Token Rotation)
     // 액세스 토큰 재발급 시, 리프레시 토큰도 갱신
-    public void updateToken(String newToken, LocalDateTime newExpiresAt) {
+    public void updateToken(
+            String newToken,
+            LocalDateTime newExpiresAt,
+            String ipAddress,
+            String userAgent
+    ) {
 
         this.token = newToken;
         this.expiresAt = newExpiresAt;
         this.lastUsedAt = LocalDateTime.now();    // 업데이트 시 마지막 사용 시간도 갱신
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
     }
 
     // 리프레시 토큰 만료 여부 확인

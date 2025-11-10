@@ -102,10 +102,11 @@ public class AuthController {
             })
     @PostMapping("/refresh")
     public ResponseEntity<Response<AuthLoginResponse>> refresh(
-            @Valid @RequestBody RefreshTokenRequest request
+            @Valid @RequestBody RefreshTokenRequest request,
+            HttpServletRequest httpRequest
     ) {
         // deviceId 전달
-        AuthLoginResponse response = authCommandService.refresh(request.getRefreshToken(), request.getDeviceId());
+        AuthLoginResponse response = authCommandService.refresh(request.getRefreshToken(), request.getDeviceId(), httpRequest);
 
         return Response.success(response, AuthSuccessCode.TOKEN_REFRESH);
     }
