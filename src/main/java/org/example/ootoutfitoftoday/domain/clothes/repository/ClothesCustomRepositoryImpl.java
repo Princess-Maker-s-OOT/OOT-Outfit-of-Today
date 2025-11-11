@@ -84,6 +84,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
      * - 카테고리, 색상, 사이즈로 필터링 가능
      * - 커서 기반 페이징 (무한 스크롤)
      */
+    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Override
     public Slice<Clothes> findAllByIsDeletedFalse(
             Long userId,
@@ -140,6 +141,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
         return new SliceImpl<>(result, PageRequest.of(0, size), hasNext);
     }
 
+    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Override
     public List<CategoryStat> countTopCategoryStats() {
 
@@ -165,6 +167,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .fetch();
     }
 
+    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Override
     public List<ClothesColorCount> clothesColorsCount() {
 
@@ -180,6 +183,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .fetch();
     }
 
+    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Override
     public List<ClothesSizeCount> clothesSizesCount() {
 
@@ -195,6 +199,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .fetch();
     }
 
+    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Override
     public List<CategoryStat> findTopCategoryStats() {
 

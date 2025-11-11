@@ -16,7 +16,11 @@ public class NotWornOverPeriod {
 
     // QueryDSL에서 사용할 생성자
     @QueryProjection
-    public NotWornOverPeriod(Long clothesId, String clothesDescription, LocalDateTime lastWornAt) {
+    public NotWornOverPeriod(
+            Long clothesId,
+            String clothesDescription,
+            LocalDateTime lastWornAt
+    ) {
         this.clothesId = clothesId;
         this.clothesDescription = clothesDescription;
         this.lastWornAt = lastWornAt;
@@ -25,7 +29,12 @@ public class NotWornOverPeriod {
 
     // 서비스에서 사용할 생성자
     @Builder
-    public NotWornOverPeriod(Long clothesId, String clothesDescription, LocalDateTime lastWornAt, Long daysNotWorn) {
+    public NotWornOverPeriod(
+            Long clothesId,
+            String clothesDescription,
+            LocalDateTime lastWornAt,
+            Long daysNotWorn
+    ) {
         this.clothesId = clothesId;
         this.clothesDescription = clothesDescription;
         this.lastWornAt = lastWornAt;

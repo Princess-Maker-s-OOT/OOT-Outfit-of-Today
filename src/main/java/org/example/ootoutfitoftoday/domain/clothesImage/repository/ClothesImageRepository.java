@@ -21,6 +21,7 @@ public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long
             """)
     int softDeleteAllByClothesId(@Param("clothesId") Long clothesId);
 
+    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Query("""
             SELECT ci
             FROM ClothesImage ci
@@ -60,6 +61,7 @@ public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long
             """)
     List<ClothesImage> findByClothesIdAndImageIdsAndIsDeletedFalse(@Param("clothesId") Long clothesId, @Param("imageIds") List<Long> imageIds);
 
+    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Query("""
             SELECT ci
             FROM ClothesImage ci
