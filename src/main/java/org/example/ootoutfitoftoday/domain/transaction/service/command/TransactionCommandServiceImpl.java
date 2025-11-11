@@ -1,7 +1,8 @@
 package org.example.ootoutfitoftoday.domain.transaction.service.command;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.common.client.payment.TossPaymentsClient;
+import org.example.ootoutfitoftoday.Toss.client.TossPaymentsClient;
+import org.example.ootoutfitoftoday.Toss.dto.TossConfirmResult;
 import org.example.ootoutfitoftoday.domain.chat.service.query.ChatQueryService;
 import org.example.ootoutfitoftoday.domain.chatroom.entity.Chatroom;
 import org.example.ootoutfitoftoday.domain.chatroom.service.query.ChatroomQueryService;
@@ -166,7 +167,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
         }
 
         // 5. 결제 상태 검증
-        if (payment.getStatus() != PaymentStatus.ESCROWED) {
+        if (payment.getStatus() != PaymentStatus.PENDING) {
             throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
 
@@ -184,15 +185,19 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
             throw new PaymentException(PaymentErrorCode.PAYMENT_CONFIRMATION_TIMEOUT);
         }
 
-        // 7. 토스 confirm API 호출
-        tossPaymentsClient.confirmPayment(
-                    request.getPaymentKey(),
-                    payment.getTossOrderId(),
-                    payment.getAmount()
+        // 7. 토스 confirm API 호출 + 응답 받아오기
+        TossConfirmResult result = tossPaymentsClient.confirmPayment(
+                request.getPaymentKey(),
+                payment.getTossOrderId(),
+                payment.getAmount()
         );
 
         // 8. Payment 승인
-        payment.approve(request.getPaymentKey());
+        payment.approve(
+                request.getPaymentKey(),
+                result.receiptUrl(),
+                result.approvedAt()
+        );
 
         // 9. 판매글 상태 변경
         SalePost salePost = transaction.getSalePost();

@@ -1,4 +1,4 @@
-package org.example.ootoutfitoftoday.common.config;
+package org.example.ootoutfitoftoday.Toss.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

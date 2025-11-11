@@ -1,7 +1,9 @@
-package org.example.ootoutfitoftoday.common.client.payment;
+package org.example.ootoutfitoftoday.Toss.client;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.ootoutfitoftoday.Toss.dto.TossConfirmResponse;
+import org.example.ootoutfitoftoday.Toss.dto.TossConfirmResult;
 import org.example.ootoutfitoftoday.domain.payment.exception.PaymentErrorCode;
 import org.example.ootoutfitoftoday.domain.payment.exception.PaymentException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -17,8 +20,11 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -35,7 +41,7 @@ public class TossPaymentsClientImpl implements TossPaymentsClient {
     private final @Qualifier("tossRestTemplate") RestTemplate restTemplate;
 
     @Override
-    public void confirmPayment(
+    public TossConfirmResult confirmPayment(
             String paymentKey,
             String orderId,
             BigDecimal amount
@@ -49,6 +55,7 @@ public class TossPaymentsClientImpl implements TossPaymentsClient {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Basic " + encodedAuth);
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
             // Body 설정
             Map<String, Object> body = new HashMap<>();
@@ -59,7 +66,20 @@ public class TossPaymentsClientImpl implements TossPaymentsClient {
             // HTTP 요청
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-            restTemplate.postForEntity(confirmUrl, entity, String.class);
+            ResponseEntity<TossConfirmResponse> response =
+                    restTemplate.postForEntity(confirmUrl, entity, TossConfirmResponse.class);
+
+            TossConfirmResponse tossConfirmResponse = response.getBody();
+
+            if (tossConfirmResponse == null || tossConfirmResponse.receiptUrl() == null) {
+                log.error("토스 응답이 비정상: {}", tossConfirmResponse);
+                throw new PaymentException(PaymentErrorCode.TOSS_API_INVALID_RESPONSE);
+            }
+
+            return new TossConfirmResult(
+                    tossConfirmResponse.receiptUrl(),
+                    parseIso(tossConfirmResponse.approvedAt())
+            );
 
         } catch (HttpClientErrorException e) {
             // 예: 잘못된 paymentKey (400 Bad Request)
@@ -75,8 +95,18 @@ public class TossPaymentsClientImpl implements TossPaymentsClient {
             throw new PaymentException(PaymentErrorCode.TOSS_API_TIMEOUT);
         } catch (Exception e) {
             // 그 외 예외
-            log.error("토스 API 예외", e);
+            log.error("토스 API 예기치 않은 예외", e);
             throw new PaymentException(PaymentErrorCode.TOSS_API_ERROR);
+        }
+    }
+
+    private LocalDateTime parseIso(String iso) {
+        if (iso == null) return null;
+        try {
+            return LocalDateTime.parse(iso);
+        } catch (DateTimeParseException e) {
+            log.warn("날짜 파싱 실패: {}", iso);
+            return null;
         }
     }
 }

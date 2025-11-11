@@ -10,8 +10,6 @@ import org.example.ootoutfitoftoday.domain.payment.enums.EasyPayProvider;
 import org.example.ootoutfitoftoday.domain.payment.enums.PaymentMethod;
 import org.example.ootoutfitoftoday.domain.payment.enums.PaymentStatus;
 import org.example.ootoutfitoftoday.domain.payment.enums.RefundType;
-import org.example.ootoutfitoftoday.domain.payment.exception.PaymentErrorCode;
-import org.example.ootoutfitoftoday.domain.payment.exception.PaymentException;
 import org.example.ootoutfitoftoday.domain.transaction.entity.Transaction;
 
 import java.math.BigDecimal;
@@ -76,12 +74,6 @@ public class Payment extends BaseEntity {
 
     // === PG(결제 대행사) 응답 정보 ===
 
-    @Column(length = 50)
-    private String providerCode;  // PG사 응답 코드
-
-    @Column(length = 1000)
-    private String providerMessage;  // PG사 응답 메세지
-
     @Column(length = 500)
     private String receiptUrl;  // 영수증 URL
 
@@ -115,7 +107,7 @@ public class Payment extends BaseEntity {
         Payment payment = Payment.builder()
                 .amount(amount)
                 .method(PaymentMethod.ACCOUNT_TRANSFER)
-                .status(PaymentStatus.ESCROWED)
+                .status(PaymentStatus.PENDING)
                 .tossOrderId(tossOrderId)
                 .build();
         return payment.attachTo(transaction);
@@ -131,7 +123,7 @@ public class Payment extends BaseEntity {
         Payment payment = Payment.builder()
                 .amount(amount)
                 .method(PaymentMethod.EASY_PAY)
-                .status(PaymentStatus.ESCROWED)
+                .status(PaymentStatus.PENDING)
                 .tossOrderId(tossOrderId)
                 .easyPayProvider(easyPayProvider)
                 .build();
@@ -152,13 +144,14 @@ public class Payment extends BaseEntity {
         return this;
     }
 
-    public void approve(String tossPaymentKey) {
-
-        // 이미 승인됐는지 확인
-        if (this.tossPaymentKey != null) {
-            throw new PaymentException(PaymentErrorCode.ALREADY_APPROVED_PAYMENT);
-        }
+    public void approve(
+            String tossPaymentKey,
+            String receiptUrl,
+            LocalDateTime approvedAt
+    ) {
         this.tossPaymentKey = tossPaymentKey;
-        this.approvedAt = LocalDateTime.now();
+        this.receiptUrl = receiptUrl;
+        this.approvedAt = approvedAt;
+        this.status = PaymentStatus.ESCROWED;
     }
 }
