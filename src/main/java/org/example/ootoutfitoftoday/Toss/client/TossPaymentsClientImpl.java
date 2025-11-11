@@ -1,6 +1,5 @@
 package org.example.ootoutfitoftoday.Toss.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.Toss.dto.TossConfirmResponse;
@@ -40,7 +39,6 @@ public class TossPaymentsClientImpl implements TossPaymentsClient {
     private String confirmUrl;
 
     private final @Qualifier("tossRestTemplate") RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
 
     @Override
     public TossConfirmResult confirmPayment(
