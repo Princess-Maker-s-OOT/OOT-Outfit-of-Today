@@ -30,7 +30,7 @@ public class Category extends BaseEntity {
     @OneToMany(mappedBy = "parent")
     private List<Category> children = new ArrayList<>();
 
-    @Builder(access = AccessLevel.PROTECTED)
+    @Builder(access = AccessLevel.PRIVATE)
     private Category(String name, Category parent) {
         this.name = name;
         this.parent = parent;
