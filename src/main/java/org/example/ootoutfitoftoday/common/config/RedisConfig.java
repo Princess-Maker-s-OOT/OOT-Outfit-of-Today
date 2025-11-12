@@ -79,8 +79,8 @@ public class RedisConfig {
      * - Java 객체 ↔ JSON 변환용
      * - LocalDateTime 등 Java 8 시간 타입 지원
      */
-    @Bean
-    public ObjectMapper redisObjectMapper() {
+    private ObjectMapper redisObjectMapper() {
+
         ObjectMapper mapper = new ObjectMapper();
         // LocalDateTime, LocalDate 등 지원
         mapper.registerModule(new JavaTimeModule());
@@ -151,6 +151,10 @@ public class RedisConfig {
                 )
                 // 사용자 정보는 10분 캐싱
                 .withCacheConfiguration("userCache",
+                        defaultConfig.entryTtl(Duration.ofMinutes(10))
+                )
+                // 판매글 리스트는 10분 캐싱
+                .withCacheConfiguration("salePostListCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(10))
                 )
                 .withCacheConfiguration("dashboard:admin:user",
