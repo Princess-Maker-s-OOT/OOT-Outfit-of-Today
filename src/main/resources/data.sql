@@ -32,6 +32,7 @@ WHERE NOT EXISTS (SELECT 1
                   FROM users
                   WHERE login_id = 'admin');
 
+-- 카테고리 초기 데이터 주입
 SET FOREIGN_KEY_CHECKS = 0;
 DELETE FROM categories;
 SET FOREIGN_KEY_CHECKS = 1;
