@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.response.PageResponse;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
@@ -28,6 +29,7 @@ import org.example.ootoutfitoftoday.domain.recommendation.status.RecommendationS
 import org.example.ootoutfitoftoday.domain.recommendation.type.RecommendationType;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @Tag(name = "추천 기록 관리", description = "기부/판매 추천 기록 생성 및 관리 API")
 @RestController
 @RequiredArgsConstructor
@@ -48,6 +51,7 @@ public class RecommendationController {
     private final RecommendationQueryService recommendationQueryService;
     private final RecommendationBatchHistoryQueryService batchHistoryQueryService;
     private final DonationCenterQueryService donationCenterQueryService;
+    private final UserQueryService userQueryService;
 
     /**
      * 추천 기록 수동 생성
@@ -298,7 +302,8 @@ public class RecommendationController {
             throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_DONATION_TYPE);
         }
 
-        User user = recommendation.getUser();
+        // POINT 타입을 텍스트로 변환하기 위해 Native Query 사용
+        User user = userQueryService.findByIdAsNativeQuery(authUser.getUserId());
 
         // 사용자 위치 정보 검증 및 파싱
         if (user.getTradeLocation() == null || user.getTradeLocation().isEmpty()) {
@@ -321,11 +326,11 @@ public class RecommendationController {
 
     /**
      * tradeLocation 문자열에서 위도/경도 파싱
-     * tradeLocation은 "POINT(longitude latitude)" 형식
-     * 예: "POINT(126.9780 37.5665)"
+     * tradeLocation은 "POINT(latitude longitude)" 형식으로 저장됨
+     * 예: "POINT(37.5665 126.9780)"
      *
      * @param tradeLocation POINT 형식의 위치 문자열
-     * @return [0]: longitude, [1]: latitude
+     * @return [0]: longitude, [1]: latitude (DonationCenterQueryService에 전달하기 위한 순서)
      * @throws RecommendationException 파싱 실패 시
      */
     private double[] parseTradeLocation(String tradeLocation) {
@@ -341,14 +346,16 @@ public class RecommendationController {
                 throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
             }
 
-            double longitude = Double.parseDouble(coords[0]);
-            double latitude = Double.parseDouble(coords[1]);
+            // DB에 POINT(latitude longitude) 형식으로 저장되어 있음
+            double latitude = Double.parseDouble(coords[0]);
+            double longitude = Double.parseDouble(coords[1]);
 
             // 위도/경도 범위 검증
             if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
                 throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
             }
 
+            // 반환 순서: [0]=longitude, [1]=latitude (API 호출 시 필요한 순서)
             return new double[]{longitude, latitude};
 
         } catch (NumberFormatException e) {
