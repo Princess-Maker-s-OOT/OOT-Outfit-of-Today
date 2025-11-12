@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.image.service.query;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.image.exception.ImageErrorCode;
 import org.example.ootoutfitoftoday.domain.image.exception.ImageException;
@@ -13,6 +14,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -25,7 +27,11 @@ public class ImageQueryServiceImpl implements ImageQueryService {
     public Image findImageById(Long imageId) {
 
         return imageRepository.findById(imageId)
-                .orElseThrow(() -> new ImageException(ImageErrorCode.IMAGE_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("findImageById - 이미지 없음. imageId={}", imageId);
+
+                    return new ImageException(ImageErrorCode.IMAGE_NOT_FOUND);
+                });
     }
 
     @Override
@@ -37,7 +43,7 @@ public class ImageQueryServiceImpl implements ImageQueryService {
         List<Image> images = imageRepository.findAllByIdInAndIsDeletedFalse(new ArrayList<>(uniqueIds));
 
         if (images.size() != uniqueIds.size()) {
-
+            log.warn("findAllByIdInAndIsDeletedFalse - 일부 이미지 없음. imageIds={}", imageIds);
             throw new ImageException(ImageErrorCode.IMAGE_NOT_FOUND);
         }
 
@@ -48,9 +54,12 @@ public class ImageQueryServiceImpl implements ImageQueryService {
     @Override
     public Image findByIdAndIsDeletedFalse(Long imageId) {
 
-        Image image = imageRepository.findByIdAndIsDeletedFalse(imageId).orElseThrow(
-                () -> new ImageException(ImageErrorCode.IMAGE_NOT_FOUND)
-        );
+        Image image = imageRepository.findByIdAndIsDeletedFalse(imageId)
+                .orElseThrow(() -> {
+                    log.warn("findByIdAndIsDeletedFalse - 이미지 없음 또는 삭제됨. imageId={}", imageId);
+
+                    return new ImageException(ImageErrorCode.IMAGE_NOT_FOUND);
+                });
 
         return image;
     }
