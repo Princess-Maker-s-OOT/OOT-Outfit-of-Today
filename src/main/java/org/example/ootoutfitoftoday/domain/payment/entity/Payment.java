@@ -154,4 +154,8 @@ public class Payment extends BaseEntity {
         this.approvedAt = approvedAt;
         this.status = PaymentStatus.ESCROWED;
     }
+
+    public void fail() {
+        this.status = PaymentStatus.FAILED;
+    }
 }

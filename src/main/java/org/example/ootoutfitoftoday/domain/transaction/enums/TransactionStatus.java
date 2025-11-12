@@ -5,7 +5,9 @@ public enum TransactionStatus {
     APPROVED("판매자 수락 완료"),  // 거래중
     CONFIRMED("구매확정"),
     CANCELLED_BY_BUYER("구매자 취소"),  // 판매자 수락 전만 가능
-    CANCELLED_BY_SELLER("판매자 취소");
+    CANCELLED_BY_SELLER("판매자 취소"),
+    PAYMENT_FAILED("결제 실패"),
+    EXPIRED("거래 만료");
 
     private final String description;
 
