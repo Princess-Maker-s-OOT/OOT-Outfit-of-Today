@@ -58,32 +58,6 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     @Value("${jwt.max-devices-per-user:5}")
     private int maxDevicesPerUser;
 
-    // 관리자 계정 초기 생성 자동
-    @Override
-    public void initializeAdmin(
-            String loginId,
-            String email,
-            String nickname,
-            String username,
-            String password,
-            String phoneNumber
-    ) {
-        if (!userQueryService.existsByLoginId(loginId)) {
-            User admin = User.createAdmin(
-                    loginId,
-                    email,
-                    nickname,
-                    username,
-                    passwordEncoder.encode(password),
-                    phoneNumber
-            );
-            userCommandService.save(admin);
-            log.info("관리자 계정 초기 생성 완료되었습니다.");
-        } else {
-            log.info("관리자 계정이 이미 존재합니다.");
-        }
-    }
-
     // 회원가입
     // TODO: 리팩토링 고려
     @Override
@@ -124,12 +98,22 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     @Override
     public AuthLoginResponse login(AuthLoginRequest request, HttpServletRequest httpRequest) {
 
-        User user = userQueryService.findByLoginIdAndIsDeletedFalse(request.getLoginId());
+        long start = System.currentTimeMillis();
 
+        // ⭐️사용자 조회
+        long dbStart = System.currentTimeMillis();
+        User user = userQueryService.findByLoginIdAndIsDeletedFalse(request.getLoginId());
+        log.debug("[PERF] DB 조회: {} ms", System.currentTimeMillis() - dbStart);
+
+        // ⭐️비밀번호 검증
+        long pwStart = System.currentTimeMillis();
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
+        log.debug("[PERF] 비밀번호 검증: {} ms", System.currentTimeMillis() - pwStart);
 
+        // ⭐️기존 디바이스 정리
+        long deviceStart = System.currentTimeMillis();
         // 단일 쿼리로 디바이스 수 확인 및 정리
         List<RefreshToken> tokens = refreshTokenRepository.findAllByUserIdOrderByLastUsedAtDesc(user.getId());
 
@@ -140,15 +124,25 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             log.info("최대 디바이스 수 초과로 가장 오래된 디바이스 삭제: userId={}, deviceId={}",
                     user.getId(), oldestToken.getDeviceId());
         }
+        log.debug("[PERF] 디바이스 검증 및 정리: {} ms", System.currentTimeMillis() - deviceStart);
 
+        // ⭐️JWT 발급
+        long jwtStart = System.currentTimeMillis();
         // 액세스 토큰 생성
         String accessToken = jwtUtil.createAccessToken(user.getId(), user.getRole());
 
         // 리프레시 토큰 생성 및 DB 저장
         String refreshToken = jwtUtil.createRefreshToken(user.getId());
+        log.debug("[PERF] JWT 발급: {} ms", System.currentTimeMillis() - jwtStart);
 
+        // ⭐️리프레시 토큰 저장
+        long saveStart = System.currentTimeMillis();
         // 유저 정보와 함께 리프레시 토큰 저장
         saveOrUpdateRefreshToken(user, request.getDeviceId(), request.getDeviceName(), refreshToken, httpRequest);
+
+        log.debug("[PERF] 토큰 저장: {} ms", System.currentTimeMillis() - saveStart);
+
+        log.debug("[PERF] 전체 로그인 처리: {} ms", System.currentTimeMillis() - start);
 
         return new AuthLoginResponse(accessToken, refreshToken);
     }
