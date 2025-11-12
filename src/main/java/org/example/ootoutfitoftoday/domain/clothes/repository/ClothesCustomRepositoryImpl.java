@@ -84,7 +84,6 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
      * - 카테고리, 색상, 사이즈로 필터링 가능
      * - 커서 기반 페이징 (무한 스크롤)
      */
-    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Override
     public Slice<Clothes> findAllByIsDeletedFalse(
             Long userId,
@@ -110,7 +109,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                         equalsSize(clothesSize),
                         lessThanLastId(lastClothesId)
                 )
-                .orderBy(clothes.createdAt.desc())
+                .orderBy(clothes.createdAt.desc(), clothes.id.asc())
                 .limit(size + 1)
                 .fetch();
 
@@ -135,13 +134,12 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                         clothes.id.in(clothesIds),
                         clothesImage.isDeleted.isNull().or(clothesImage.isDeleted.eq(false))
                 )
-                .orderBy(clothes.createdAt.desc())
+                .orderBy(clothes.createdAt.desc(), clothes.id.asc())
                 .fetch();
 
         return new SliceImpl<>(result, PageRequest.of(0, size), hasNext);
     }
 
-    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Override
     public List<CategoryStat> countTopCategoryStats() {
 
@@ -163,11 +161,10 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .leftJoin(parent.parent, grandParent)
                 .where(isDeletedFalse())
                 .groupBy(rootName)
-                .orderBy(clothes.count().desc())
+                .orderBy(clothes.count().desc(), rootName.asc()) // 2순위 PK 대신 그룹 컬럼을 기준으로 정렬
                 .fetch();
     }
 
-    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Override
     public List<ClothesColorCount> clothesColorsCount() {
 
@@ -179,11 +176,10 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .from(clothes)
                 .where(isDeletedFalse())
                 .groupBy(clothes.clothesColor)
-                .orderBy(clothes.count().desc())
+                .orderBy(clothes.count().desc(), clothes.clothesColor.asc()) // 2순위 PK 대신 그룹 컬럼을 기준으로 정렬
                 .fetch();
     }
 
-    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Override
     public List<ClothesSizeCount> clothesSizesCount() {
 
@@ -195,11 +191,10 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .from(clothes)
                 .where(isDeletedFalse())
                 .groupBy(clothes.clothesSize)
-                .orderBy(clothes.count().desc())
+                .orderBy(clothes.count().desc(), clothes.clothesSize.asc()) // 2순위 PK 대신 그룹 컬럼을 기준으로 정렬
                 .fetch();
     }
 
-    // Todo: 2순위 정렬 조건으로 옷의 PK로 오름차순 정렬
     @Override
     public List<CategoryStat> findTopCategoryStats() {
 
@@ -212,7 +207,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .join(clothes.category, category)
                 .where(isDeletedFalse())
                 .groupBy(category.id, category.name)
-                .orderBy(clothes.count().desc())
+                .orderBy(clothes.count().desc(), category.id.asc()) // 2순위 PK 대신 그룹 컬럼을 기준으로 정렬
                 .limit(10)
                 .fetch();
     }
