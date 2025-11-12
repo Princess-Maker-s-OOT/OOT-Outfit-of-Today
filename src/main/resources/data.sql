@@ -18,8 +18,8 @@ SELECT 'admin',
        'admin@oot.com',
        'admin',
        'admin',
-       -- 비밀번호 'admin00!'을 BCrypt로 해싱한 값 (아래 주석 참고)
-       '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cyhQQNte8vUXq2gE6WFQfPPK5xk1G',
+       -- 비밀번호 'admin00!'을 BCrypt로 해싱한 값
+       '$2a$12$h/HGvb09H7iScgkacf5KNu4UV60CZCu7CS5l7MEYFPJsKHCfP1Oz.', -- 애플리케이션에서 생성한 해시
        '01000000000',
        'ROLE_ADMIN',
        '서울특별시 중구 세종대로 110',
@@ -27,7 +27,7 @@ SELECT 'admin',
        'LOGIN_ID',
        NOW(),
        NOW(),
-       0 -- is_deleted 기본값
+       0                                                               -- is_deleted 기본값
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1
                   FROM users
