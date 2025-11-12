@@ -137,11 +137,10 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
         return clothesRepository.leastWornClothes(userId);
     }
 
-    // Todo: 리턴을 변수에 담아서 반환하기!!
     @Override
     public List<NotWornOverPeriod> notWornOverPeriod(Long userId) {
 
-        return clothesRepository.notWornOverPeriod(userId)
+        List<NotWornOverPeriod> result = clothesRepository.notWornOverPeriod(userId)
                 .stream()
                 .map(dto -> NotWornOverPeriod.builder()
                         .clothesId(dto.getClothesId())
@@ -152,5 +151,7 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
                                 : ChronoUnit.DAYS.between(dto.getLastWornAt(), LocalDateTime.now()))
                         .build())
                 .toList();
+
+        return result;
     }
 }
