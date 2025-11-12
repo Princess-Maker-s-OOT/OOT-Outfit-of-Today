@@ -20,10 +20,7 @@ public interface RecommendationBatchHistoryRepository extends JpaRepository<Reco
     @Query("SELECT rbh FROM RecommendationBatchHistory rbh " +
             "WHERE rbh.startTime >= :startTime AND rbh.startTime < :endTime " +
             "ORDER BY rbh.startTime DESC")
-    List<RecommendationBatchHistory> findByStartTimeBetween(
-            LocalDateTime startTime,
-            LocalDateTime endTime
-    );
+    List<RecommendationBatchHistory> findByStartTimeBetween(LocalDateTime startTime, LocalDateTime endTime);
 
     // 특정 상태의 배치 이력 조회
     List<RecommendationBatchHistory> findByStatusOrderByStartTimeDesc(BatchStatus status);

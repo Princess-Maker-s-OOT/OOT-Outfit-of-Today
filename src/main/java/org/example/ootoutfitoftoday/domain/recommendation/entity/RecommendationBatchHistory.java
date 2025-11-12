@@ -80,6 +80,7 @@ public class RecommendationBatchHistory extends BaseEntity {
 
     // 배치 시작 시 초기화
     public static RecommendationBatchHistory createInitial(LocalDateTime startTime) {
+
         return RecommendationBatchHistory.builder()
                 .startTime(startTime)
                 .status(BatchStatus.RUNNING)
