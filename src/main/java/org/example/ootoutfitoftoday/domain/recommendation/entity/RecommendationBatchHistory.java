@@ -105,14 +105,21 @@ public class RecommendationBatchHistory extends BaseEntity {
         this.successUsers = successUsers;
         this.failedUsers = failedUsers;
         this.totalRecommendations = totalRecommendations;
-        this.executionTimeMs = java.time.Duration.between(startTime, endTime).toMillis();
+        updateExecutionTime(endTime);
     }
 
     // 배치 실패 처리
     public void markAsFailed(LocalDateTime endTime, String errorMessage) {
+
         this.endTime = endTime;
         this.status = BatchStatus.FAILED;
-        this.executionTimeMs = java.time.Duration.between(startTime, endTime).toMillis();
+        updateExecutionTime(endTime);
         this.errorMessage = errorMessage;
+    }
+
+    // 실행 시간 계산 헬퍼 메서드
+    private void updateExecutionTime(LocalDateTime endTime) {
+
+        this.executionTimeMs = java.time.Duration.between(startTime, endTime).toMillis();
     }
 }
