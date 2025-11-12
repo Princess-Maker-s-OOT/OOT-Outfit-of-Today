@@ -19,7 +19,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      #      password: ${REDIS_PASSWORD:}
+      password: ${REDIS_PASSWORD:}
       timeout: 3000ms
 
   # 데이터소스 드라이버만 공통으로 정의
@@ -117,6 +117,9 @@ management:
   metrics:
     tags:
       application: OOT-observability
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true  # 히스토그램 버킷 생성
 
 logging:
   level:
