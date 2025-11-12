@@ -11,7 +11,11 @@ public class ClothesWearCount {
     private final Long wearCount; // 착용 횟수 카운트
 
     @QueryProjection
-    public ClothesWearCount(Long clothesId, String clothesDescription, Long wearCount) {
+    public ClothesWearCount(
+            Long clothesId,
+            String clothesDescription,
+            Long wearCount
+    ) {
         this.clothesId = clothesId;
         this.clothesDescription = clothesDescription;
         this.wearCount = wearCount;

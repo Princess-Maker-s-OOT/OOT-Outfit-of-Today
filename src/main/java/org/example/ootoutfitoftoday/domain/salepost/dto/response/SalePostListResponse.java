@@ -1,7 +1,9 @@
 package org.example.ootoutfitoftoday.domain.salepost.dto.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.util.Location;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
@@ -12,6 +14,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
+@NoArgsConstructor(force = true)
+@AllArgsConstructor
 public class SalePostListResponse {
 
     private final Long salePostId;
