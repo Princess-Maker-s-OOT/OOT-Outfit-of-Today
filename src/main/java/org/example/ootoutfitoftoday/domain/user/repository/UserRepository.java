@@ -2,6 +2,7 @@ package org.example.ootoutfitoftoday.domain.user.repository;
 
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -56,6 +57,15 @@ public interface UserRepository extends JpaRepository<User, Long>, UserCustomRep
               AND u.createdAt < :end
             """)
     int countUsersRegisteredSince(LocalDateTime start, LocalDateTime end);
+
+    // 활성 사용자 ID 목록 조회 (페이징)
+    @Query("""
+            SELECT u.id
+            FROM User u
+            WHERE u.isDeleted = false
+            ORDER BY u.id
+            """)
+    Page<Long> findAllActiveUserIds(org.springframework.data.domain.Pageable pageable);
 
     @Modifying
     @Transactional
