@@ -27,6 +27,7 @@ public class CachedSliceResponse<T> implements Serializable {
      * Slice를 캐시 가능한 DTO로 변환
      */
     public static <T> CachedSliceResponse<T> from(Slice<T> slice) {
+
         return new CachedSliceResponse<>(
                 slice.getContent(),
                 slice.hasNext(),
@@ -39,6 +40,7 @@ public class CachedSliceResponse<T> implements Serializable {
      * 캐시된 DTO를 다시 Slice로 변환
      */
     public Slice<T> toSlice() {
+
         return new SliceImpl<>(content, org.springframework.data.domain.PageRequest.of(pageNumber, pageSize), hasNext);
     }
 }
