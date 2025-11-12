@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.category.service.query;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryResponse;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.exception.CategoryErrorCode;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -23,9 +25,13 @@ public class CategoryQueryServiceImpl implements CategoryQueryService {
     @Override
     public Category findById(long id) {
 
-        return categoryRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
-        );
+        return categoryRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> {
+                            log.warn("카테고리를 찾을 수 없음. - id: {}", id);
+
+                            return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+                        }
+                );
     }
 
     @Override
