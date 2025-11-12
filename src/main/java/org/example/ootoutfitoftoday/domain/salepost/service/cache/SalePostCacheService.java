@@ -41,11 +41,7 @@ public class SalePostCacheService {
      */
     @Cacheable(
             value = "salePostListCache",
-            key = "#userId + ':' + #categoryId + ':' + " +
-                  "(#status != null ? #status.name() : 'null') + ':' + " +
-                  "(#keyword != null ? #keyword : 'null') + ':' + " +
-                  "#pageable.pageNumber + ':' + #pageable.pageSize + ':' + " +
-                  "#pageable.sort.toString()",
+            key = "{#userId, #categoryId, #status, #keyword, #pageable}",
             unless = "#result == null || #result.content.isEmpty()"
     )
     public CachedSliceResponse<SalePostListResponse> getCachedSalePostList(
@@ -57,25 +53,19 @@ public class SalePostCacheService {
     ) {
         User user = userQueryService.findByIdAsNativeQuery(userId);
 
-        // 1. ORDER BY 절이 없는 기본 SQL 정의
+        // 1. DTO 프로젝션을 위한 SQL 정의 (N+1 방지)
         String baseSql = """
                 SELECT
                     s.id,
                     s.title,
-                    s.content,
                     s.price,
                     s.status,
                     s.trade_address,
                     ST_AsText(s.trade_location) AS trade_location,
-                    s.user_id,
-                    s.category_id,
-                    s.recommendation_id,
-                    s.created_at,
-                    s.updated_at,
-                    s.is_deleted,
-                    s.deleted_at,
+                    (SELECT spi.image_url FROM sale_post_images spi WHERE spi.sale_post_id = s.id ORDER BY spi.display_order ASC LIMIT 1) AS thumbnail_url,
                     u.nickname AS seller_nickname,
-                    c.name AS category_name
+                    c.name AS category_name,
+                    s.created_at
                 FROM sale_posts s
                 JOIN users u ON s.user_id = u.id
                 JOIN categories c ON s.category_id = c.id
@@ -89,11 +79,11 @@ public class SalePostCacheService {
                 AND (:keyword IS NULL OR s.title LIKE :keyword OR s.content LIKE :keyword)
                 """;
 
-        // 2. 유틸리티를 사용하여 ORDER BY 절이 동적으로 추가된 최종 SQL 문자열 획득
+        // 2. ORDER BY 절 추가
         String finalSql = NativeQuerySortUtil.buildOrderClause(baseSql, pageable);
 
-        // 3. Native Query 객체 생성 및 페이징 설정
-        Query query = entityManager.createNativeQuery(finalSql, SalePost.class);
+        // 3. Native Query 객체 생성 (엔티티 매핑 없이)
+        Query query = entityManager.createNativeQuery(finalSql);
 
         query.setParameter("userPoint", user.getTradeLocation());
         query.setParameter("km", DefaultLocationConstants.KM);
@@ -105,22 +95,6 @@ public class SalePostCacheService {
         }
         query.setParameter("keyword", keyword);
 
-        SliceContent sliceContent = sliceAndQueryResult(query, pageable);
-
-        List<SalePostListResponse> responseContent = sliceContent.content().stream()
-                .map(SalePostListResponse::from)
-                .toList();
-
-        return new CachedSliceResponse<>(
-                responseContent,
-                sliceContent.hasNext(),
-                pageable.getPageNumber(),
-                pageable.getPageSize()
-        );
-    }
-
-    // 코드 중복 방지를 위한 헬퍼 메서드
-    private static SliceContent sliceAndQueryResult(Query query, Pageable pageable) {
         // 4. Slice 구현을 위한 LIMIT/OFFSET 설정
         int offset = pageable.getPageNumber() * pageable.getPageSize();
         int limit = pageable.getPageSize() + 1;
@@ -128,16 +102,39 @@ public class SalePostCacheService {
         query.setFirstResult(offset);
         query.setMaxResults(limit);
 
-        // 5. 쿼리 실행 및 결과 목록 획득
+        // 5. 쿼리 실행 및 결과 목록 획득 (Object[] 리스트)
         @SuppressWarnings("unchecked")
-        List<SalePost> results = query.getResultList();
+        List<Object[]> results = query.getResultList();
 
         // 6. Slice 객체 생성 로직 (hasNext 판단)
         boolean hasNext = results.size() > pageable.getPageSize();
-        List<SalePost> content = hasNext ?
-                results.subList(0, pageable.getPageSize()) :
-                results;
+        List<Object[]> content = hasNext ? results.subList(0, pageable.getPageSize()) : results;
 
-        return SliceContent.from(content, hasNext);
+        // 7. Object[]를 SalePostListResponse DTO로 직접 변환
+        List<SalePostListResponse> responseContent = content.stream()
+                .map(row -> {
+                    org.example.ootoutfitoftoday.common.util.Location location = org.example.ootoutfitoftoday.common.util.PointFormatAndParse.parse((String) row[5]);
+                    return new SalePostListResponse(
+                            ((Number) row[0]).longValue(),
+                            (String) row[1],
+                            (java.math.BigDecimal) row[2],
+                            SaleStatus.valueOf((String) row[3]),
+                            (String) row[4],
+                            location.latitude(),
+                            location.longitude(),
+                            (String) row[6],
+                            (String) row[7],
+                            (String) row[8],
+                            ((java.sql.Timestamp) row[9]).toLocalDateTime()
+                    );
+                })
+                .toList();
+
+        return new CachedSliceResponse<>(
+                responseContent,
+                hasNext,
+                pageable.getPageNumber(),
+                pageable.getPageSize()
+        );
     }
 }

@@ -30,10 +30,6 @@ public class SalePostFixtureService {
 
     @Transactional
     public void generateTestData(Long userId, int count) {
-
-        User user = userQueryService.findByIdAsNativeQuery(userId);
-        Category category = categoryQueryService.findById(SalePostFixtureData.CATEGORY_ID);
-
         for(int i = 0; i < count; i++){
 
             salePostRepository.saveAsNativeQuery(
