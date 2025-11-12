@@ -41,10 +41,10 @@ public class RecommendationController {
     private final RecommendationBatchHistoryService batchHistoryService;
 
     /**
-     * 추천 기록 생성 (수동 호출 및 기준선 측정용)
-     * 사용자의 모든 옷을 동기적으로 조회
-     * 1년 이상 착용하지 않은 옷에 대해 판매 또는 기부 추천 기록을 생성
-     * 생성된 각 추천 기록의 상세 정보를 리스트로 반환
+     * 추천 기록 수동 생성
+     * 로그인한 사용자의 옷을 즉시 조회하여 1년 이상 미착용 옷에 대한 추천 기록을 생
+     * 스케줄러를 기다리지 않고 즉시 추천을 받고 싶을 때 사용
+     * 참고: 매일 새벽 2시에 자동으로 모든 사용자에 대해 배치 실행
      *
      * @param authUser 인증된 사용자 정보
      * @return List<RecommendationCreateResponse>: 생성된 추천 기록 DTO 목록
@@ -52,7 +52,11 @@ public class RecommendationController {
     @Operation(
             summary = "추천 기록 수동 생성",
             description = """
-                    로그인한 사용자의 옷을 동기적으로 조회하여 1년 이상 미착용 옷에 대한 판매 또는 기부 추천 기록을 생성합니다.
+                    로그인한 사용자의 옷을 즉시 조회하여 1년 이상 미착용 옷에 대한 판매 또는 기부 추천 기록을 생성합니다.
+                    
+                    스케줄러를 기다리지 않고 즉시 추천을 받고 싶을 때 사용합니다.
+                    
+                    참고: 매일 새벽 2시에 자동으로 모든 사용자에 대해 배치 실행됩니다.
                     """,
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
