@@ -1,3 +1,37 @@
+-- 관리자 계정 초기 데이터 삽입
+-- 중복 방지: login_id가 'admin'인 사용자가 없을 때만 삽입
+INSERT INTO users (login_id,
+                   email,
+                   nickname,
+                   username,
+                   password,
+                   phone_number,
+                   role,
+                   trade_address,
+                   trade_location,
+                   login_type,
+                   created_at,
+                   updated_at,
+                   is_deleted)
+SELECT 'admin',
+       'admin@oot.com',
+       'admin',
+       'admin',
+       -- 비밀번호 'admin00!'을 BCrypt로 해싱한 값
+       '$2a$12$h/HGvb09H7iScgkacf5KNu4UV60CZCu7CS5l7MEYFPJsKHCfP1Oz.', -- 애플리케이션에서 생성한 해시
+       '01000000000',
+       'ROLE_ADMIN',
+       '서울특별시 중구 세종대로 110',
+       ST_GeomFromText('POINT(37.56681294 126.97865509)', 4326),
+       'LOGIN_ID',
+       NOW(),
+       NOW(),
+       0                                                               -- is_deleted 기본값
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1
+                  FROM users
+                  WHERE login_id = 'admin');
+
 SET FOREIGN_KEY_CHECKS = 0;
 DELETE FROM categories;
 SET FOREIGN_KEY_CHECKS = 1;
@@ -113,6 +147,7 @@ INSERT INTO categories (id, name, parent_id, created_at, updated_at, is_deleted)
 (77, '숄더백', 54, NOW(), NOW(), false),
 (78, '토트백', 54, NOW(), NOW(), false),
 (79, '미니백', 54, NOW(), NOW(), false),
+
 
 -- 여성 - 액세서리
 (80, '목걸이', 55, NOW(), NOW(), false),
