@@ -32,5 +32,4 @@ public class AdminClothesStatisticsResponse implements Serializable {
         this.colorStats = colorStats;
         this.sizeStats = sizeStats;
     }
-
 }
