@@ -5,7 +5,8 @@ spring:
     password: ${PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update                 # 로컬 개발 시 DDL 자동 업데이트 허용
+      ddl-auto: update                       # 로컬 개발 시 DDL 자동 업데이트 허용
+    defer-datasource-initialization: true    # TODO
 
   # Redis 연결 설정(로컬 개발용)
   data:
