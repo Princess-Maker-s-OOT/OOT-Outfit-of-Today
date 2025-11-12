@@ -9,17 +9,25 @@ import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.PageResponse;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
+import org.example.ootoutfitoftoday.domain.donation.dto.response.DonationCenterSearchResponse;
+import org.example.ootoutfitoftoday.domain.donation.service.query.DonationCenterQueryService;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.request.RecommendationSalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationBatchHistoryListResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationBatchHistoryResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationCreateResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationGetMyResponse;
+import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.RecommendationBatchHistory;
+import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationErrorCode;
+import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationException;
 import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationSuccessCode;
 import org.example.ootoutfitoftoday.domain.recommendation.service.batch.query.RecommendationBatchHistoryQueryService;
 import org.example.ootoutfitoftoday.domain.recommendation.service.command.RecommendationCommandService;
 import org.example.ootoutfitoftoday.domain.recommendation.service.query.RecommendationQueryService;
+import org.example.ootoutfitoftoday.domain.recommendation.status.RecommendationStatus;
+import org.example.ootoutfitoftoday.domain.recommendation.type.RecommendationType;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +47,7 @@ public class RecommendationController {
     private final RecommendationCommandService recommendationCommandService;
     private final RecommendationQueryService recommendationQueryService;
     private final RecommendationBatchHistoryQueryService batchHistoryQueryService;
+    private final DonationCenterQueryService donationCenterQueryService;
 
     /**
      * 추천 기록 수동 생성
@@ -238,5 +247,112 @@ public class RecommendationController {
         RecommendationBatchHistoryResponse response = RecommendationBatchHistoryResponse.from(batchHistory);
 
         return Response.success(response, RecommendationSuccessCode.BATCH_HISTORY_GET_OK);
+    }
+
+    /**
+     * 기부 추천 수락 후 주변 기부처 검색
+     * ACCEPTED 상태의 기부 추천(DONATION)에서 사용자 위치 기반으로 주변 기부처를 검색합니다.
+     * 사용자의 거래 위치(tradeLocation)를 기준으로 검색합니다.
+     *
+     * @param recommendationId 추천 ID
+     * @param authUser         인증된 사용자 정보
+     * @param radius           검색 반경 (미터, 기본값: 5000m = 5km)
+     * @param keyword          검색 키워드 (선택사항)
+     * @return 거리순으로 정렬된 기부처 목록
+     */
+    @Operation(
+            summary = "기부 추천에서 주변 기부처 검색",
+            description = """
+                    ACCEPTED 상태의 기부 추천에서 사용자 위치 기반으로 주변 기부처를 검색합니다.
+                    
+                    사용자의 거래 위치를 기준으로 주변 기부처를 찾습니다.
+                    검색 결과는 거리순으로 정렬됩니다.
+                    """,
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "기부처 검색 성공"),
+                    @ApiResponse(responseCode = "400", description = "추천이 ACCEPTED 상태가 아니거나 기부 타입이 아님"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "추천을 찾을 수 없음"),
+                    @ApiResponse(responseCode = "500", description = "서버 로직 오류")
+            }
+    )
+    @GetMapping("/{recommendationId}/donation-centers")
+    public ResponseEntity<Response<List<DonationCenterSearchResponse>>> searchDonationCentersFromRecommendation(
+            @PathVariable Long recommendationId,
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(required = false) Integer radius,
+            @RequestParam(required = false) String keyword
+    ) {
+        Recommendation recommendation = recommendationQueryService.findById(recommendationId);
+
+        if (!recommendation.getUser().getId().equals(authUser.getUserId())) {
+            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND);
+        }
+
+        if (recommendation.getStatus() != RecommendationStatus.ACCEPTED) {
+            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_ACCEPTED);
+        }
+
+        if (recommendation.getType() != RecommendationType.DONATION) {
+            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_DONATION_TYPE);
+        }
+
+        User user = recommendation.getUser();
+
+        // 사용자 위치 정보 검증 및 파싱
+        if (user.getTradeLocation() == null || user.getTradeLocation().isEmpty()) {
+            throw new RecommendationException(RecommendationErrorCode.USER_LOCATION_NOT_FOUND);
+        }
+
+        double[] coordinates = parseTradeLocation(user.getTradeLocation());
+        Double longitude = coordinates[0];
+        Double latitude = coordinates[1];
+
+        List<DonationCenterSearchResponse> donationCenters = donationCenterQueryService.searchNearbyDonationCenters(
+                latitude,
+                longitude,
+                radius,
+                keyword
+        );
+
+        return Response.success(donationCenters, RecommendationSuccessCode.DONATION_CENTER_SEARCH_FROM_RECOMMENDATION_OK);
+    }
+
+    /**
+     * tradeLocation 문자열에서 위도/경도 파싱
+     * tradeLocation은 "POINT(longitude latitude)" 형식
+     * 예: "POINT(126.9780 37.5665)"
+     *
+     * @param tradeLocation POINT 형식의 위치 문자열
+     * @return [0]: longitude, [1]: latitude
+     * @throws RecommendationException 파싱 실패 시
+     */
+    private double[] parseTradeLocation(String tradeLocation) {
+        try {
+            String locationStr = tradeLocation
+                    .replace("POINT(", "")
+                    .replace(")", "")
+                    .trim();
+
+            String[] coords = locationStr.split("\\s+");
+
+            if (coords.length != 2) {
+                throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
+            }
+
+            double longitude = Double.parseDouble(coords[0]);
+            double latitude = Double.parseDouble(coords[1]);
+
+            // 위도/경도 범위 검증
+            if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+                throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
+            }
+
+            return new double[]{longitude, latitude};
+
+        } catch (NumberFormatException e) {
+            throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
+        }
     }
 }
