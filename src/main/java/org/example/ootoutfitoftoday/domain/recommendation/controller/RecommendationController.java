@@ -10,9 +10,13 @@ import org.example.ootoutfitoftoday.common.response.PageResponse;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.request.RecommendationSalePostCreateRequest;
+import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationBatchHistoryListResponse;
+import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationBatchHistoryResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationCreateResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationGetMyResponse;
+import org.example.ootoutfitoftoday.domain.recommendation.entity.RecommendationBatchHistory;
 import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationSuccessCode;
+import org.example.ootoutfitoftoday.domain.recommendation.service.batch.query.RecommendationBatchHistoryQueryService;
 import org.example.ootoutfitoftoday.domain.recommendation.service.command.RecommendationCommandService;
 import org.example.ootoutfitoftoday.domain.recommendation.service.query.RecommendationQueryService;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
@@ -34,13 +38,13 @@ public class RecommendationController {
 
     private final RecommendationCommandService recommendationCommandService;
     private final RecommendationQueryService recommendationQueryService;
+    private final RecommendationBatchHistoryQueryService batchHistoryQueryService;
 
     /**
-     * 추천 기록 생성 (수동 호출 및 기준선 측정용)
-     * <p>
-     * 사용자의 모든 옷을 동기적으로 조회
-     * 1년 이상 착용하지 않은 옷에 대해 판매 또는 기부 추천 기록을 생성
-     * 생성된 각 추천 기록의 상세 정보를 리스트로 반환
+     * 추천 기록 수동 생성
+     * 로그인한 사용자의 옷을 즉시 조회하여 1년 이상 미착용 옷에 대한 추천 기록을 생
+     * 스케줄러를 기다리지 않고 즉시 추천을 받고 싶을 때 사용
+     * 참고: 매일 새벽 2시에 자동으로 모든 사용자에 대해 배치 실행
      *
      * @param authUser 인증된 사용자 정보
      * @return List<RecommendationCreateResponse>: 생성된 추천 기록 DTO 목록
@@ -48,7 +52,11 @@ public class RecommendationController {
     @Operation(
             summary = "추천 기록 수동 생성",
             description = """
-                    로그인한 사용자의 옷을 동기적으로 조회하여 1년 이상 미착용 옷에 대한 판매 또는 기부 추천 기록을 생성합니다.
+                    로그인한 사용자의 옷을 즉시 조회하여 1년 이상 미착용 옷에 대한 판매 또는 기부 추천 기록을 생성합니다.
+                    
+                    스케줄러를 기다리지 않고 즉시 추천을 받고 싶을 때 사용합니다.
+                    
+                    참고: 매일 새벽 2시에 자동으로 모든 사용자에 대해 배치 실행됩니다.
                     """,
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
@@ -69,7 +77,6 @@ public class RecommendationController {
 
     /**
      * 추천 기록 목록 조회
-     * <p>
      * 로그인한 사용자의 기부/판매 추천 목록을 페이징하여 조회
      * 기본 정렬: 생성일시 최신순 (createdAt DESC)
      *
@@ -119,7 +126,6 @@ public class RecommendationController {
 
     /**
      * 추천으로부터 판매글 생성
-     * <p>
      * ACCEPTED 상태의 판매 추천을 기반으로 판매글을 생성
      * 중복 생성을 방지하며, 이미 판매글이 존재하는 경우 기존 판매글을 반환
      *
@@ -157,5 +163,80 @@ public class RecommendationController {
         );
 
         return Response.success(response, RecommendationSuccessCode.SALE_POST_FROM_RECOMMENDATION_CREATED);
+    }
+
+    /**
+     * 배치 실행 이력 조회
+     * 추천 배치 스케줄러의 실행 이력을 조회합니다.
+     * 성공/실패 여부, 처리된 사용자 수, 생성된 추천 수, 실행 시간 등을 확인할 수 있습니다.
+     *
+     * @param page      페이지 번호 (0부터 시작, 기본값 0)
+     * @param size      페이지 크기 (기본값 20)
+     * @param sort      정렬 기준 필드 (기본값 startTime)
+     * @param direction 정렬 방향 (ASC/DESC, 기본값 DESC)
+     * @return 배치 이력 목록
+     */
+    @Operation(
+            summary = "배치 실행 이력 조회",
+            description = """
+                    추천 배치 스케줄러의 실행 이력을 조회합니다.
+                    성공/실패 여부, 처리된 사용자 수, 생성된 추천 수, 실행 시간 등을 확인할 수 있습니다.
+                    기본적으로 시작 시간 기준 최신순으로 정렬됩니다.
+                    """,
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "배치 이력 조회 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "500", description = "서버 로직 오류")
+            }
+    )
+    @GetMapping("/batch-history")
+    public ResponseEntity<Response<RecommendationBatchHistoryListResponse>> getBatchHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "startTime") String sort,
+            @RequestParam(defaultValue = "DESC") String direction
+    ) {
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(sortDirection, sort)
+        );
+
+        Page<RecommendationBatchHistory> batchHistoryPage = batchHistoryQueryService.getRecentBatchHistory(pageable);
+
+        Page<RecommendationBatchHistoryResponse> responsePage = batchHistoryPage
+                .map(RecommendationBatchHistoryResponse::from);
+
+        RecommendationBatchHistoryListResponse response = RecommendationBatchHistoryListResponse.from(responsePage);
+
+        return Response.success(response, RecommendationSuccessCode.BATCH_HISTORY_GET_OK);
+    }
+
+    /**
+     * 최근 배치 실행 이력 조회
+     * 가장 최근에 실행된 배치의 상세 정보를 조회
+     *
+     * @return 최근 배치 이력
+     */
+    @Operation(
+            summary = "최근 배치 실행 이력 조회",
+            description = "가장 최근에 실행된 배치의 상세 정보를 조회합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "배치 이력 조회 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "배치 이력이 없음"),
+                    @ApiResponse(responseCode = "500", description = "서버 로직 오류")
+            }
+    )
+    @GetMapping("/batch-history/latest")
+    public ResponseEntity<Response<RecommendationBatchHistoryResponse>> getLatestBatchHistory() {
+        RecommendationBatchHistory batchHistory = batchHistoryQueryService.getLastBatchHistory();
+        RecommendationBatchHistoryResponse response = RecommendationBatchHistoryResponse.from(batchHistory);
+
+        return Response.success(response, RecommendationSuccessCode.BATCH_HISTORY_GET_OK);
     }
 }
