@@ -30,10 +30,10 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Modifying
     @Query("""
-                UPDATE Category c
-                SET c.isDeleted = true,
-                    c.deletedAt = CURRENT_TIMESTAMP
-                WHERE c.id IN :categoryIds
+            UPDATE Category c
+            SET c.isDeleted = true,
+                c.deletedAt = CURRENT_TIMESTAMP
+            WHERE c.id IN :categoryIds
             """)
     void softDeleteCategories(@Param("categoryIds") List<Long> categoryIds);
 }
