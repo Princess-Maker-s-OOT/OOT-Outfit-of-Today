@@ -5,8 +5,6 @@ import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryRespons
 
 public interface CategoryCommandService {
 
-    void initializeCategories(); // 초기 데이터 삽입용
-
     CategoryResponse createCategory(CategoryRequest categoryRequest); // 카테고리 등록 api
 
     CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest);
