@@ -9,12 +9,7 @@ services:
     volumes:
       - redis-data:/data                                        # 데이터 영속성: Redis 재시작해도 데이터 유지
     # Redis 설정 옵션들
-    command: >
-      redis-server
-      --appendonly yes
-      --requirepass ${REDIS_PASSWORD}
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}" --maxmemory 256mb --maxmemory-policy allkeys-lru
     # appendonly yes: AOF 방식 영속성(데이터 손실 최소화)
     # requirepass: 비밀번호 설정(보안 강화, 실제로는 환경변수 권장)
     # maxmemory: 최대 메모리 제한(로컬 환경 고려)
