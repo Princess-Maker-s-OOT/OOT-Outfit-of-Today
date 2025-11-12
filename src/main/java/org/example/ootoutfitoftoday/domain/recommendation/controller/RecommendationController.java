@@ -11,25 +11,17 @@ import org.example.ootoutfitoftoday.common.response.PageResponse;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.donation.dto.response.DonationCenterSearchResponse;
-import org.example.ootoutfitoftoday.domain.donation.service.query.DonationCenterQueryService;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.request.RecommendationSalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationBatchHistoryListResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationBatchHistoryResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationCreateResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationGetMyResponse;
-import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.RecommendationBatchHistory;
-import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationErrorCode;
-import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationException;
 import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationSuccessCode;
 import org.example.ootoutfitoftoday.domain.recommendation.service.batch.query.RecommendationBatchHistoryQueryService;
 import org.example.ootoutfitoftoday.domain.recommendation.service.command.RecommendationCommandService;
 import org.example.ootoutfitoftoday.domain.recommendation.service.query.RecommendationQueryService;
-import org.example.ootoutfitoftoday.domain.recommendation.status.RecommendationStatus;
-import org.example.ootoutfitoftoday.domain.recommendation.type.RecommendationType;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
-import org.example.ootoutfitoftoday.domain.user.entity.User;
-import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -50,8 +42,6 @@ public class RecommendationController {
     private final RecommendationCommandService recommendationCommandService;
     private final RecommendationQueryService recommendationQueryService;
     private final RecommendationBatchHistoryQueryService batchHistoryQueryService;
-    private final DonationCenterQueryService donationCenterQueryService;
-    private final UserQueryService userQueryService;
 
     /**
      * 추천 기록 수동 생성
@@ -288,78 +278,13 @@ public class RecommendationController {
             @RequestParam(required = false) Integer radius,
             @RequestParam(required = false) String keyword
     ) {
-        Recommendation recommendation = recommendationQueryService.findById(recommendationId);
-
-        if (!recommendation.getUser().getId().equals(authUser.getUserId())) {
-            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND);
-        }
-
-        if (recommendation.getStatus() != RecommendationStatus.ACCEPTED) {
-            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_ACCEPTED);
-        }
-
-        if (recommendation.getType() != RecommendationType.DONATION) {
-            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_DONATION_TYPE);
-        }
-
-        // POINT 타입을 텍스트로 변환하기 위해 Native Query 사용
-        User user = userQueryService.findByIdAsNativeQuery(authUser.getUserId());
-
-        // 사용자 위치 정보 검증 및 파싱
-        if (user.getTradeLocation() == null || user.getTradeLocation().isEmpty()) {
-            throw new RecommendationException(RecommendationErrorCode.USER_LOCATION_NOT_FOUND);
-        }
-
-        double[] coordinates = parseTradeLocation(user.getTradeLocation());
-        Double longitude = coordinates[0];
-        Double latitude = coordinates[1];
-
-        List<DonationCenterSearchResponse> donationCenters = donationCenterQueryService.searchNearbyDonationCenters(
-                latitude,
-                longitude,
+        List<DonationCenterSearchResponse> donationCenters = recommendationQueryService.searchDonationCentersFromRecommendation(
+                recommendationId,
+                authUser.getUserId(),
                 radius,
                 keyword
         );
 
         return Response.success(donationCenters, RecommendationSuccessCode.DONATION_CENTER_SEARCH_FROM_RECOMMENDATION_OK);
-    }
-
-    /**
-     * tradeLocation 문자열에서 위도/경도 파싱
-     * tradeLocation은 "POINT(latitude longitude)" 형식으로 저장됨
-     * 예: "POINT(37.5665 126.9780)"
-     *
-     * @param tradeLocation POINT 형식의 위치 문자열
-     * @return [0]: longitude, [1]: latitude (DonationCenterQueryService에 전달하기 위한 순서)
-     * @throws RecommendationException 파싱 실패 시
-     */
-    private double[] parseTradeLocation(String tradeLocation) {
-        try {
-            String locationStr = tradeLocation
-                    .replace("POINT(", "")
-                    .replace(")", "")
-                    .trim();
-
-            String[] coords = locationStr.split("\\s+");
-
-            if (coords.length != 2) {
-                throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
-            }
-
-            // DB에 POINT(latitude longitude) 형식으로 저장되어 있음
-            double latitude = Double.parseDouble(coords[0]);
-            double longitude = Double.parseDouble(coords[1]);
-
-            // 위도/경도 범위 검증
-            if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-                throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
-            }
-
-            // 반환 순서: [0]=longitude, [1]=latitude (API 호출 시 필요한 순서)
-            return new double[]{longitude, latitude};
-
-        } catch (NumberFormatException e) {
-            throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
-        }
     }
 }
