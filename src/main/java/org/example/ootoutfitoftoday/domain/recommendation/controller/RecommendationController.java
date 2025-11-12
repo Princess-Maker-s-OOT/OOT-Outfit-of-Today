@@ -16,7 +16,7 @@ import org.example.ootoutfitoftoday.domain.recommendation.dto.response.Recommend
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationGetMyResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.RecommendationBatchHistory;
 import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationSuccessCode;
-import org.example.ootoutfitoftoday.domain.recommendation.service.batch.RecommendationBatchHistoryService;
+import org.example.ootoutfitoftoday.domain.recommendation.service.batch.query.RecommendationBatchHistoryQueryService;
 import org.example.ootoutfitoftoday.domain.recommendation.service.command.RecommendationCommandService;
 import org.example.ootoutfitoftoday.domain.recommendation.service.query.RecommendationQueryService;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
@@ -38,7 +38,7 @@ public class RecommendationController {
 
     private final RecommendationCommandService recommendationCommandService;
     private final RecommendationQueryService recommendationQueryService;
-    private final RecommendationBatchHistoryService batchHistoryService;
+    private final RecommendationBatchHistoryQueryService batchHistoryQueryService;
 
     /**
      * 추천 기록 수동 생성
@@ -167,11 +167,13 @@ public class RecommendationController {
 
     /**
      * 배치 실행 이력 조회
-     * 추천 배치 스케줄러의 실행 이력을 조회
-     * 성공/실패 여부, 처리된 사용자 수, 생성된 추천 수, 실행 시간 등을 확인 가능
+     * 추천 배치 스케줄러의 실행 이력을 조회합니다.
+     * 성공/실패 여부, 처리된 사용자 수, 생성된 추천 수, 실행 시간 등을 확인할 수 있습니다.
      *
-     * @param page 페이지 번호 (0부터 시작, 기본값 0)
-     * @param size 페이지 크기 (기본값 20)
+     * @param page      페이지 번호 (0부터 시작, 기본값 0)
+     * @param size      페이지 크기 (기본값 20)
+     * @param sort      정렬 기준 필드 (기본값 startTime)
+     * @param direction 정렬 방향 (ASC/DESC, 기본값 DESC)
      * @return 배치 이력 목록
      */
     @Operation(
@@ -179,6 +181,7 @@ public class RecommendationController {
             description = """
                     추천 배치 스케줄러의 실행 이력을 조회합니다.
                     성공/실패 여부, 처리된 사용자 수, 생성된 추천 수, 실행 시간 등을 확인할 수 있습니다.
+                    기본적으로 시작 시간 기준 최신순으로 정렬됩니다.
                     """,
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
@@ -190,10 +193,19 @@ public class RecommendationController {
     @GetMapping("/batch-history")
     public ResponseEntity<Response<RecommendationBatchHistoryListResponse>> getBatchHistory(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "startTime") String sort,
+            @RequestParam(defaultValue = "DESC") String direction
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<RecommendationBatchHistory> batchHistoryPage = batchHistoryService.getRecentBatchHistory(pageable);
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(sortDirection, sort)
+        );
+
+        Page<RecommendationBatchHistory> batchHistoryPage = batchHistoryQueryService.getRecentBatchHistory(pageable);
 
         Page<RecommendationBatchHistoryResponse> responsePage = batchHistoryPage
                 .map(RecommendationBatchHistoryResponse::from);
@@ -222,7 +234,7 @@ public class RecommendationController {
     )
     @GetMapping("/batch-history/latest")
     public ResponseEntity<Response<RecommendationBatchHistoryResponse>> getLatestBatchHistory() {
-        RecommendationBatchHistory batchHistory = batchHistoryService.getLastBatchHistory();
+        RecommendationBatchHistory batchHistory = batchHistoryQueryService.getLastBatchHistory();
         RecommendationBatchHistoryResponse response = RecommendationBatchHistoryResponse.from(batchHistory);
 
         return Response.success(response, RecommendationSuccessCode.BATCH_HISTORY_GET_OK);
