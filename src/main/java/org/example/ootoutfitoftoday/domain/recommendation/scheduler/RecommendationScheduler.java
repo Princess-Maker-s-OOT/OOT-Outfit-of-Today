@@ -3,7 +3,7 @@ package org.example.ootoutfitoftoday.domain.recommendation.scheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.RecommendationBatchHistory;
-import org.example.ootoutfitoftoday.domain.recommendation.service.batch.RecommendationBatchHistoryService;
+import org.example.ootoutfitoftoday.domain.recommendation.service.batch.command.RecommendationBatchHistoryCommandService;
 import org.example.ootoutfitoftoday.domain.recommendation.service.command.RecommendationCommandService;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Page;
@@ -21,7 +21,7 @@ public class RecommendationScheduler {
     private static final int PAGE_SIZE = 100; // 100명씩 페이징 처리
 
     private final RecommendationCommandService recommendationCommandService;
-    private final RecommendationBatchHistoryService batchHistoryService;
+    private final RecommendationBatchHistoryCommandService batchHistoryCommandService;
     private final UserQueryService userQueryService;
 
     /**
@@ -29,12 +29,16 @@ public class RecommendationScheduler {
      * cron 표현식: 초 분 시 일 월 요일
      * 0 0 2 * * * = 매일 2시 0분 0초
      */
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "0 0 2 * * *", zone = "Asia/Seoul")
     public void generateDailyRecommendations() {
+
         log.info("=== 추천 배치 시작 ===");
 
+        // Stale 상태 배치 처리 (1시간 이상 RUNNING 상태인 경우 FAILED로 처리)
+        batchHistoryCommandService.handleStaleBatches();
+
         // 배치 이력 시작 기록
-        RecommendationBatchHistory batchHistory = batchHistoryService.startBatch();
+        RecommendationBatchHistory batchHistory = batchHistoryCommandService.startBatch();
 
         AtomicInteger totalUsers = new AtomicInteger(0);
         AtomicInteger successUsers = new AtomicInteger(0);
@@ -78,7 +82,7 @@ public class RecommendationScheduler {
             } while (userIdsPage.hasNext());
 
             // 배치 성공 기록
-            batchHistoryService.completeBatchSuccess(
+            batchHistoryCommandService.completeBatchSuccess(
                     batchHistory.getId(),
                     totalUsers.get(),
                     successUsers.get(),
@@ -93,7 +97,7 @@ public class RecommendationScheduler {
             log.error("Batch execution failed critically", e);
 
             // 배치 실패 기록
-            batchHistoryService.completeBatchFailure(
+            batchHistoryCommandService.completeBatchFailure(
                     batchHistory.getId(),
                     e.getMessage()
             );
