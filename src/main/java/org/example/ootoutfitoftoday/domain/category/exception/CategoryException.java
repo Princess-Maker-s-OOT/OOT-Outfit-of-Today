@@ -7,8 +7,4 @@ public class CategoryException extends GlobalException {
     public CategoryException(CategoryErrorCode categoryErrorCode) {
         super(categoryErrorCode);
     }
-
-    public CategoryException(CategoryErrorCode categoryErrorCode, CategorySuccessCode categorySuccessCode) {
-        super(categoryErrorCode, categorySuccessCode);
-    }
 }

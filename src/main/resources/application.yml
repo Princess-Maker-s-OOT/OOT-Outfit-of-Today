@@ -3,12 +3,23 @@ spring:
     name: oot-server
   profiles:
     active: local # 기본 실행 프로파일 지정
+
+  # SQL 초기화 설정 추가
+  # TODO
+  sql:
+    init:
+      mode: always                            # 항상 실행 (프로파일별로 다르게 설정 가능)
+      encoding: UTF-8
+      continue-on-error: false
+      # data-locations: classpath:data.sql    # 기본값이므로 생략 가능
+
   jpa:
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
     show-sql: true
+    defer-datasource-initialization: true
 
   # CORS 설정 추가
   cors:
@@ -19,7 +30,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      #      password: ${REDIS_PASSWORD:}
+      password: ${REDIS_PASSWORD:}
       timeout: 3000ms
 
   # 데이터소스 드라이버만 공통으로 정의
@@ -117,6 +128,9 @@ management:
   metrics:
     tags:
       application: OOT-observability
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true  # 히스토그램 버킷 생성
 
 logging:
   level:

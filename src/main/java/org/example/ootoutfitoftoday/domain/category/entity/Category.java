@@ -9,6 +9,7 @@ import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -51,9 +52,23 @@ public class Category extends BaseEntity {
         return category;
     }
 
-    // Todo: 추후 수정 메서드 리팩토링 - 부모가 바뀌는 경우에만 기존 부모 연관관계 제거 + 새로운 부모의 자식 목록에 자신 추가 (중복 방지)
-    public void update(String name, Category parent) {
+    public void update(String name, Category newParent) {
         this.name = name;
-        this.parent = parent;
+
+        // 부모가 실제로 변경되는 경우에만 양방향 연관관계 동기화
+        if (!Objects.equals(this.parent, newParent)) {
+
+            // 기존 부모의 children에서 제거
+            if (this.parent != null) {
+                this.parent.getChildren().remove(this);
+            }
+
+            // 새 부모의 children에 추가 (중복 방지)
+            if (newParent != null && !newParent.getChildren().contains(this)) {
+                newParent.getChildren().add(this);
+            }
+
+            this.parent = newParent;
+        }
     }
 }

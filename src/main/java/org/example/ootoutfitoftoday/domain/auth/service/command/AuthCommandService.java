@@ -9,14 +9,6 @@ import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
 
 public interface AuthCommandService {
 
-    void initializeAdmin(
-            String adminLoginId,
-            String adminEmail,
-            String adminNickname,
-            String adminUsername,
-            String adminPassword,
-            String adminPhoneNumber);
-
     void signup(AuthSignupRequest request);
 
     // HttpServletRequest 파라미터 추가(IP, User-Agent 추출용)
