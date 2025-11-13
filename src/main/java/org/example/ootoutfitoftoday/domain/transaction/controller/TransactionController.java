@@ -11,6 +11,7 @@ import org.example.ootoutfitoftoday.domain.payment.exception.PaymentSuccessCode;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
+import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCancelResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCompleteResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 import org.example.ootoutfitoftoday.domain.transaction.exception.TransactionSuccessCode;
@@ -100,5 +101,23 @@ public class TransactionController {
         );
 
         return Response.success(response, TransactionSuccessCode.TRANSACTION_COMPLETED);
+    }
+
+    @Operation(
+            summary = "구매자 취소",
+            description = "판매자 수락 이전에 구매자가 거래를 취소합니다."
+//            responses = {}
+    )
+    @PostMapping("/{transactionId}/cancel-buyer")
+    public ResponseEntity<Response<TransactionCancelResponse>> cancelByBuyer(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long transactionId
+    ) {
+        TransactionCancelResponse response = transactionCommandService.cancelByBuyer(
+                authUser.getUserId(),
+                transactionId
+        );
+
+        return Response.success(response, TransactionSuccessCode.TRANSACTION_CANCELLED);
     }
 }

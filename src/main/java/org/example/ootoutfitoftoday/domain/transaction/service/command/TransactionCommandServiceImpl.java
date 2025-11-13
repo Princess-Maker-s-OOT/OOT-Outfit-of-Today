@@ -20,6 +20,7 @@ import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepositor
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
+import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCancelResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCompleteResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 import org.example.ootoutfitoftoday.domain.transaction.entity.Transaction;
@@ -303,5 +304,43 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
 
         // 8. 응답 반환
         return TransactionCompleteResponse.from(transaction);
+    }
+
+    @Override
+    public TransactionCancelResponse cancelByBuyer(Long buyerId, Long transactionId) {
+
+        // 1. Transaction 조회
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new TransactionException(TransactionErrorCode.TRANSACTION_NOT_FOUND));
+
+        // 2. 구매자 본인 확인
+        if (!transaction.getBuyer().getId().equals(buyerId)) {
+            throw new TransactionException(TransactionErrorCode.UNAUTHORIZED_TRANSACTION_ACCESS);
+        }
+
+        // 3. Transaction 상태 검증
+        if (transaction.getStatus() != TransactionStatus.PENDING_APPROVAL) {
+            throw new TransactionException(TransactionErrorCode.TRANSACTION_NOT_CANCELLABLE);
+        }
+
+        // 4. Payment 조회 및 상태 검증
+        Payment payment = transaction.getPayment();
+
+        if (payment.getStatus() != PaymentStatus.ESCROWED) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_NOT_REFUNDABLE);
+        }
+
+        // 5. Transaction 상태 변경 (PENDING_APPROVAL → CANCELLED_BY_BUYER)
+        transaction.cancelByBuyer();
+
+        // 6. Payment 상태 변경 (ESCROWED → REFUNDED)
+        payment.refundByBuyer();
+
+        // 7. SalePost 상태 변경 (RESERVED → AVAILABLE)
+        SalePost salePost = transaction.getSalePost();
+        salePost.updateStatus(SaleStatus.AVAILABLE);
+
+        // 8. 응답 반환
+        return TransactionCancelResponse.from(transaction);
     }
 }
