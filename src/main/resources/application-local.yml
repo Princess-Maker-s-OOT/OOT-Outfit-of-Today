@@ -5,14 +5,15 @@ spring:
     password: ${PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update                 # 로컬 개발 시 DDL 자동 업데이트 허용
+      ddl-auto: update                       # 로컬 개발 시 DDL 자동 업데이트 허용
+    defer-datasource-initialization: true    # TODO
 
   # Redis 연결 설정(로컬 개발용)
   data:
     redis:
       host: localhost                  # Docker Compose로 실행한 Redis 주소
       port: 6379                       # Redis 기본 포트
-      #      password: ${REDIS_PASSWORD}      # docker-compose.yml의 requirepass와 동일
+      password: ${REDIS_PASSWORD}      # docker-compose.yml의 requirepass와 동일
       timeout: 3000ms                  # 연결 타임아웃(3초)
       lettuce: # Lettuce 클라이언트 설정(기본 클라이언트)
         pool:

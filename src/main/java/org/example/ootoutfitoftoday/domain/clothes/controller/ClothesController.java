@@ -136,6 +136,7 @@ public class ClothesController {
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long clothesId
     ) {
+
         clothesCommandService.deleteClothes(authUser.getUserId(), clothesId);
 
         return Response.success(null, ClothesSuccessCode.CLOTHES_DELETE);

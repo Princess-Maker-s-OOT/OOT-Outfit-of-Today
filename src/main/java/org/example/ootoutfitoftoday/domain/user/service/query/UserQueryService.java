@@ -5,6 +5,8 @@ import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -38,4 +40,6 @@ public interface UserQueryService {
     int countUsersRegisteredSince(LocalDateTime start, LocalDateTime end);
 
     User findByIdAsNativeQuery(Long id);
+
+    Page<Long> findAllActiveUserIds(Pageable pageable);
 }

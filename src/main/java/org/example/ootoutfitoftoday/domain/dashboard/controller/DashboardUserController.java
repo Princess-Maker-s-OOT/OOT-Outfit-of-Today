@@ -59,5 +59,4 @@ public class DashboardUserController {
 
         return Response.success(dashboardUserQueryService.getUserWearStatistics(authUser.getUserId(), baseDate), DashboardSuccessCode.DASHBOARD_USER_STATISTICS_OK);
     }
-
 }

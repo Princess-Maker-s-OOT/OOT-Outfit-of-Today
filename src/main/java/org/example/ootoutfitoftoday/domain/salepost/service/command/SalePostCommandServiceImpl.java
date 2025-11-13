@@ -18,6 +18,7 @@ import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,8 +36,12 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
     private final SalePostRepository salePostRepository;
     private final EntityManager entityManager;
 
-    // 판매글 생성
+    /**
+     * 판매글 생성 (Write-Through 패턴)
+     * - DB에 저장 후 캐시 무효화 (리스트 캐시 전체 삭제)
+     */
     @Override
+    @CacheEvict(value = "salePostListCache", allEntries = true)
     public SalePostCreateResponse createSalePost(
             Long userId,
             SalePostCreateRequest request,
@@ -128,8 +133,12 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         return SalePostCreateResponse.from(savedSalePost);
     }
 
-    // 판매글 수정
+    /**
+     * 판매글 수정 (Write-Through 패턴)
+     * - DB 업데이트 후 캐시 무효화
+     */
     @Override
+    @CacheEvict(value = "salePostListCache", allEntries = true)
     public SalePostDetailResponse updateSalePost(
             Long salePostId,
             Long userId,
@@ -172,8 +181,12 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         return SalePostDetailResponse.from(updatedSalePost);
     }
 
-    // 판매글 삭제
+    /**
+     * 판매글 삭제
+     * - Soft Delete 후 캐시 무효화
+     */
     @Override
+    @CacheEvict(value = "salePostListCache", allEntries = true)
     public void deleteSalePost(Long salePostId, Long userId) {
 
         SalePost salePost = salePostRepository.findByIdAndIsDeletedFalse(salePostId)
@@ -193,8 +206,12 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         salePost.softDelete();
     }
 
-    // 판매글 상태 수정
+    /**
+     * 판매글 상태 수정
+     * - 상태 변경 후 캐시 무효화 (리스트 필터에 영향)
+     */
     @Override
+    @CacheEvict(value = "salePostListCache", allEntries = true)
     public SalePostDetailResponse updateSaleStatus(
             Long salePostId,
             Long userId,
