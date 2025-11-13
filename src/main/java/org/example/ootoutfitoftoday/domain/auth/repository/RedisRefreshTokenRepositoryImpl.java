@@ -1,6 +1,5 @@
 package org.example.ootoutfitoftoday.domain.auth.repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.DeviceInfoResponse;
@@ -37,7 +36,6 @@ public class RedisRefreshTokenRepositoryImpl implements RedisRefreshTokenReposit
     private static final String DEVICE_META_PREFIX = "device_meta:";            // Hash(메타데이터)
 
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
 
     /**
      * 리프레시 토큰 저장
