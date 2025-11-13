@@ -106,6 +106,10 @@ dependencies {
 
     // HTTP Client (토스페이먼츠 API 호출용)
     implementation 'org.apache.httpcomponents.client5:httpclient5'
+
+    // Spring Batch - 대용량 데이터 배치 처리
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    testImplementation 'org.springframework.batch:spring-batch-test'
 }
 
 // Spring Cloud AWS BOM (버전 통합 관리)
