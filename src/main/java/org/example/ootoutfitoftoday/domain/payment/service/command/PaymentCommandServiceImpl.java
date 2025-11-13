@@ -21,7 +21,6 @@ public class PaymentCommandServiceImpl implements PaymentCommandService {
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         payment.fail();
-        paymentRepository.flush();
     }
 
     @Override
