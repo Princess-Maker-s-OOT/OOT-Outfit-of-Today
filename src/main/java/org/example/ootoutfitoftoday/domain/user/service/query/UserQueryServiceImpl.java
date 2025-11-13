@@ -30,33 +30,46 @@ public class UserQueryServiceImpl implements UserQueryService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // 회원가입 시 중복 체크 쿼리 캐싱
+    // TTL 1분: 짧은 시간만 캐시하여 실시간성 보장
     @Override
+    @Cacheable(value = "userExistsCache", key = "'loginId:' + #loginId", unless = "#result == true")
     public boolean existsByLoginId(String loginId) {
 
         return userRepository.existsByLoginId(loginId);
     }
 
+    // 이메일 중복 체크 캐싱
+    // unless = "#result == true": 이미 존재하는 경우(true)는 캐시하지 않음
+    // 회원가입이 완료되면 새로운 이메일이므로 캐시 미스 발생 -> 의도된 동작
     @Override
+    @Cacheable(value = "userExistsCache", key = "'email:' + #email", unless = "#result == true")
     public boolean existsByEmail(String email) {
 
         return userRepository.existsByEmail(email);
     }
 
+    // 닉네임 중복 체크 캐싱
     @Override
+    @Cacheable(value = "userExistsCache", key = "'nickname:' + #nickname", unless = "#result == true")
     public boolean existsByNickname(String nickname) {
 
         return userRepository.existsByNickname(nickname);
     }
 
+    // 전화번호 중복 체크 캐싱
     @Override
+    @Cacheable(value = "userExistsCache", key = "'phoneNumber:' + #phoneNumber", unless = "#result == true")
     public boolean existsByPhoneNumber(String phoneNumber) {
 
         return userRepository.existsByPhoneNumber(phoneNumber);
     }
 
-    // 로그인 시 DB 조회 최소화
+    // 로그인 시 사용자 조회 캐싱 (기존 유지)
+    // 로그인은 빈번하게 발생하는 작업이므로 캐싱 효과 큼
+    // TTL 10분: 사용자 정보가 변경되더라도 최대 10분 내 반영
     @Override
-    @Cacheable(value = "userCache", key = "#loginId", unless = "#result == null")
+    @Cacheable(value = "userCache", key = "'loginId:' + #loginId", unless = "#result == null")
     public User findByLoginIdAndIsDeletedFalse(String loginId) {
 
         return userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(
@@ -64,7 +77,11 @@ public class UserQueryServiceImpl implements UserQueryService {
         );
     }
 
+    // ID로 사용자 조회 캐싱 추가
+    // JWT 검증 후 사용자 정보 조회 시 캐시 활용
+    // 토큰 갱신, API 호출 등에서 반복 조회되므로 성능 향상 효과 큼
     @Override
+    @Cacheable(value = "userCache", key = "'id:' + #id", unless = "#result == null")
     public User findByIdAndIsDeletedFalse(Long id) {
 
         return userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
@@ -72,7 +89,10 @@ public class UserQueryServiceImpl implements UserQueryService {
         );
     }
 
+    // 이메일로 사용자 조회 캐싱 추가
+    // OAuth2 로그인 시 이메일로 기존 계정 확인하는 작업 최적화
     @Override
+    @Cacheable(value = "userCache", key = "'email:' + #email", unless = "#result == null")
     public User findByEmailAndIsDeletedFalse(String email) {
 
         return userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(
@@ -80,6 +100,8 @@ public class UserQueryServiceImpl implements UserQueryService {
         );
     }
 
+    // 소셜 로그인 사용자 조회는 캐싱하지 않음
+    // 소셜 로그인은 상대적으로 빈도가 낮고, 실시간 정보가 중요
     @Override
     public Optional<User> findBySocialProviderAndSocialId(SocialProvider provider, String socialId) {
 
