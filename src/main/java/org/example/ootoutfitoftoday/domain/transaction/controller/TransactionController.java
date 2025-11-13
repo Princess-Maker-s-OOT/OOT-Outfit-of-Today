@@ -108,7 +108,7 @@ public class TransactionController {
             description = "판매자 수락 이전에 구매자가 거래를 취소합니다."
 //            responses = {}
     )
-    @PostMapping("/{transactionId}/cancel")
+    @PostMapping("/{transactionId}/cancel-buyer")
     public ResponseEntity<Response<TransactionCancelResponse>> cancelByBuyer(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long transactionId
