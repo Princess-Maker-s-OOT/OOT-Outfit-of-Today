@@ -3,6 +3,7 @@ package org.example.ootoutfitoftoday.domain.recommendation.batch.listener;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.recommendation.batch.dto.RecommendationBatchResult;
 import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.Chunk;
@@ -12,11 +13,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Step 실행 메트릭을 추적하는 리스너
- * Chunk 처리 결과를 집계하여 ExecutionContext에 저장
+ * <p>
+ * ItemWriteListener를 구현하여 Chunk 처리 결과를 자동으로 집계하고
+ * ExecutionContext에 저장합니다.
  */
 @Slf4j
 @Component
-public class RecommendationStepExecutionListener implements StepExecutionListener {
+public class RecommendationStepExecutionListener
+        implements StepExecutionListener, ItemWriteListener<RecommendationBatchResult> {
 
     private final AtomicInteger successUsers = new AtomicInteger(0);
     private final AtomicInteger failedUsers = new AtomicInteger(0);
@@ -24,7 +28,6 @@ public class RecommendationStepExecutionListener implements StepExecutionListene
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
-
         log.info("Starting step: {}", stepExecution.getStepName());
         successUsers.set(0);
         failedUsers.set(0);
@@ -44,12 +47,17 @@ public class RecommendationStepExecutionListener implements StepExecutionListene
         return stepExecution.getExitStatus();
     }
 
-    /**
-     * Chunk 처리 후 호출되어 메트릭을 업데이트
-     * Writer에서 호출됨
-     */
-    public void afterChunkWrite(Chunk<? extends RecommendationBatchResult> chunk) {
+    @Override
+    public void beforeWrite(Chunk<? extends RecommendationBatchResult> chunk) {
+        // Chunk 쓰기 전 처리 (필요시 구현)
+    }
 
+    /**
+     * Chunk 쓰기 완료 후 자동으로 호출되어 메트릭을 업데이트합니다.
+     * Spring Batch가 ItemWriter.write() 호출 후 자동으로 실행합니다.
+     */
+    @Override
+    public void afterWrite(Chunk<? extends RecommendationBatchResult> chunk) {
         chunk.getItems().forEach(result -> {
             if (result.success()) {
                 successUsers.incrementAndGet();
@@ -58,5 +66,20 @@ public class RecommendationStepExecutionListener implements StepExecutionListene
                 failedUsers.incrementAndGet();
             }
         });
+
+        log.debug("Chunk write completed - Current totals: Success={}, Failed={}, Recommendations={}",
+                successUsers.get(), failedUsers.get(), totalRecommendations.get());
+    }
+
+    @Override
+    public void onWriteError(Exception exception, Chunk<? extends RecommendationBatchResult> chunk) {
+        // Chunk 쓰기 실패 시 처리
+        log.error("Error writing chunk: {}", exception.getMessage(), exception);
+
+        // 실패한 청크의 모든 아이템을 실패로 카운트
+        int chunkSize = chunk.getItems().size();
+        failedUsers.addAndGet(chunkSize);
+
+        log.warn("Marked {} users as failed due to write error", chunkSize);
     }
 }
