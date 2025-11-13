@@ -13,6 +13,12 @@ public enum TransactionSuccessCode implements SuccessCode {
             "TRANSACTION_REQUESTED",
             HttpStatus.CREATED,
             "거래가 요청되었습니다."
+    ),
+
+    TRANSACTION_ACCEPTED(
+            "TRANSACTION_ACCEPTED",
+            HttpStatus.OK,
+            "거래가 수락되었습니다."
     );
 
     private final String code;

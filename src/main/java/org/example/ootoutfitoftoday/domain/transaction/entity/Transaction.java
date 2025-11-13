@@ -96,4 +96,16 @@ public class Transaction extends BaseEntity {
     public User getSeller() {
         return salePost.getSeller();
     }
+
+    public void failPayment() {
+        this.status = TransactionStatus.PAYMENT_FAILED;
+    }
+
+    public void expire() {
+        this.status = TransactionStatus.EXPIRED;
+    }
+
+    public void approve() {
+        this.status = TransactionStatus.APPROVED;
+    }
 }

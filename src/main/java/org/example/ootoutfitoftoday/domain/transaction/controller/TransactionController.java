@@ -10,6 +10,7 @@ import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.payment.exception.PaymentSuccessCode;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
+import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 import org.example.ootoutfitoftoday.domain.transaction.exception.TransactionSuccessCode;
 import org.example.ootoutfitoftoday.domain.transaction.service.command.TransactionCommandService;
@@ -61,7 +62,24 @@ public class TransactionController {
                 request
         );
 
-        return Response.success(response, PaymentSuccessCode.PAYMENT_APPROVED
+        return Response.success(response, PaymentSuccessCode.PAYMENT_APPROVED);
+    }
+
+    @Operation(
+            summary = "거래 수락",
+            description = "판매자가 거래를 수락합니다."
+//            responses = {}
+    )
+    @PostMapping("/{transactionId}/accept")
+    public ResponseEntity<Response<TransactionAcceptResponse>> acceptTransaction(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long transactionId
+    ) {
+        TransactionAcceptResponse response = transactionCommandService.acceptTransaction(
+                authUser.getUserId(),
+                transactionId
         );
+
+        return Response.success(response, TransactionSuccessCode.TRANSACTION_ACCEPTED);
     }
 }

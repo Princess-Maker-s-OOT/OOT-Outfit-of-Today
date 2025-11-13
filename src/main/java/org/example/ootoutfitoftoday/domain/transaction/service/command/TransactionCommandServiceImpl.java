@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.transaction.service.command;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.Toss.client.TossPaymentsClient;
 import org.example.ootoutfitoftoday.Toss.dto.TossConfirmResult;
 import org.example.ootoutfitoftoday.domain.chat.service.query.ChatQueryService;
@@ -11,12 +12,14 @@ import org.example.ootoutfitoftoday.domain.payment.enums.PaymentMethod;
 import org.example.ootoutfitoftoday.domain.payment.enums.PaymentStatus;
 import org.example.ootoutfitoftoday.domain.payment.exception.PaymentErrorCode;
 import org.example.ootoutfitoftoday.domain.payment.exception.PaymentException;
-import org.example.ootoutfitoftoday.domain.payment.repository.PaymentRepository;
+import org.example.ootoutfitoftoday.domain.payment.service.command.PaymentCommandService;
+import org.example.ootoutfitoftoday.domain.payment.service.query.PaymentQueryService;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
+import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 import org.example.ootoutfitoftoday.domain.transaction.entity.Transaction;
 import org.example.ootoutfitoftoday.domain.transaction.enums.TransactionStatus;
@@ -33,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -40,11 +44,12 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
 
     private final SalePostRepository salePostRepository;
     private final TransactionRepository transactionRepository;
-    private final PaymentRepository paymentRepository;
     private final UserQueryService userQueryService;
     private final ChatroomQueryService chatroomQueryService;
     private final ChatQueryService chatQueryService;
     private final TossPaymentsClient tossPaymentsClient;
+    private final PaymentCommandService paymentCommandService;
+    private final PaymentQueryService paymentQueryService;
 
     @Override
     public TransactionResponse requestTransaction(
@@ -86,7 +91,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
         }
 
         // 7. 중복 주문 ID 확인
-        if (paymentRepository.findByTossOrderId(request.getTossOrderId()).isPresent()) {
+        if (paymentQueryService.existsByTossOrderId(request.getTossOrderId())) {
             throw new PaymentException(PaymentErrorCode.DUPLICATE_ORDER_ID);
         }
 
@@ -113,6 +118,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
 
         // 11. Payment 생성
         Payment payment;
+
         if (request.getMethod() == PaymentMethod.EASY_PAY) {
 
             if (request.getEasyPayProvider() == null) {
@@ -133,7 +139,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
             );
         }
 
-        paymentRepository.save(payment);
+        paymentCommandService.savePayment(payment);
 
         // 12. 응답 반환
         return TransactionResponse.from(transaction);
@@ -141,6 +147,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
 
 
     @Override
+    @Transactional(noRollbackFor = PaymentException.class)
     public TransactionResponse confirmTransaction(
             Long userId,
             Long transactionId,
@@ -182,28 +189,85 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
         LocalDateTime now = LocalDateTime.now();
 
         if (Duration.between(createdAt, now).toMinutes() > 10) {
+            String reason = String.format("결제 승인 타임아웃 - 생성시간: %s, 현재시간: %s", createdAt, now);
+            log.warn("Transaction expired - transactionId: {}, reason: {}", transactionId, reason);
+
+            transaction.expire();
+            paymentCommandService.failPayment(payment.getId(), reason);
+
             throw new PaymentException(PaymentErrorCode.PAYMENT_CONFIRMATION_TIMEOUT);
         }
 
-        // 7. 토스 confirm API 호출 + 응답 받아오기
-        TossConfirmResult result = tossPaymentsClient.confirmPayment(
-                request.getPaymentKey(),
-                payment.getTossOrderId(),
-                payment.getAmount()
-        );
+        try {
+            // 7. 토스 confirm API 호출 + 응답 받아오기
+            TossConfirmResult result = tossPaymentsClient.confirmPayment(
+                    request.getPaymentKey(),
+                    payment.getTossOrderId(),
+                    payment.getAmount()
+            );
 
-        // 8. Payment 승인
-        payment.approve(
-                request.getPaymentKey(),
-                result.receiptUrl(),
-                result.approvedAt()
-        );
+            // 8. Payment 승인
+            payment.approve(
+                    request.getPaymentKey(),
+                    result.receiptUrl(),
+                    result.approvedAt()
+            );
 
-        // 9. 판매글 상태 변경
-        SalePost salePost = transaction.getSalePost();
-        salePost.updateStatus(SaleStatus.RESERVED);
+            // 9. 판매글 상태 변경
+            SalePost salePost = transaction.getSalePost();
+            salePost.updateStatus(SaleStatus.RESERVED);
+
+        } catch (PaymentException e) {
+            String reason = String.format("토스 결제 승인 실패 - %s", e.getMessage());
+            log.error("Payment confirmation failed - transactionId: {}, reason: {}", transactionId, reason, e);
+
+            transaction.failPayment();
+            paymentCommandService.failPayment(payment.getId(), reason);
+
+            throw e;
+        }
 
         // 10. 응답
         return TransactionResponse.from(transaction);
+    }
+
+    @Override
+    public TransactionAcceptResponse acceptTransaction(Long sellerId, Long transactionId) {
+
+        // 1. Transaction 조회
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new TransactionException(TransactionErrorCode.TRANSACTION_NOT_FOUND));
+
+        // 2. 판매자 계정 확인 + 권한 확인
+        User seller = userQueryService.findByIdAndIsDeletedFalse(sellerId);
+
+        if (!transaction.getSeller().getId().equals(seller.getId())) {
+            throw new TransactionException(TransactionErrorCode.UNAUTHORIZED_TRANSACTION_ACCESS);
+        }
+
+        // 3. Transaction 상태 검증
+        if (transaction.getStatus() != TransactionStatus.PENDING_APPROVAL) {
+            throw new TransactionException(TransactionErrorCode.INVALID_TRANSACTION_STATUS);
+        }
+
+        // 4. Payment 조회 및 상태 검증
+        Payment payment = transaction.getPayment();
+        if (payment == null) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+        }
+
+        if (payment.getStatus() != PaymentStatus.ESCROWED) {
+            throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
+
+        // 5. Transaction 상태 변경 (PENDING_APPROVAL → APPROVED)
+        transaction.approve();
+
+        // 6. SalePost 상태 변경 (RESERVED → TRADING)
+        SalePost salePost = transaction.getSalePost();
+        salePost.updateStatus(SaleStatus.TRADING);
+
+        // 7. 응답 반환
+        return TransactionAcceptResponse.from(transaction);
     }
 }
