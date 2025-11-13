@@ -84,22 +84,15 @@ public class RecommendationJobExecutionListener implements JobExecutionListener 
     }
 
     /**
-     * Step 실행 결과로부터 메트릭을 수집합니다.
+     * Step 실행 결과로부터 메트릭을 수집
+     * RecommendationStepExecutionListener가 ExecutionContext에 저장한 메트릭을 읽어옴
      */
     private BatchMetrics collectMetrics(JobExecution jobExecution) {
+
         BatchMetrics metrics = new BatchMetrics();
 
         for (StepExecution stepExecution : jobExecution.getStepExecutions()) {
-            // Read Count = 총 처리된 사용자 수
-            metrics.totalUsers += (int) stepExecution.getReadCount();
-
-            /**
-             * Write Count = 성공한 사용자 수 (실패한 경우 write되지 않음)
-             * 실제로는 Processor에서 RecommendationBatchResult로 성공/실패를 구분하므로
-             *  ExecutionContext에서 커스텀 메트릭을 읽어야 함
-             */
-
-            // ExecutionContext에서 커스텀 메트릭 읽기
+            // ExecutionContext에서 RecommendationStepExecutionListener가 수집한 메트릭 읽기
             if (stepExecution.getExecutionContext().containsKey("successUsers")) {
                 metrics.successUsers += stepExecution.getExecutionContext().getInt("successUsers");
             }
@@ -112,11 +105,8 @@ public class RecommendationJobExecutionListener implements JobExecutionListener 
                 metrics.totalRecommendations += stepExecution.getExecutionContext().getInt("totalRecommendations");
             }
 
-            // ExecutionContext에 메트릭이 없는 경우 기본값 사용
-            if (metrics.successUsers == 0 && metrics.failedUsers == 0) {
-                metrics.successUsers = (int) stepExecution.getWriteCount();
-                metrics.totalUsers = (int) stepExecution.getReadCount();
-            }
+            // totalUsers = 총 읽은 사용자 수
+            metrics.totalUsers += (int) stepExecution.getReadCount();
         }
 
         return metrics;
