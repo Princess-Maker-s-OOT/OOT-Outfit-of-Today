@@ -2,27 +2,29 @@ package org.example.ootoutfitoftoday.domain.recommendation.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.ootoutfitoftoday.domain.recommendation.entity.RecommendationBatchHistory;
 import org.example.ootoutfitoftoday.domain.recommendation.service.batch.command.RecommendationBatchHistoryCommandService;
-import org.example.ootoutfitoftoday.domain.recommendation.service.command.RecommendationCommandService;
-import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.time.LocalDateTime;
 
+/**
+ * 추천 생성 배치 스케줄러
+ * Spring Batch Job을 스케줄링하여 실행
+ * 매일 새벽 2시에 자동 실행
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class RecommendationScheduler {
 
-    private static final int PAGE_SIZE = 100; // 100명씩 페이징 처리
-
-    private final RecommendationCommandService recommendationCommandService;
+    private final JobLauncher jobLauncher;
+    private final Job recommendationJob;
     private final RecommendationBatchHistoryCommandService batchHistoryCommandService;
-    private final UserQueryService userQueryService;
 
     /**
      * 매일 새벽 2시에 추천 배치 실행
@@ -32,77 +34,25 @@ public class RecommendationScheduler {
     @Scheduled(cron = "0 0 2 * * *", zone = "Asia/Seoul")
     public void generateDailyRecommendations() {
 
-        log.info("=== 추천 배치 시작 ===");
+        log.info("=== Starting scheduled recommendation batch job ===");
 
         // Stale 상태 배치 처리 (1시간 이상 RUNNING 상태인 경우 FAILED로 처리)
         batchHistoryCommandService.handleStaleBatches();
 
-        // 배치 이력 시작 기록
-        RecommendationBatchHistory batchHistory = batchHistoryCommandService.startBatch();
-
-        AtomicInteger totalUsers = new AtomicInteger(0);
-        AtomicInteger successUsers = new AtomicInteger(0);
-        AtomicInteger failedUsers = new AtomicInteger(0);
-        AtomicInteger totalRecommendations = new AtomicInteger(0);
-
         try {
-            int pageNumber = 0;
-            Page<Long> userIdsPage;
+            // Job 파라미터 생성 (매 실행마다 고유한 파라미터 필요)
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLocalDateTime("executionTime", LocalDateTime.now())
+                    .toJobParameters();
 
-            // 사용자를 100명씩 페이징하여 순차 처리
-            do {
-                userIdsPage = userQueryService.findAllActiveUserIds(PageRequest.of(pageNumber, PAGE_SIZE));
+            // Spring Batch Job 실행
+            jobLauncher.run(recommendationJob, jobParameters);
 
-                log.info("Processing page {}: {} users", pageNumber, userIdsPage.getNumberOfElements());
-
-                // 각 사용자에 대해 추천 생성
-                for (Long userId : userIdsPage.getContent()) {
-                    totalUsers.incrementAndGet();
-
-                    try {
-                        int recommendationCount = recommendationCommandService
-                                .generateRecommendations(userId)
-                                .size();
-
-                        totalRecommendations.addAndGet(recommendationCount);
-                        successUsers.incrementAndGet();
-
-                        if (recommendationCount > 0) {
-                            log.debug("Generated {} recommendations for user {}", recommendationCount, userId);
-                        }
-
-                    } catch (Exception e) {
-                        failedUsers.incrementAndGet();
-                        log.error("Failed to generate recommendations for user {}: {}", userId, e.getMessage(), e);
-                    }
-                }
-
-                pageNumber++;
-
-            } while (userIdsPage.hasNext());
-
-            // 배치 성공 기록
-            batchHistoryCommandService.completeBatchSuccess(
-                    batchHistory.getId(),
-                    totalUsers.get(),
-                    successUsers.get(),
-                    failedUsers.get(),
-                    totalRecommendations.get()
-            );
-
-            log.info("=== 추천 배치 완료 === Total: {}, Success: {}, Failed: {}, Recommendations: {}",
-                    totalUsers.get(), successUsers.get(), failedUsers.get(), totalRecommendations.get());
+            log.info("=== Recommendation batch job completed successfully ===");
 
         } catch (Exception e) {
-            log.error("Batch execution failed critically", e);
-
-            // 배치 실패 기록
-            batchHistoryCommandService.completeBatchFailure(
-                    batchHistory.getId(),
-                    e.getMessage()
-            );
-
-            throw new RuntimeException("Recommendation batch failed", e);
+            log.error("Failed to execute recommendation batch job", e);
+            throw new RuntimeException("Recommendation batch job failed", e);
         }
     }
 }
