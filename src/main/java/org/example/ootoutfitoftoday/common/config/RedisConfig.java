@@ -165,9 +165,18 @@ public class RedisConfig {
                 .withCacheConfiguration("clothesCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(30))
                 )
-                // 사용자 정보는 10분 캐싱
+                // 사용자 정보 캐시: 10분
+                // 로그인, 토큰 갱신 등에서 사용자 조회 빈도가 높음
+                // 정보 변경 시 @CacheEvict로 즉시 무효화
                 .withCacheConfiguration("userCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(10))
+                )
+                // 중복 체크 캐시: 1분(짧은 TTL)
+                // 회원가입 또는 정보수정 시 임시로 사용
+                // 실시간성이 중요하므로 짧은 TTL 설정
+                // 회원가입 완료 시 자동으로 무효화됨
+                .withCacheConfiguration("userExistsCache",
+                        defaultConfig.entryTtl(Duration.ofMinutes(1))
                 )
                 // 판매글 리스트는 10분 캐싱
                 .withCacheConfiguration("salePostListCache",
