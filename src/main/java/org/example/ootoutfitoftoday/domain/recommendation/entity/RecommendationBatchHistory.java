@@ -110,7 +110,6 @@ public class RecommendationBatchHistory extends BaseEntity {
 
     // 배치 성공 처리 (Spring Batch용 - 실행 시간 직접 지정)
     public void markAsSuccess(
-
             LocalDateTime endTime,
             Integer totalUsers,
             Integer successUsers,
@@ -129,7 +128,6 @@ public class RecommendationBatchHistory extends BaseEntity {
 
     // 배치 실패 처리
     public void markAsFailed(LocalDateTime endTime, String errorMessage) {
-
         this.endTime = endTime;
         this.status = BatchStatus.FAILED;
         updateExecutionTime(endTime);
@@ -138,7 +136,6 @@ public class RecommendationBatchHistory extends BaseEntity {
 
     // 배치 실패 처리 (Spring Batch용 - 실행 시간 직접 지정)
     public void markAsFailed(
-            
             LocalDateTime endTime,
             Long executionTimeMs,
             String errorMessage
