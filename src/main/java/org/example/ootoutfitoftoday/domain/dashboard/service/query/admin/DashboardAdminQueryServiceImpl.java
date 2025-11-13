@@ -1,7 +1,6 @@
 package org.example.ootoutfitoftoday.domain.dashboard.service.query.admin;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
@@ -29,7 +28,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Transactional(readOnly = true)
 public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryService {
 
