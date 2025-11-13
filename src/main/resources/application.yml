@@ -37,6 +37,13 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  # Spring Batch 설정
+  batch:
+    job:
+      enabled: false  # 애플리케이션 시작 시 자동 Job 실행 방지 (스케줄러로 수동 실행)
+    jdbc:
+      initialize-schema: always  # 배치 메타데이터 테이블 자동 생성
+
   jackson:
     default-property-inclusion: non_null
   config:

@@ -47,12 +47,56 @@ public class RecommendationBatchHistoryCommandServiceImpl implements Recommendat
                 .orElseThrow(() -> new RecommendationException(RecommendationErrorCode.BATCH_HISTORY_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now(clock);
-        batchHistory.markAsSuccess(now, totalUsers, successUsers, failedUsers, totalRecommendations);
+        batchHistory.markAsSuccess(
+                now,
+                totalUsers,
+                successUsers,
+                failedUsers,
+                totalRecommendations
+        );
 
         log.info("Batch completed successfully - batchHistoryId: {}, totalUsers: {}, successUsers: {}, " +
                         "failedUsers: {}, totalRecommendations: {}, executionTime: {}ms",
-                batchHistoryId, totalUsers, successUsers, failedUsers, totalRecommendations,
+                batchHistoryId,
+                totalUsers,
+                successUsers,
+                failedUsers,
+                totalRecommendations,
                 batchHistory.getExecutionTimeMs());
+    }
+
+    @Override
+    public void completeBatchSuccess(
+
+            Long batchHistoryId,
+            LocalDateTime endTime,
+            Integer totalUsers,
+            Integer successUsers,
+            Integer failedUsers,
+            Integer totalRecommendations,
+            Long executionTimeMs
+    ) {
+        RecommendationBatchHistory batchHistory = batchHistoryRepository.findById(batchHistoryId)
+                .orElseThrow(() -> new RecommendationException(RecommendationErrorCode.BATCH_HISTORY_NOT_FOUND));
+
+        batchHistory.markAsSuccess(
+                endTime,
+                totalUsers,
+                successUsers,
+                failedUsers,
+                totalRecommendations,
+                executionTimeMs
+        );
+
+        log.info("Batch completed successfully - batchHistoryId: {}, totalUsers: {}, successUsers: {}, " +
+                        "failedUsers: {}, totalRecommendations: {}, executionTime: {}ms",
+                batchHistoryId,
+                totalUsers,
+                successUsers,
+                failedUsers,
+                totalRecommendations,
+                executionTimeMs
+        );
     }
 
     @Override
@@ -65,6 +109,30 @@ public class RecommendationBatchHistoryCommandServiceImpl implements Recommendat
         batchHistory.markAsFailed(now, errorMessage);
 
         log.error("Batch failed - batchHistoryId: {}, error: {}", batchHistoryId, errorMessage);
+    }
+
+    @Override
+    public void completeBatchFailure(
+
+            Long batchHistoryId,
+            LocalDateTime endTime,
+            Long executionTimeMs,
+            String errorMessage
+    ) {
+        RecommendationBatchHistory batchHistory = batchHistoryRepository.findById(batchHistoryId)
+                .orElseThrow(() -> new RecommendationException(RecommendationErrorCode.BATCH_HISTORY_NOT_FOUND));
+
+        batchHistory.markAsFailed(
+                endTime,
+                executionTimeMs,
+                errorMessage
+        );
+
+        log.error("Batch failed - batchHistoryId: {}, executionTime: {}ms, error: {}",
+                batchHistoryId,
+                executionTimeMs,
+                errorMessage
+        );
     }
 
     @Override
