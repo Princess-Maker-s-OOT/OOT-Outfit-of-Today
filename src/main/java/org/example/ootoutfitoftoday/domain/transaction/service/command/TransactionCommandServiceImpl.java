@@ -192,7 +192,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
             String reason = String.format("결제 승인 타임아웃 - 생성시간: %s, 현재시간: %s", createdAt, now);
             log.warn("Transaction expired - transactionId: {}, reason: {}", transactionId, reason);
 
-            transaction.expire(reason);
+            transaction.expire();
             paymentCommandService.failPayment(payment.getId(), reason);
 
             throw new PaymentException(PaymentErrorCode.PAYMENT_CONFIRMATION_TIMEOUT);
@@ -221,7 +221,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
             String reason = String.format("토스 결제 승인 실패 - %s", e.getMessage());
             log.error("Payment confirmation failed - transactionId: {}, reason: {}", transactionId, reason, e);
 
-            transaction.failPayment(reason);
+            transaction.failPayment();
             paymentCommandService.failPayment(payment.getId(), reason);
 
             throw e;

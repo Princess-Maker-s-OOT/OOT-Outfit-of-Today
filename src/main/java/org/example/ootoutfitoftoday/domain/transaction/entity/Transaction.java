@@ -97,11 +97,11 @@ public class Transaction extends BaseEntity {
         return salePost.getSeller();
     }
 
-    public void failPayment(String reason) {
+    public void failPayment() {
         this.status = TransactionStatus.PAYMENT_FAILED;
     }
 
-    public void expire(String reason) {
+    public void expire() {
         this.status = TransactionStatus.EXPIRED;
     }
 
