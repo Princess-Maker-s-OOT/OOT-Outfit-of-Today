@@ -17,6 +17,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -67,6 +68,7 @@ public class RedisConfig {
     @Bean
     @Primary
     public ObjectMapper globalObjectMapper() {
+
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -119,6 +121,20 @@ public class RedisConfig {
         template.setHashValueSerializer(jsonSerializer);
 
         template.afterPropertiesSet();
+
+        return template;
+    }
+
+    /**
+     * StringRedisTemplate 설정 추가
+     * - String 전용 RedisTemplate
+     * - OAuth2 임시 코드 저장 및 리프레시 토큰 저장에 사용
+     */
+    @Bean
+    public StringRedisTemplate stringRedisTemplate() {
+
+        StringRedisTemplate template = new StringRedisTemplate();
+        template.setConnectionFactory(redisConnectionFactory());
 
         return template;
     }
