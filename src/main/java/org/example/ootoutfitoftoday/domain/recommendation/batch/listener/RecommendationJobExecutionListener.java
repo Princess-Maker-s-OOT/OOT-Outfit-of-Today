@@ -7,6 +7,7 @@ import org.example.ootoutfitoftoday.domain.recommendation.service.batch.command.
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -16,8 +17,13 @@ import java.time.LocalDateTime;
  * 추천 배치 Job의 실행 전후 처리를 담당하는 리스너
  * - Job 시작 시: RecommendationBatchHistory 생성 (RUNNING 상태)
  * - Job 종료 시: RecommendationBatchHistory 업데이트 (성공/실패 여부, 메트릭)
+ * {@code @JobScope}를 사용하여 각 Job 실행마다 새로운 인스턴스를 생성하고,
+ * 인스턴스 변수(batchHistoryId, startTime)가 Job 간에 격리되도록 보장
+ * 이를 통해 동시 실행되는 Job들 간의 상태 오염과 race condition을 방지
  */
+
 @Slf4j
+@JobScope
 @Component
 @RequiredArgsConstructor
 public class RecommendationJobExecutionListener implements JobExecutionListener {
