@@ -61,6 +61,12 @@ public enum TransactionErrorCode implements ErrorCode {
             "승인 가능한 거래 상태가 아닙니다."
     ),
 
+    TRANSACTION_NOT_CANCELLABLE(
+            "TRANSACTION_NOT_CANCELLABLE",
+            HttpStatus.BAD_REQUEST,
+            "판매자 수락 전의 거래만 취소할 수 있습니다."
+    ),
+
     // 금액 검증
 
     INVALID_PAYMENT_AMOUNT(

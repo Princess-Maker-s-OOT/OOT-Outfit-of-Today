@@ -320,14 +320,14 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
 
         // 3. Transaction 상태 검증
         if (transaction.getStatus() != TransactionStatus.PENDING_APPROVAL) {
-            throw new TransactionException(TransactionErrorCode.INVALID_TRANSACTION_STATUS);
+            throw new TransactionException(TransactionErrorCode.TRANSACTION_NOT_CANCELLABLE);
         }
 
         // 4. Payment 조회 및 상태 검증
         Payment payment = transaction.getPayment();
 
         if (payment.getStatus() != PaymentStatus.ESCROWED) {
-            throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+            throw new PaymentException(PaymentErrorCode.PAYMENT_NOT_REFUNDABLE);
         }
 
         // 5. Transaction 상태 변경 (PENDING_APPROVAL → CANCELLED_BY_BUYER)
