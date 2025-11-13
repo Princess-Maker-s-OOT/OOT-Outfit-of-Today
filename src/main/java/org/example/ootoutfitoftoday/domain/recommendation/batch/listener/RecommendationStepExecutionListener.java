@@ -6,6 +6,7 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.stereotype.Component;
 
@@ -15,9 +16,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Step 실행 메트릭을 추적하는 리스너
  * <p>
  * ItemWriteListener를 구현하여 Chunk 처리 결과를 자동으로 집계하고
- * ExecutionContext에 저장합니다.
+ * ExecutionContext에 저장
+ * {@code @StepScope}를 사용하여 각 Step 실행마다 새로운 인스턴스를 생성하고,
+ * 인스턴스 변수(메트릭 카운터)가 Step 간에 격리되도록 보장
+ * 이를 통해 동시 실행되는 Job들 간의 상태 오염을 방지
  */
 @Slf4j
+@StepScope
 @Component
 public class RecommendationStepExecutionListener
         implements StepExecutionListener, ItemWriteListener<RecommendationBatchResult> {
