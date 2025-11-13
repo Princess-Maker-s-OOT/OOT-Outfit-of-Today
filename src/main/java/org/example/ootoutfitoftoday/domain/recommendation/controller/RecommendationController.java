@@ -6,9 +6,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.response.PageResponse;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
+import org.example.ootoutfitoftoday.domain.donation.dto.response.DonationCenterSearchResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.request.RecommendationSalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationBatchHistoryListResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationBatchHistoryResponse;
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @Tag(name = "추천 기록 관리", description = "기부/판매 추천 기록 생성 및 관리 API")
 @RestController
 @RequiredArgsConstructor
@@ -238,5 +241,50 @@ public class RecommendationController {
         RecommendationBatchHistoryResponse response = RecommendationBatchHistoryResponse.from(batchHistory);
 
         return Response.success(response, RecommendationSuccessCode.BATCH_HISTORY_GET_OK);
+    }
+
+    /**
+     * 기부 추천 수락 후 주변 기부처 검색
+     * ACCEPTED 상태의 기부 추천(DONATION)에서 사용자 위치 기반으로 주변 기부처를 검색합니다.
+     * 사용자의 거래 위치(tradeLocation)를 기준으로 검색합니다.
+     *
+     * @param recommendationId 추천 ID
+     * @param authUser         인증된 사용자 정보
+     * @param radius           검색 반경 (미터, 기본값: 5000m = 5km)
+     * @param keyword          검색 키워드 (선택사항)
+     * @return 거리순으로 정렬된 기부처 목록
+     */
+    @Operation(
+            summary = "기부 추천에서 주변 기부처 검색",
+            description = """
+                    ACCEPTED 상태의 기부 추천에서 사용자 위치 기반으로 주변 기부처를 검색합니다.
+                    
+                    사용자의 거래 위치를 기준으로 주변 기부처를 찾습니다.
+                    검색 결과는 거리순으로 정렬됩니다.
+                    """,
+            security = {@SecurityRequirement(name = "bearerAuth")},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "기부처 검색 성공"),
+                    @ApiResponse(responseCode = "400", description = "추천이 ACCEPTED 상태가 아니거나 기부 타입이 아님"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "추천을 찾을 수 없음"),
+                    @ApiResponse(responseCode = "500", description = "서버 로직 오류")
+            }
+    )
+    @GetMapping("/{recommendationId}/donation-centers")
+    public ResponseEntity<Response<List<DonationCenterSearchResponse>>> searchDonationCentersFromRecommendation(
+            @PathVariable Long recommendationId,
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(required = false) Integer radius,
+            @RequestParam(required = false) String keyword
+    ) {
+        List<DonationCenterSearchResponse> donationCenters = recommendationQueryService.searchDonationCentersFromRecommendation(
+                recommendationId,
+                authUser.getUserId(),
+                radius,
+                keyword
+        );
+
+        return Response.success(donationCenters, RecommendationSuccessCode.DONATION_CENTER_SEARCH_FROM_RECOMMENDATION_OK);
     }
 }
