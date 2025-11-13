@@ -20,6 +20,7 @@ import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepositor
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
+import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCompleteResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 import org.example.ootoutfitoftoday.domain.transaction.entity.Transaction;
 import org.example.ootoutfitoftoday.domain.transaction.enums.TransactionStatus;
@@ -162,7 +163,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
             throw new TransactionException(TransactionErrorCode.UNAUTHORIZED_TRANSACTION_ACCESS);
         }
 
-        // 3. 상태 검증 (오승인 방지)
+        // 3. Transaction 상태 검증
         if (transaction.getStatus() != TransactionStatus.PENDING_APPROVAL) {
             throw new TransactionException(TransactionErrorCode.INVALID_TRANSACTION_STATUS);
         }
@@ -173,7 +174,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
             throw new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND);
         }
 
-        // 5. 결제 상태 검증
+        // 5. Payment 상태 검증
         if (payment.getStatus() != PaymentStatus.PENDING) {
             throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
         }
@@ -227,7 +228,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
             throw e;
         }
 
-        // 10. 응답
+        // 10. 응답 반환
         return TransactionResponse.from(transaction);
     }
 
@@ -239,9 +240,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
                 .orElseThrow(() -> new TransactionException(TransactionErrorCode.TRANSACTION_NOT_FOUND));
 
         // 2. 판매자 계정 확인 + 권한 확인
-        User seller = userQueryService.findByIdAndIsDeletedFalse(sellerId);
-
-        if (!transaction.getSeller().getId().equals(seller.getId())) {
+        if (!transaction.getSeller().getId().equals(sellerId)) {
             throw new TransactionException(TransactionErrorCode.UNAUTHORIZED_TRANSACTION_ACCESS);
         }
 
@@ -250,11 +249,8 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
             throw new TransactionException(TransactionErrorCode.INVALID_TRANSACTION_STATUS);
         }
 
-        // 4. Payment 조회 및 상태 검증
+        // 4. Payment 상태 검증
         Payment payment = transaction.getPayment();
-        if (payment == null) {
-            throw new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND);
-        }
 
         if (payment.getStatus() != PaymentStatus.ESCROWED) {
             throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
@@ -269,5 +265,43 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
 
         // 7. 응답 반환
         return TransactionAcceptResponse.from(transaction);
+    }
+
+    @Override
+    public TransactionCompleteResponse completeTransaction(Long buyerId, Long transactionId) {
+
+        // 1. Transaction 조회
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new TransactionException(TransactionErrorCode.TRANSACTION_NOT_FOUND));
+
+        // 2. 구매자 계정 확인 + 권한 확인
+        if (!transaction.getBuyer().getId().equals(buyerId)) {
+            throw new TransactionException(TransactionErrorCode.UNAUTHORIZED_TRANSACTION_ACCESS);
+        }
+
+        // 3. Transaction 상태 검증
+        if (transaction.getStatus() != TransactionStatus.APPROVED) {
+            throw new TransactionException(TransactionErrorCode.INVALID_TRANSACTION_STATUS);
+        }
+
+        // 4. Payment 조회 및 상태 검증
+        Payment payment = transaction.getPayment();
+
+        if (payment.getStatus() != PaymentStatus.ESCROWED) {
+            throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_STATUS);
+        }
+
+        // 5. Transaction 상태 변경 (APPROVED → CONFIRMED)
+        transaction.confirm();
+
+        // 6. Payment 상태 변경 (ESCROWED → SETTLED)
+        payment.settle();
+
+        // 7. SalePost 상태 변경 (TRADING → COMPLETED)
+        SalePost salePost = transaction.getSalePost();
+        salePost.updateStatus(SaleStatus.COMPLETED);
+
+        // 8. 응답 반환
+        return TransactionCompleteResponse.from(transaction);
     }
 }

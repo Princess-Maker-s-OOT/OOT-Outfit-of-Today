@@ -158,4 +158,9 @@ public class Payment extends BaseEntity {
     public void fail() {
         this.status = PaymentStatus.FAILED;
     }
+
+    public void settle() {
+        this.status = PaymentStatus.SETTLED;
+        this.settledAt = LocalDateTime.now();
+    }
 }

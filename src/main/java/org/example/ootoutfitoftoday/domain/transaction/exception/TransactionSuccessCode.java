@@ -19,6 +19,12 @@ public enum TransactionSuccessCode implements SuccessCode {
             "TRANSACTION_ACCEPTED",
             HttpStatus.OK,
             "거래가 수락되었습니다."
+    ),
+
+    TRANSACTION_COMPLETED(
+            "TRANSACTION_COMPLETED",
+            HttpStatus.OK,
+            "거래가 확정되었습니다."
     );
 
     private final String code;

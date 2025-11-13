@@ -11,6 +11,7 @@ import org.example.ootoutfitoftoday.domain.payment.exception.PaymentSuccessCode;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
+import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCompleteResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 import org.example.ootoutfitoftoday.domain.transaction.exception.TransactionSuccessCode;
 import org.example.ootoutfitoftoday.domain.transaction.service.command.TransactionCommandService;
@@ -81,5 +82,23 @@ public class TransactionController {
         );
 
         return Response.success(response, TransactionSuccessCode.TRANSACTION_ACCEPTED);
+    }
+
+    @Operation(
+            summary = "거래 확정",
+            description = "구매자가 물건을 받은 후 거래를 확정합니다."
+//            responses = {}
+    )
+    @PostMapping("/{transactionId}/complete")
+    public ResponseEntity<Response<TransactionCompleteResponse>> completeTransaction(
+            @PathVariable Long transactionId,
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+        TransactionCompleteResponse response = transactionCommandService.completeTransaction(
+                authUser.getUserId(),
+                transactionId
+        );
+
+        return Response.success(response, TransactionSuccessCode.TRANSACTION_COMPLETED);
     }
 }

@@ -107,5 +107,11 @@ public class Transaction extends BaseEntity {
 
     public void approve() {
         this.status = TransactionStatus.APPROVED;
+        this.approvedAt = LocalDateTime.now();
+    }
+
+    public void confirm() {
+        this.status = TransactionStatus.CONFIRMED;
+        this.confirmedAt = LocalDateTime.now();
     }
 }
