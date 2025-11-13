@@ -104,4 +104,8 @@ public class Transaction extends BaseEntity {
     public void expire(String reason) {
         this.status = TransactionStatus.EXPIRED;
     }
+
+    public void approve() {
+        this.status = TransactionStatus.APPROVED;
+    }
 }

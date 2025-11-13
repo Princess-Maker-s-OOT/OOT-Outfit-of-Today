@@ -2,6 +2,7 @@ package org.example.ootoutfitoftoday.domain.transaction.service.command;
 
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
+import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 
 
@@ -20,4 +21,9 @@ public interface TransactionCommandService {
             Long transactionId,
             TransactionConfirmRequest request
     );
+
+    /**
+     * 판매자 거래 수락
+     */
+    TransactionAcceptResponse acceptTransaction(Long sellerId, Long transactionId);
 }
