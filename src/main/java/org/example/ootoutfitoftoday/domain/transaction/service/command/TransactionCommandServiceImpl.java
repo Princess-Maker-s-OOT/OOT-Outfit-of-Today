@@ -69,11 +69,11 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
         Chatroom chatroom = chatroomOpt.get();
 
         // 2. 채팅 내역 확인
-//        boolean hasChatHistory = chatQueryService.existsByChatroom(chatroom.getId());
-//
-//        if (!hasChatHistory) {
-//            throw new TransactionException(TransactionErrorCode.CHAT_REQUIRED_BEFORE_TRANSACTION);
-//        }
+        boolean hasChatHistory = chatQueryService.existsByChatroom(chatroom.getId());
+
+        if (!hasChatHistory) {
+            throw new TransactionException(TransactionErrorCode.CHAT_REQUIRED_BEFORE_TRANSACTION);
+        }
 
         // 3. 판매글 조회
         SalePost salePost = chatroom.getSalePost();
