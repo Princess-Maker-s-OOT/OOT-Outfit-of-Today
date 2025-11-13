@@ -32,150 +32,398 @@ WHERE NOT EXISTS (SELECT 1
                   FROM users
                   WHERE login_id = 'admin');
 
--- 카테고리 초기 데이터 주입
-SET FOREIGN_KEY_CHECKS = 0;
-DELETE FROM categories;
-SET FOREIGN_KEY_CHECKS = 1;
+-- [2] 최상위 카테고리 (남성/여성/아동)
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT '남성', NULL, NOW(), NOW(), FALSE
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '남성' AND parent_id IS NULL);
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT '여성', NULL, NOW(), NOW(), FALSE
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '여성' AND parent_id IS NULL);
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT '아동', NULL, NOW(), NOW(), FALSE
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '아동' AND parent_id IS NULL);
 
-INSERT INTO categories (id, name, parent_id, created_at, updated_at, is_deleted) VALUES
--- 최상위 카테고리
-(1, '남성', NULL, NOW(), NOW(), false),
-(2, '여성', NULL, NOW(), NOW(), false),
-(3, '아동', NULL, NOW(), NOW(), false),
+-- [3] 남성 1단계 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '아우터' AS name
+      UNION
+      SELECT '상의'
+      UNION
+      SELECT '하의'
+      UNION
+      SELECT '신발'
+      UNION
+      SELECT '가방'
+      UNION
+      SELECT '액세서리'
+      UNION
+      SELECT '이너웨어'
+      UNION
+      SELECT '라이프웨어') sub
+         JOIN categories parent ON parent.name = '남성' AND parent.parent_id IS NULL
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 남성 하위 카테고리
-(4, '아우터', 1, NOW(), NOW(), false),
-(5, '상의', 1, NOW(), NOW(), false),
-(6, '하의', 1, NOW(), NOW(), false),
-(7, '신발', 1, NOW(), NOW(), false),
-(8, '가방', 1, NOW(), NOW(), false),
-(9, '액세서리', 1, NOW(), NOW(), false),
-(10, '이너웨어', 1, NOW(), NOW(), false),
-(11, '라이프웨어', 1, NOW(), NOW(), false),
+-- [4] 남성 - 아우터 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '자켓' AS name
+      UNION
+      SELECT '코트'
+      UNION
+      SELECT '패딩'
+      UNION
+      SELECT '가디건'
+      UNION
+      SELECT '블루종'
+      UNION
+      SELECT '후리스'
+      UNION
+      SELECT '후드집업') sub
+         JOIN categories parent
+              ON parent.name = '아우터'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '남성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 남성 - 아우터
-(12, '자켓', 4, NOW(), NOW(), false),
-(13, '코트', 4, NOW(), NOW(), false),
-(14, '패딩', 4, NOW(), NOW(), false),
-(15, '가디건', 4, NOW(), NOW(), false),
-(16, '블루종', 4, NOW(), NOW(), false),
-(17, '후리스', 4, NOW(), NOW(), false),
-(18, '후드집업', 4, NOW(), NOW(), false),
+-- [5] 남성 - 상의 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '반팔 티셔츠' AS name
+      UNION
+      SELECT '긴팔 티셔츠'
+      UNION
+      SELECT '셔츠'
+      UNION
+      SELECT '맨투맨'
+      UNION
+      SELECT '니트'
+      UNION
+      SELECT '후드티'
+      UNION
+      SELECT '민소매') sub
+         JOIN categories parent
+              ON parent.name = '상의'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '남성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 남성 - 상의
-(19, '반팔 티셔츠', 5, NOW(), NOW(), false),
-(20, '긴팔 티셔츠', 5, NOW(), NOW(), false),
-(21, '셔츠', 5, NOW(), NOW(), false),
-(22, '맨투맨', 5, NOW(), NOW(), false),
-(23, '니트', 5, NOW(), NOW(), false),
-(24, '후드티', 5, NOW(), NOW(), false),
-(25, '민소매', 5, NOW(), NOW(), false),
+-- [6] 남성 - 하의 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '청바지' AS name
+      UNION
+      SELECT '슬랙스'
+      UNION
+      SELECT '조거팬츠'
+      UNION
+      SELECT '반바지'
+      UNION
+      SELECT '트레이닝팬츠') sub
+         JOIN categories parent
+              ON parent.name = '하의'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '남성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 남성 - 하의
-(26, '청바지', 6, NOW(), NOW(), false),
-(27, '슬랙스', 6, NOW(), NOW(), false),
-(28, '조거팬츠', 6, NOW(), NOW(), false),
-(29, '반바지', 6, NOW(), NOW(), false),
-(30, '트레이닝팬츠', 6, NOW(), NOW(), false),
+-- [7] 남성 - 신발 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '스니커즈' AS name
+      UNION
+      SELECT '부츠'
+      UNION
+      SELECT '샌들'
+      UNION
+      SELECT '로퍼'
+      UNION
+      SELECT '구두') sub
+         JOIN categories parent
+              ON parent.name = '신발'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '남성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 남성 - 신발
-(31, '스니커즈', 7, NOW(), NOW(), false),
-(32, '부츠', 7, NOW(), NOW(), false),
-(33, '샌들', 7, NOW(), NOW(), false),
-(34, '로퍼', 7, NOW(), NOW(), false),
-(35, '구두', 7, NOW(), NOW(), false),
+-- [8] 남성 - 가방 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '백팩' AS name
+      UNION
+      SELECT '크로스백'
+      UNION
+      SELECT '클러치백'
+      UNION
+      SELECT '토트백') sub
+         JOIN categories parent
+              ON parent.name = '가방'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '남성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 남성 - 가방
-(36, '백팩', 8, NOW(), NOW(), false),
-(37, '크로스백', 8, NOW(), NOW(), false),
-(38, '클러치백', 8, NOW(), NOW(), false),
-(39, '토트백', 8, NOW(), NOW(), false),
+-- [9] 남성 - 액세서리 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '모자' AS name
+      UNION
+      SELECT '벨트'
+      UNION
+      SELECT '시계'
+      UNION
+      SELECT '팔찌'
+      UNION
+      SELECT '선글라스'
+      UNION
+      SELECT '머플러/스카프') sub
+         JOIN categories parent
+              ON parent.name = '액세서리'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '남성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 남성 - 액세서리
-(40, '모자', 9, NOW(), NOW(), false),
-(41, '벨트', 9, NOW(), NOW(), false),
-(42, '시계', 9, NOW(), NOW(), false),
-(43, '팔찌', 9, NOW(), NOW(), false),
-(44, '선글라스', 9, NOW(), NOW(), false),
-(45, '머플러/스카프', 9, NOW(), NOW(), false),
+-- [10] 남성 - 이너웨어 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '러닝/탱크탑' AS name
+      UNION
+      SELECT '드로즈/트렁크') sub
+         JOIN categories parent
+              ON parent.name = '이너웨어'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '남성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 남성 - 이너웨어
-(46, '러닝/탱크탑', 10, NOW(), NOW(), false),
-(47, '드로즈/트렁크', 10, NOW(), NOW(), false),
+-- [11] 남성 - 라이프웨어 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '홈웨어' AS name
+      UNION
+      SELECT '스포츠웨어') sub
+         JOIN categories parent
+              ON parent.name = '라이프웨어'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '남성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 남성 - 라이프웨어
-(48, '홈웨어', 11, NOW(), NOW(), false),
-(49, '스포츠웨어', 11, NOW(), NOW(), false),
+-- [12] 여성 - 상위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '아우터' AS name
+      UNION
+      SELECT '상의'
+      UNION
+      SELECT '하의'
+      UNION
+      SELECT '신발'
+      UNION
+      SELECT '가방'
+      UNION
+      SELECT '액세서리'
+      UNION
+      SELECT '원피스'
+      UNION
+      SELECT '이너웨어') sub
+         JOIN categories parent
+              ON parent.name = '여성'
+                  AND parent.parent_id IS NULL
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 여성 하위 카테고리
-(50, '아우터', 2, NOW(), NOW(), false),
-(51, '상의', 2, NOW(), NOW(), false),
-(52, '하의', 2, NOW(), NOW(), false),
-(53, '신발', 2, NOW(), NOW(), false),
-(54, '가방', 2, NOW(), NOW(), false),
-(55, '액세서리', 2, NOW(), NOW(), false),
-(56, '원피스', 2, NOW(), NOW(), false),
-(57, '이너웨어', 2, NOW(), NOW(), false),
+-- [13] 여성 - 아우터 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '코트' AS name
+      UNION
+      SELECT '재킷'
+      UNION
+      SELECT '가디건'
+      UNION
+      SELECT '블루종'
+      UNION
+      SELECT '패딩') sub
+         JOIN categories parent
+              ON parent.name = '아우터'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '여성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 여성 - 아우터
-(58, '코트', 50, NOW(), NOW(), false),
-(59, '재킷', 50, NOW(), NOW(), false),
-(60, '가디건', 50, NOW(), NOW(), false),
-(61, '블루종', 50, NOW(), NOW(), false),
-(62, '패딩', 50, NOW(), NOW(), false),
+-- [14] 여성 - 상의 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '블라우스' AS name
+      UNION
+      SELECT '니트'
+      UNION
+      SELECT '티셔츠'
+      UNION
+      SELECT '후드티') sub
+         JOIN categories parent
+              ON parent.name = '상의'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '여성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 여성 - 상의
-(63, '블라우스', 51, NOW(), NOW(), false),
-(64, '니트', 51, NOW(), NOW(), false),
-(65, '티셔츠', 51, NOW(), NOW(), false),
-(66, '후드티', 51, NOW(), NOW(), false),
+-- [15] 여성 - 하의 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '스커트' AS name
+      UNION
+      SELECT '팬츠'
+      UNION
+      SELECT '반바지'
+      UNION
+      SELECT '슬랙스') sub
+         JOIN categories parent
+              ON parent.name = '하의'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '여성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 여성 - 하의
-(67, '스커트', 52, NOW(), NOW(), false),
-(68, '팬츠', 52, NOW(), NOW(), false),
-(69, '반바지', 52, NOW(), NOW(), false),
-(70, '슬랙스', 52, NOW(), NOW(), false),
+-- [16] 여성 - 신발 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '플랫슈즈' AS name
+      UNION
+      SELECT '힐'
+      UNION
+      SELECT '부츠'
+      UNION
+      SELECT '스니커즈'
+      UNION
+      SELECT '로퍼') sub
+         JOIN categories parent
+              ON parent.name = '신발'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '여성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 여성 - 신발
-(71, '플랫슈즈', 53, NOW(), NOW(), false),
-(72, '힐', 53, NOW(), NOW(), false),
-(73, '부츠', 53, NOW(), NOW(), false),
-(74, '스니커즈', 53, NOW(), NOW(), false),
-(75, '로퍼', 53, NOW(), NOW(), false),
+-- [17] 여성 - 가방 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '크로스백' AS name
+      UNION
+      SELECT '숄더백'
+      UNION
+      SELECT '토트백'
+      UNION
+      SELECT '미니백') sub
+         JOIN categories parent
+              ON parent.name = '가방'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '여성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 여성 - 가방
-(76, '크로스백', 54, NOW(), NOW(), false),
-(77, '숄더백', 54, NOW(), NOW(), false),
-(78, '토트백', 54, NOW(), NOW(), false),
-(79, '미니백', 54, NOW(), NOW(), false),
+-- [18] 여성 - 액세서리 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '목걸이' AS name
+      UNION
+      SELECT '귀걸이'
+      UNION
+      SELECT '팔찌'
+      UNION
+      SELECT '반지'
+      UNION
+      SELECT '헤어악세서리'
+      UNION
+      SELECT '스카프') sub
+         JOIN categories parent
+              ON parent.name = '액세서리'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '여성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
+-- [19] 여성 - 원피스 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '캐주얼원피스' AS name
+      UNION
+      SELECT '롱원피스'
+      UNION
+      SELECT '미니원피스') sub
+         JOIN categories parent
+              ON parent.name = '원피스'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '여성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 여성 - 액세서리
-(80, '목걸이', 55, NOW(), NOW(), false),
-(81, '귀걸이', 55, NOW(), NOW(), false),
-(82, '팔찌', 55, NOW(), NOW(), false),
-(83, '반지', 55, NOW(), NOW(), false),
-(84, '헤어악세서리', 55, NOW(), NOW(), false),
-(85, '스카프', 55, NOW(), NOW(), false),
+-- [20] 여성 - 이너웨어 하위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '브라탑' AS name
+      UNION
+      SELECT '팬티'
+      UNION
+      SELECT '스타킹') sub
+         JOIN categories parent
+              ON parent.name = '이너웨어'
+                  AND parent.parent_id = (SELECT id FROM categories WHERE name = '여성' AND parent_id IS NULL)
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 여성 - 원피스
-(86, '캐주얼원피스', 56, NOW(), NOW(), false),
-(87, '롱원피스', 56, NOW(), NOW(), false),
-(88, '미니원피스', 56, NOW(), NOW(), false),
+-- [21] 아동 - 상위 카테고리
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT sub.name, parent.id, NOW(), NOW(), FALSE
+FROM (SELECT '아우터' AS name
+      UNION
+      SELECT '상의'
+      UNION
+      SELECT '하의'
+      UNION
+      SELECT '신발'
+      UNION
+      SELECT '액세서리') sub
+         JOIN categories parent
+              ON parent.name = '아동'
+                  AND parent.parent_id IS NULL
+WHERE NOT EXISTS (SELECT 1
+                  FROM categories
+                  WHERE name = sub.name AND parent_id = parent.id);
 
--- 여성 - 이너웨어
-(89, '브라탑', 57, NOW(), NOW(), false),
-(90, '팬티', 57, NOW(), NOW(), false),
-(91, '스타킹', 57, NOW(), NOW(), false),
+-- [22-1] 아동-상의 하위
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT '티셔츠', parent.id, NOW(), NOW(), FALSE
+FROM categories parent
+WHERE parent.name = '상의'
+  AND parent.parent_id = (SELECT id FROM categories WHERE name = '아동' AND parent_id IS NULL)
+  AND NOT EXISTS (
+    SELECT 1 FROM categories WHERE name = '티셔츠' AND parent_id = parent.id
+);
 
--- 아동 하위 카테고리
-(92, '아우터', 3, NOW(), NOW(), false),
-(93, '상의', 3, NOW(), NOW(), false),
-(94, '하의', 3, NOW(), NOW(), false),
-(95, '신발', 3, NOW(), NOW(), false),
-(96, '액세서리', 3, NOW(), NOW(), false),
+-- [22-2] 아동-하의 하위
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT '바지', parent.id, NOW(), NOW(), FALSE
+FROM categories parent
+WHERE parent.name = '하의'
+  AND parent.parent_id = (SELECT id FROM categories WHERE name = '아동' AND parent_id IS NULL)
+  AND NOT EXISTS (
+    SELECT 1 FROM categories WHERE name = '바지' AND parent_id = parent.id
+);
 
--- 아동 - 상의/하의/신발
-(97, '티셔츠', 93, NOW(), NOW(), false),
-(98, '바지', 94, NOW(), NOW(), false),
-(99, '스니커즈', 95, NOW(), NOW(), false);
+-- [22-3] 아동-신발 하위
+INSERT INTO categories (name, parent_id, created_at, updated_at, is_deleted)
+SELECT '스니커즈', parent.id, NOW(), NOW(), FALSE
+FROM categories parent
+WHERE parent.name = '신발'
+  AND parent.parent_id = (SELECT id FROM categories WHERE name = '아동' AND parent_id IS NULL)
+  AND NOT EXISTS (
+    SELECT 1 FROM categories WHERE name = '스니커즈' AND parent_id = parent.id
+);
