@@ -240,9 +240,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
                 .orElseThrow(() -> new TransactionException(TransactionErrorCode.TRANSACTION_NOT_FOUND));
 
         // 2. 판매자 계정 확인 + 권한 확인
-        User seller = userQueryService.findByIdAndIsDeletedFalse(sellerId);
-
-        if (!transaction.getSeller().getId().equals(seller.getId())) {
+        if (!transaction.getSeller().getId().equals(sellerId)) {
             throw new TransactionException(TransactionErrorCode.UNAUTHORIZED_TRANSACTION_ACCESS);
         }
 
@@ -277,9 +275,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
                 .orElseThrow(() -> new TransactionException(TransactionErrorCode.TRANSACTION_NOT_FOUND));
 
         // 2. 구매자 계정 확인 + 권한 확인
-        User buyer = userQueryService.findByIdAndIsDeletedFalse(buyerId);
-
-        if (!transaction.getBuyer().getId().equals(buyer.getId())) {
+        if (!transaction.getBuyer().getId().equals(buyerId)) {
             throw new TransactionException(TransactionErrorCode.UNAUTHORIZED_TRANSACTION_ACCESS);
         }
 
