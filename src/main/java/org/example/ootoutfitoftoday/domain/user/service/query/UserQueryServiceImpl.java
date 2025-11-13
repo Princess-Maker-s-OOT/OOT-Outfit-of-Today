@@ -12,6 +12,7 @@ import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.exception.UserErrorCode;
 import org.example.ootoutfitoftoday.domain.user.exception.UserException;
 import org.example.ootoutfitoftoday.domain.user.repository.UserRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,7 +54,9 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.existsByPhoneNumber(phoneNumber);
     }
 
+    // 로그인 시 DB 조회 최소화
     @Override
+    @Cacheable(value = "userCache", key = "#loginId", unless = "#result == null")
     public User findByLoginIdAndIsDeletedFalse(String loginId) {
 
         return userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(
