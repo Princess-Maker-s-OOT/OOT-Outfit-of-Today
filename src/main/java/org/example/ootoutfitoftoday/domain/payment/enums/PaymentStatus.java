@@ -5,7 +5,7 @@ public enum PaymentStatus {
     FAILED("결제 실패"),
     ESCROWED("예치중"),
     SETTLED("정산예정"),
-    REFUNDED("환불완료");
+    REFUNDED("환불예정");
 
     private final String description;
 

@@ -163,4 +163,11 @@ public class Payment extends BaseEntity {
         this.status = PaymentStatus.SETTLED;
         this.settledAt = LocalDateTime.now();
     }
+
+    public void refundByBuyer() {
+        this.status = PaymentStatus.REFUNDED;
+        this.refundedAt = LocalDateTime.now();
+        this.refundedAmount = this.amount;
+        this.refundType = RefundType.BUYER_CANCELLED;
+    }
 }
