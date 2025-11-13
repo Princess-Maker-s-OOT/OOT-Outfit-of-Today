@@ -3,6 +3,7 @@ package org.example.ootoutfitoftoday.domain.transaction.service.command;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
+import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCompleteResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionResponse;
 
 
@@ -23,7 +24,12 @@ public interface TransactionCommandService {
     );
 
     /**
-     * 판매자 거래 수락
+     * 거래 수락 (판매자)
      */
     TransactionAcceptResponse acceptTransaction(Long sellerId, Long transactionId);
+
+    /**
+     * 거래 확정 (구매자)
+     */
+    TransactionCompleteResponse completeTransaction(Long buyerId, Long transactionId);
 }
