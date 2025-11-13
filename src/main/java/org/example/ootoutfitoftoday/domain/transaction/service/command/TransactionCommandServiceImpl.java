@@ -39,6 +39,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TransactionCommandServiceImpl implements TransactionCommandService {
 
     private final SalePostRepository salePostRepository;
@@ -51,7 +52,6 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
     private final PaymentQueryService paymentQueryService;
 
     @Override
-    @Transactional
     public TransactionResponse requestTransaction(
             Long userId,
             RequestTransactionRequest request
@@ -232,7 +232,6 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
     }
 
     @Override
-    @Transactional
     public TransactionAcceptResponse acceptTransaction(Long sellerId, Long transactionId) {
 
         // 1. Transaction 조회
