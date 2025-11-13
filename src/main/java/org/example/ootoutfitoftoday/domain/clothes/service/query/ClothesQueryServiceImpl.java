@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.clothes.service.query;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -64,11 +66,20 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
     @Override
     public ClothesResponse getClothesById(Long userId, Long id) {
 
-        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
-        );
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> {
+                            log.warn("getClothesById - 옷 없음. id={}", id);
+
+                            return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
+                        }
+                );
 
         if (!Objects.equals(userId, clothes.getUser().getId())) {
+            log.warn("getClothesById - 권한 없는 접근! userId={}, clothesOwnerId={}, clothesId={}",
+                    userId,
+                    clothes.getUser().getId(),
+                    id
+            );
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
 
@@ -78,9 +89,13 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
     @Override
     public Clothes findClothesById(Long id) {
 
-        return clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
-        );
+        return clothesRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> {
+                            log.warn("findClothesById - 옷 없음. id={}", id);
+
+                            return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
+                        }
+                );
     }
 
     @Override

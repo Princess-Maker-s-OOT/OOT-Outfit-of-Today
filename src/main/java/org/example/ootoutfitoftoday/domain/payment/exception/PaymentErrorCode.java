@@ -53,7 +53,14 @@ public enum PaymentErrorCode implements ErrorCode {
             "승인 가능한 결제 상태가 아닙니다."
     ),
 
-    //
+    PAYMENT_NOT_REFUNDABLE(
+            "PAYMENT_NOT_REFUNDABLE",
+            HttpStatus.BAD_REQUEST,
+            "환불 가능한 결제 상태가 아닙니다."
+    ),
+
+    // 결제 실패
+
     PAYMENT_CONFIRMATION_TIMEOUT(
             "PAYMENT_CONFIRMATION_TIMEOUT",
             HttpStatus.REQUEST_TIMEOUT,

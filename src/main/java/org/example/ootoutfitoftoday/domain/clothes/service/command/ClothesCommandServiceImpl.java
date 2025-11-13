@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.clothes.service.command;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryServiceImpl;
 import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesImageUnlinkRequest;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -71,12 +73,18 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
             ClothesRequest clothesRequest
     ) {
 
-        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
-        );
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
+            log.warn("updateClothes - 옷 없음. clothesId={}", id);
+
+            return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
+        });
 
         if (!Objects.equals(userId, clothes.getUser().getId())) {
-
+            log.warn("updateClothes - 다른 유저의 의류 접근 시도. userId={}, clothesOwnerId={}, clothesId={}",
+                    userId,
+                    clothes.getUser().getId(),
+                    id
+            );
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
 
@@ -101,12 +109,18 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
     @Override
     public void deleteClothes(Long userId, Long id) {
 
-        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND)
-        );
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
+            log.warn("deleteClothes - 옷 없음. clothesId={}", id);
+
+            return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
+        });
 
         if (!Objects.equals(userId, clothes.getUser().getId())) {
-
+            log.warn("deleteClothes - 다른 유저의 의류 삭제 시도. userId={}, clothesOwnerId={}, clothesId={}",
+                    userId,
+                    clothes.getUser().getId(),
+                    id
+            );
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
 
@@ -125,7 +139,11 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
     public void updateLastWornAt(Long clothesId, LocalDateTime wornAt) {
 
         Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(clothesId)
-                .orElseThrow(() -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("updateLastWornAt - 옷 없음. clothesId={}", clothesId);
+
+                    return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
+                });
 
         clothes.updateLastWornAt(wornAt);
     }
@@ -135,10 +153,18 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
     public void removeClothesImages(Long userId, Long clothesId, ClothesImageUnlinkRequest clothesImageUnlinkRequest) {
 
         Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(clothesId)
-                .orElseThrow(() -> new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("removeClothesImages - 옷 없음. clothesId={}", clothesId);
+
+                    return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
+                });
 
         if (!Objects.equals(userId, clothes.getUser().getId())) {
-
+            log.warn("removeClothesImages - 타 유저 이미지 삭제 시도. userId={}, clothesOwnerId={}, clothesId={}",
+                    userId,
+                    clothes.getUser().getId(),
+                    clothesId
+            );
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
 

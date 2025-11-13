@@ -38,7 +38,7 @@ public class Transaction extends BaseEntity {
 
     private LocalDateTime approvedAt;  // 판매자 수락 시각
     private LocalDateTime confirmedAt;  // 구매 확정 시각
-    private LocalDateTime cancelRequestedAt;  // 취소 요청 시각 (수락 후)
+    private LocalDateTime cancelRequestedAt;  // 구매자 취소 시각
 
     // === 취소/환불 사유 ===
 
@@ -95,5 +95,28 @@ public class Transaction extends BaseEntity {
 
     public User getSeller() {
         return salePost.getSeller();
+    }
+
+    public void failPayment() {
+        this.status = TransactionStatus.PAYMENT_FAILED;
+    }
+
+    public void expire() {
+        this.status = TransactionStatus.EXPIRED;
+    }
+
+    public void approve() {
+        this.status = TransactionStatus.APPROVED;
+        this.approvedAt = LocalDateTime.now();
+    }
+
+    public void confirm() {
+        this.status = TransactionStatus.CONFIRMED;
+        this.confirmedAt = LocalDateTime.now();
+    }
+
+    public void cancelByBuyer() {
+        this.status = TransactionStatus.CANCELLED_BY_BUYER;
+        this.cancelRequestedAt = LocalDateTime.now();
     }
 }

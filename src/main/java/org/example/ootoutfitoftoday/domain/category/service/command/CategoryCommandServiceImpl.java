@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.category.service.command;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.category.dto.request.CategoryRequest;
 import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryResponse;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -34,8 +36,13 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
          *  - 추가로 사용자가 아이디의 값을 0 이하로 입력시 아이디의 값이 null로 처리되어 최상위 카테고리로 인식한다.
          */
         if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
+
             parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId())
-                    .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
+                    .orElseThrow(() -> {
+                                log.warn("createCategory - 상위 카테고리 존재하지 않음. parentId={}", categoryRequest.getParentId());
+
+                                return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+                            }
                     );
         }
 
@@ -50,7 +57,11 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
 
         // 수정할 카테고리가 존재하는 지 검증
         Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
+                .orElseThrow(() -> {
+                            log.warn("updateCategory - 수정할 카테고리 존재하지 않음. categoryId={}", id);
+
+                            return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+                        }
                 );
 
         // 새로 설정할 부모 카테고리를 검증하고 조회
@@ -73,12 +84,18 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
 
         // 자기 자신을 부모로 설정할 경우
         if (Objects.equals(categoryId, parentId)) {
+            log.warn("validateCategory - 카테고리 자기 자신을 parent로 지정 시도. categoryId={}", categoryId);
             throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
         }
 
         // 부모 카테고리 조회 (설정하려고 하는 상위 카테고리가 존재하는 지 검증)
         Category parent = categoryRepository.findByIdAndIsDeletedFalse(parentId)
-                .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> {
+                            log.warn("validateCategory - 상위 카테고리 존재하지 않음. parentId={}", parentId);
+
+                            return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+                        }
+                );
 
         // 순환 참조 검증
         validateCircularReference(categoryId, parent);
@@ -97,6 +114,11 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
 
             // current의 상위들 중에 자신이 있다면 예외
             if (Objects.equals(current.getId(), categoryId)) {
+                log.warn("validateCircularReference - 순환 참조 발생. (검증대상 categoryId={}, 순환탐색 중 currentId={}, 최초 parentId={})",
+                        categoryId,
+                        current.getId(),
+                        parent.getId()
+                );
                 throw new CategoryException(CategoryErrorCode.CATEGORY_CIRCULAR_REFERENCE);
             }
 
@@ -108,7 +130,11 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
     public void deleteCategory(Long id) {
 
         categoryRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND)
+                .orElseThrow(() -> {
+                            log.warn("deleteCategory - 삭제할 카테고리 존재하지 않음. categoryId={}", id);
+
+                            return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+                        }
                 );
 
         List<Long> result = new ArrayList<>();

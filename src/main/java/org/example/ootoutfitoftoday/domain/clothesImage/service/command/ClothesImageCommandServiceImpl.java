@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.clothesImage.service.command;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothesImage.entity.ClothesImage;
 import org.example.ootoutfitoftoday.domain.clothesImage.exception.ClothesImageErrorCode;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -27,7 +29,7 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
 
         // 이미 다른 곳에서 이미지를 사용하고 있다면
         if (clothesImageRepository.existsLinkedImages(clothes.getId(), imageIds)) {
-
+            log.warn("saveClothesImages - 이미 다른 곳과 링크된 이미지 시도. clothesId={}, imageIds={}", clothes.getId(), imageIds);
             throw new ClothesImageException(ClothesImageErrorCode.IMAGE_ALREADY_LINKED);
         }
 
@@ -82,7 +84,7 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
 
         // 이미지 중복 방지
         if (clothesImageRepository.existsLinkedImages(clothes.getId(), newImageIds)) {
-
+            log.warn("updateClothesImages - 이미 다른 곳에 연결된 이미지 시도. clothesId={}, imageIds={}", clothes.getId(), newImageIds);
             throw new ClothesImageException(ClothesImageErrorCode.IMAGE_ALREADY_LINKED);
         }
 
@@ -181,6 +183,7 @@ public class ClothesImageCommandServiceImpl implements ClothesImageCommandServic
 
         // 연관관계가 없다면
         if (linkedImages.isEmpty()) {
+            log.warn("removeClothesImages - 연관관계 없는 이미지 삭제 시도. clothesId={}, imageIds={}", clothesId, imageIds);
             throw new ClothesImageException(ClothesImageErrorCode.CLOTHES_IMAGE_NOT_FOUND);
         }
 
