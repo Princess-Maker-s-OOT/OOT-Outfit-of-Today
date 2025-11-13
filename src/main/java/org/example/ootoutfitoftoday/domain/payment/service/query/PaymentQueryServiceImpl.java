@@ -14,6 +14,6 @@ public class PaymentQueryServiceImpl implements PaymentQueryService {
 
     @Override
     public boolean existsByTossOrderId(String tossOrderId) {
-        return paymentRepository.findByTossOrderId(tossOrderId).isPresent();
+        return paymentRepository.existsByTossOrderId(tossOrderId);
     }
 }
