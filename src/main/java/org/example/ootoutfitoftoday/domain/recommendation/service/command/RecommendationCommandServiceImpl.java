@@ -72,6 +72,26 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
                 .toList();
     }
 
+    // Spring Batch용: 추천 엔티티만 생성 (저장하지 않음)
+    @Override
+    public List<Recommendation> createRecommendationsForBatch(Long userId) {
+        User user = userQueryService.findByIdAndIsDeletedFalse(userId);
+
+        List<Clothes> clothesList = clothesQueryService.findAllClothesByUserId(userId);
+
+        // 추천 조건 검사 + 엔티티 생성 (각 옷마다 판매/기부 2개의 추천 생성)
+        return clothesList.stream()
+                .filter(this::isUnwornForOneYear)
+                .flatMap(clothes -> Arrays.stream(RecommendationType.values())
+                        .map(type -> Recommendation.createForUnwornClothes(
+                                user,
+                                clothes,
+                                type,
+                                UNWORN_REASON
+                        )))
+                .toList();
+    }
+
     // 마지막 착용일이 1년 이상 경과했는지 확인
     private boolean isUnwornForOneYear(Clothes clothes) {
         LocalDateTime lastWornAt = clothes.getLastWornAt();
