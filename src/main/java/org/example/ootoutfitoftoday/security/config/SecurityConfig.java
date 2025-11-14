@@ -189,8 +189,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/v1/closets/public",
                                 "/v1/closets/{closetId}",
-                                // "/v1/sale-posts",
-                                // "/v1/sale-posts/{salePostId}",
+                                "/v1/sale-posts/public",
+                                "/v1/sale-posts/{salePostId}",
                                 "/v1/categories",
                                 "/v1/donation-centers/search").permitAll()
 

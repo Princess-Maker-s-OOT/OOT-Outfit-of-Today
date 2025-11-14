@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.domain.salepost.service.query;
 
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.*;
 import com.ootcommon.salepost.enums.SaleStatus;
 import com.ootcommon.salepost.response.SaleStatusCount;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
@@ -21,6 +22,13 @@ public interface SalePostQueryService {
 
     Slice<SalePostListResponse> getSalePostList(
             Long userId,
+            Long categoryId,
+            SaleStatus status,
+            String keyword,
+            Pageable pageable
+    );
+
+    Slice<SalePostPublicListResponse> getNotAuthSalePostList(
             Long categoryId,
             SaleStatus status,
             String keyword,

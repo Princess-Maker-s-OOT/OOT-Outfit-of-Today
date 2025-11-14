@@ -6,10 +6,14 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.ootoutfitoftoday.common.util.Location;
+import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.CachedSliceResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
+import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.*;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
@@ -164,5 +168,101 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
     public Optional<SalePost> findByRecommendationId(Long recommendationId) {
 
         return salePostRepository.findByRecommendationIdAndIsDeletedFalse(recommendationId);
+    }
+
+    @Override
+    public Slice<SalePostPublicListResponse> getNotAuthSalePostList(
+            Long categoryId,
+            SaleStatus status,
+            String keyword,
+            Pageable pageable
+    ) {
+        // 1. DTO 프로젝션을 위한 SQL 정의 (N+1 방지)
+        String baseSql = """
+                SELECT
+                    s.id,
+                    s.title,
+                    s.price,
+                    s.status,
+                    s.trade_address,
+                    ST_AsText(s.trade_location) AS trade_location,
+                    (SELECT spi.image_url FROM sale_post_images spi WHERE spi.sale_post_id = s.id ORDER BY spi.display_order ASC LIMIT 1) AS thumbnail_url,
+                    u.nickname AS seller_nickname,
+                    c.name AS category_name,
+                    s.created_at
+                FROM sale_posts s
+                JOIN users u ON s.user_id = u.id
+                JOIN categories c ON s.category_id = c.id
+                WHERE s.is_deleted = FALSE
+                AND ST_Distance_Sphere(
+                                  s.trade_location,
+                                  ST_GeomFromText(:defaultPoint, 4326)
+                              ) <= (:km * 1000)
+                AND (:categoryId IS NULL OR s.category_id = :categoryId)
+                AND (:status IS NULL OR s.status = :status)
+                AND (:keyword IS NULL OR s.title LIKE :keyword OR s.content LIKE :keyword)
+                """;
+
+        // 2. ORDER BY 절 추가
+        String finalSql = NativeQuerySortUtil.buildOrderClause(baseSql, pageable);
+
+        // 3. Native Query 객체 생성 (엔티티 매핑 없이)
+        Query query = entityManager.createNativeQuery(finalSql);
+
+        query.setParameter("defaultPoint", DefaultLocationConstants.DEFAULT_TRADE_LOCATION);
+        query.setParameter("km", DefaultLocationConstants.KM);
+        query.setParameter("categoryId", categoryId);
+        query.setParameter("status", status != null ? status.name() : null);
+
+        String searchKeyword = null;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            searchKeyword = "%" + keyword.trim() + "%";
+        }
+        query.setParameter("keyword", searchKeyword);
+
+        // 4. Slice 구현을 위한 LIMIT/OFFSET 설정
+        int offset = pageable.getPageNumber() * pageable.getPageSize();
+        int limit = pageable.getPageSize() + 1;
+
+        query.setFirstResult(offset);
+        query.setMaxResults(limit);
+
+        // 5. 쿼리 실행 및 결과 목록 획득 (Object[] 배열로 반환됨)
+        @SuppressWarnings("unchecked")
+        List<Object[]> results = query.getResultList();
+
+        // 6. Slice 객체 생성 로직 (hasNext 판단)
+        boolean hasNext = results.size() > pageable.getPageSize();
+        List<Object[]> content = hasNext ?
+                results.subList(0, pageable.getPageSize()) :
+                results;
+
+        // 7. Object[] → DTO 변환
+        List<SalePostPublicListResponse> responseContent = content.stream()
+                .map(this::mapToSalePostPublicListResponse)
+                .toList();
+
+        return new SliceImpl<>(responseContent, pageable, hasNext);
+    }
+
+    // Object[] → SalePostPublicListResponse 변환 헬퍼 메서드
+    private SalePostPublicListResponse mapToSalePostPublicListResponse(Object[] row) {
+        // tradeLocation 파싱 (POINT(경도 위도) 형식)
+        String tradeLocationStr = (String) row[5];
+        Location location = PointFormatAndParse.parse(tradeLocationStr);
+
+        return SalePostPublicListResponse.builder()
+                .salePostId(((Number) row[0]).longValue())
+                .title((String) row[1])
+                .price((java.math.BigDecimal) row[2])
+                .status(SaleStatus.valueOf((String) row[3]))
+                .tradeAddress((String) row[4])
+                .tradeLatitude(location.latitude())
+                .tradeLongitude(location.longitude())
+                .thumbnailUrl((String) row[6])
+                .sellerNickname((String) row[7])
+                .categoryName((String) row[8])
+                .createdAt(((java.sql.Timestamp) row[9]).toLocalDateTime())
+                .build();
     }
 }

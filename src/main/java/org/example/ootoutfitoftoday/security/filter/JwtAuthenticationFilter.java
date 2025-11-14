@@ -205,15 +205,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // GET 요청 공개 API
-        if ("GET".equalsIgnoreCase(method) &&
-                (uri.startsWith("/v1/closets/public") ||
-                        uri.startsWith("/v1/closets/{closetId}") ||
-                        // uri.startsWith("/v1/sale-posts") ||
-                        // uri.startsWith("/v1/sale-posts/{salePostId}") ||
-                        uri.startsWith("/v1/categories") ||
-                        uri.startsWith("/v1/donation-centers/search"))) {  // 기부처 검색 (Public API)
+        if ("GET".equalsIgnoreCase(method)) {
+            // 정확한 경로 매칭
+            if (uri.startsWith("/v1/closets/public") ||
+                    uri.startsWith("/v1/sale-posts/public") ||
+                    uri.startsWith("/v1/categories") ||
+                    uri.startsWith("/v1/donation-centers/search")) {
+                return true;
+            }
 
-            return true;
+            // 패턴 매칭 (단건 조회)
+            if (uri.matches("/v1/closets/\\d+") ||
+                    uri.matches("/v1/sale-posts/\\d+")) {
+                return true;
+            }
         }
 
         return false;
