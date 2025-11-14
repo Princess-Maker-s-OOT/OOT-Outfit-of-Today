@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class NotAuthSalePostListResponse {
+public class SalePostPublicListResponse {
 
     private final Long salePostId;
     private final String title;
@@ -26,11 +26,11 @@ public class NotAuthSalePostListResponse {
     private final String categoryName;
     private final LocalDateTime createdAt;
 
-    public static NotAuthSalePostListResponse from(SalePost salePost) {
+    public static SalePostPublicListResponse from(SalePost salePost) {
 
         Location location = PointFormatAndParse.parse(salePost.getTradeLocation());
 
-        return NotAuthSalePostListResponse.builder()
+        return SalePostPublicListResponse.builder()
                 .salePostId(salePost.getId())
                 .title(salePost.getTitle())
                 .price(salePost.getPrice())

@@ -188,9 +188,9 @@ public class SecurityConfig {
                                 "/v1/auth/oauth2/token/exchange").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/v1/closets/public",
-                                "/v1/closets/**",
+                                "/v1/closets/{closetId}",
                                 "/v1/sale-posts/public",
-                                "/v1/sale-posts/**",
+                                "/v1/sale-posts/{salePostId}",
                                 "/v1/categories",
                                 "/v1/donation-centers/search").permitAll()
 

@@ -239,7 +239,7 @@ public class SalePostController {
             }
     )
     @GetMapping("/public")
-    public ResponseEntity<Response<Slice<NotAuthSalePostListResponse>>> getNotAuthSalePosts(
+    public ResponseEntity<Response<Slice<SalePostPublicListResponse>>> getNotAuthSalePosts(
             @Parameter(description = "카테고리 ID")
             @RequestParam(required = false) Long categoryId,
 
@@ -256,7 +256,7 @@ public class SalePostController {
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
 
-        Slice<NotAuthSalePostListResponse> salePosts = salePostQueryService.getNotAuthSalePostList(
+        Slice<SalePostPublicListResponse> salePosts = salePostQueryService.getNotAuthSalePostList(
                 categoryId,
                 status,
                 keyword,

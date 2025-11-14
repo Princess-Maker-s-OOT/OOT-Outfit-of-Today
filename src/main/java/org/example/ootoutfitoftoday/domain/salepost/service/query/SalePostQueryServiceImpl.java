@@ -171,7 +171,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
     }
 
     @Override
-    public Slice<NotAuthSalePostListResponse> getNotAuthSalePostList(
+    public Slice<SalePostPublicListResponse> getNotAuthSalePostList(
             Long categoryId,
             SaleStatus status,
             String keyword,
@@ -214,10 +214,11 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
         query.setParameter("categoryId", categoryId);
         query.setParameter("status", status != null ? status.name() : null);
 
+        String searchKeyword = null;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            keyword = "%" + keyword.trim() + "%";
+            searchKeyword = "%" + keyword.trim() + "%";
         }
-        query.setParameter("keyword", keyword);
+        query.setParameter("keyword", searchKeyword);
 
         // 4. Slice 구현을 위한 LIMIT/OFFSET 설정
         int offset = pageable.getPageNumber() * pageable.getPageSize();
@@ -237,20 +238,20 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
                 results;
 
         // 7. Object[] → DTO 변환
-        List<NotAuthSalePostListResponse> responseContent = content.stream()
-                .map(this::mapToNotAuthSalePostListResponse)
+        List<SalePostPublicListResponse> responseContent = content.stream()
+                .map(this::mapToSalePostPublicListResponse)
                 .toList();
 
         return new SliceImpl<>(responseContent, pageable, hasNext);
     }
 
-    // Object[] → NotAuthSalePostListResponse 변환 헬퍼 메서드
-    private NotAuthSalePostListResponse mapToNotAuthSalePostListResponse(Object[] row) {
+    // Object[] → SalePostPublicListResponse 변환 헬퍼 메서드
+    private SalePostPublicListResponse mapToSalePostPublicListResponse(Object[] row) {
         // tradeLocation 파싱 (POINT(경도 위도) 형식)
         String tradeLocationStr = (String) row[5];
         Location location = PointFormatAndParse.parse(tradeLocationStr);
 
-        return NotAuthSalePostListResponse.builder()
+        return SalePostPublicListResponse.builder()
                 .salePostId(((Number) row[0]).longValue())
                 .title((String) row[1])
                 .price((java.math.BigDecimal) row[2])

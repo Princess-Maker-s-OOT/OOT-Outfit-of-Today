@@ -28,7 +28,7 @@ public interface SalePostQueryService {
             Pageable pageable
     );
 
-    Slice<NotAuthSalePostListResponse> getNotAuthSalePostList(
+    Slice<SalePostPublicListResponse> getNotAuthSalePostList(
             Long categoryId,
             SaleStatus status,
             String keyword,
