@@ -19,7 +19,7 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
 
     private final CacheManager cacheManager;
 
-
+    // Todo: 캐시매니저를 사용한 이유를 정리하기
     @Override
     public AdminUserStatisticsResponse adminUserStatistics(LocalDate baseDate) {
 
@@ -42,6 +42,7 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
         return cached;
     }
 
+    // Todo: 수정 해야함.
     @Override
     public AdminClothesStatisticsResponse adminClothesStatistics() {
 
@@ -85,6 +86,7 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
         return cached;
     }
 
+    // Todo: 수정 해야함.
     @Override
     public AdminTopCategoryStatisticsResponse adminTopCategoryStatistics() {
 
