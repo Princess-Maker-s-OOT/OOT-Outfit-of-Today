@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.domain.transaction.service.command;
 
+import com.ootcommon.salepost.enums.SaleStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.Toss.client.TossPaymentsClient;
@@ -15,7 +16,6 @@ import org.example.ootoutfitoftoday.domain.payment.exception.PaymentException;
 import org.example.ootoutfitoftoday.domain.payment.service.command.PaymentCommandService;
 import org.example.ootoutfitoftoday.domain.payment.service.query.PaymentQueryService;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;

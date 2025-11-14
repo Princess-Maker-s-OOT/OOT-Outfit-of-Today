@@ -1,6 +1,8 @@
 
 package org.example.ootoutfitoftoday.domain.clothes.controller;
 
+import com.ootcommon.clothes.enums.ClothesColor;
+import com.ootcommon.clothes.enums.ClothesSize;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,8 +16,6 @@ import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesImageUnlinkRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.request.ClothesRequest;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesSuccessCode;
 import org.example.ootoutfitoftoday.domain.clothes.service.command.ClothesCommandService;
 import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;

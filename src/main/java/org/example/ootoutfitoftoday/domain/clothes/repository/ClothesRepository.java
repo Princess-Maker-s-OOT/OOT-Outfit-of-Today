@@ -1,6 +1,6 @@
 package org.example.ootoutfitoftoday.domain.clothes.repository;
 
-import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
+import com.ootcommon.category.response.CategoryStat;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

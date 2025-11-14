@@ -1,12 +1,12 @@
 package org.example.ootoutfitoftoday.domain.dashboard.service.query.user;
 
+import com.ootcommon.category.response.CategoryStat;
+import com.ootcommon.dashboard.response.DashboardUserSummaryResponse;
+import com.ootcommon.dashboard.response.DashboardUserWearStatisticsResponse;
+import com.ootcommon.wearrecord.response.ClothesWearCount;
+import com.ootcommon.wearrecord.response.NotWornOverPeriod;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
 import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.DashboardUserSummaryResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.DashboardUserWearStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
 import org.example.ootoutfitoftoday.domain.wearrecord.service.query.WearRecordQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

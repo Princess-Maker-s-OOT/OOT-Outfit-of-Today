@@ -1,25 +1,25 @@
 package org.example.ootoutfitoftoday.domain.clothes.repository;
 
+import com.ootcommon.category.response.QCategoryStat;
+import com.ootcommon.category.response.CategoryStat;
+import com.ootcommon.clothes.enums.ClothesColor;
+import com.ootcommon.clothes.enums.ClothesSize;
+import com.ootcommon.clothes.response.ClothesColorCount;
+import com.ootcommon.clothes.response.ClothesSizeCount;
+import com.ootcommon.clothes.response.QClothesColorCount;
+import com.ootcommon.clothes.response.QClothesSizeCount;
+import com.ootcommon.wearrecord.response.ClothesWearCount;
+import com.ootcommon.wearrecord.response.NotWornOverPeriod;
+import com.ootcommon.wearrecord.response.QClothesWearCount;
+import com.ootcommon.wearrecord.response.QNotWornOverPeriod;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
-import org.example.ootoutfitoftoday.domain.category.dto.response.QCategoryStat;
 import org.example.ootoutfitoftoday.domain.category.entity.QCategory;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.QClothesColorCount;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.QClothesSizeCount;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.clothes.entity.QClothes;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothesImage.entity.QClothesImage;
 import org.example.ootoutfitoftoday.domain.image.entity.QImage;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.QClothesWearCount;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.QNotWornOverPeriod;
 import org.example.ootoutfitoftoday.domain.wearrecord.entity.QWearRecord;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -212,6 +212,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .fetch();
     }
 
+    // Todo: leastWornClothes와 notWornOverPeriod 메소드에서 삭제되지 않은 옷(isDeleted = false)을 조회하는 조건이 누락되었습니다. isDeletedFalse() 조건을 where 절에 추가하여 논리적으로 삭제된 옷이 통계에 포함되지 않도록 해야 합니다.
     @Override
     public List<ClothesWearCount> leastWornClothes(Long userId) {
 

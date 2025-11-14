@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.domain.salepost.entity;
 
+import com.ootcommon.salepost.enums.SaleStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -8,7 +9,6 @@ import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
 import org.example.ootoutfitoftoday.domain.user.entity.User;

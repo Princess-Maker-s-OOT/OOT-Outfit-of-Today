@@ -1,19 +1,19 @@
 package org.example.ootoutfitoftoday.domain.clothes.service.query;
 
+import com.ootcommon.category.response.CategoryStat;
+import com.ootcommon.clothes.enums.ClothesColor;
+import com.ootcommon.clothes.enums.ClothesSize;
+import com.ootcommon.clothes.response.ClothesColorCount;
+import com.ootcommon.clothes.response.ClothesSizeCount;
+import com.ootcommon.wearrecord.response.ClothesWearCount;
+import com.ootcommon.wearrecord.response.NotWornOverPeriod;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
 import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesResponse;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesErrorCode;
 import org.example.ootoutfitoftoday.domain.clothes.exception.ClothesException;
 import org.example.ootoutfitoftoday.domain.clothes.repository.ClothesRepository;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
@@ -152,6 +152,7 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
         return clothesRepository.leastWornClothes(userId);
     }
 
+    // Todo: notWornOverPeriod 메소드에서 lastWornAt이 null인 경우(한 번도 입지 않은 옷) daysNotWorn을 0L로 설정하고 있습니다. 이는 '0일 전에 입었다'는 의미로 해석될 수 있어 사용자에게 혼란을 줄 수 있습니다. 한 번도 입지 않은 경우, daysNotWorn을 null로 두거나, 아주 큰 값을 설정하거나, 혹은 UI에서 별도로 "착용 기록 없음" 등으로 표시하는 것이 더 명확할 것 같습니다.
     @Override
     public List<NotWornOverPeriod> notWornOverPeriod(Long userId) {
 

@@ -1,10 +1,10 @@
 package org.example.ootoutfitoftoday.domain.clothes.dto.request;
 
+import com.ootcommon.clothes.enums.ClothesColor;
+import com.ootcommon.clothes.enums.ClothesSize;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 
 import java.util.List;
 
