@@ -6,6 +6,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.ootoutfitoftoday.common.util.Location;
+import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.CachedSliceResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
@@ -246,8 +248,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
     private NotAuthSalePostListResponse mapToNotAuthSalePostListResponse(Object[] row) {
         // tradeLocation 파싱 (POINT(경도 위도) 형식)
         String tradeLocationStr = (String) row[5];
-        org.example.ootoutfitoftoday.common.util.Location location =
-                org.example.ootoutfitoftoday.common.util.PointFormatAndParse.parse(tradeLocationStr);
+        Location location = PointFormatAndParse.parse(tradeLocationStr);
 
         return NotAuthSalePostListResponse.builder()
                 .salePostId(((Number) row[0]).longValue())

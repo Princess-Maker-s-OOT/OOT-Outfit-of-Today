@@ -14,7 +14,6 @@ import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRe
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SaleStatusUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.*;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
