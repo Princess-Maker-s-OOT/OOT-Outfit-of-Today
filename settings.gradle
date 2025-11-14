@@ -1,1 +1,3 @@
 rootProject.name = 'OOT-Outfit-of-Today'
+include 'OOT-Common'
+project(':OOT-Common').projectDir = file('OOT-Common')

@@ -1,8 +1,12 @@
 package org.example.ootoutfitoftoday.domain.salepost.service.query;
 
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.*;
+import com.ootcommon.salepost.enums.SaleStatus;
+import com.ootcommon.salepost.response.SaleStatusCount;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 

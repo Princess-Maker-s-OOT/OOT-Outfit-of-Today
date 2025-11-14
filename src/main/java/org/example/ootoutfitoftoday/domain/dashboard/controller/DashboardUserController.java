@@ -1,5 +1,7 @@
 package org.example.ootoutfitoftoday.domain.dashboard.controller;
 
+import com.ootcommon.dashboard.response.DashboardUserSummaryResponse;
+import com.ootcommon.dashboard.response.DashboardUserWearStatisticsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -7,8 +9,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.DashboardUserSummaryResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.DashboardUserWearStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.exception.DashboardSuccessCode;
 import org.example.ootoutfitoftoday.domain.dashboard.service.query.user.DashboardUserQueryService;
 import org.springframework.http.ResponseEntity;

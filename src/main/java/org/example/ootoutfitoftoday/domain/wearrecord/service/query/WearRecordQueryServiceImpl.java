@@ -1,7 +1,7 @@
 package org.example.ootoutfitoftoday.domain.wearrecord.service.query;
 
+import com.ootcommon.wearrecord.response.ClothesWearCount;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
 import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.WearRecordGetMyResponse;
 import org.example.ootoutfitoftoday.domain.wearrecord.entity.WearRecord;
 import org.example.ootoutfitoftoday.domain.wearrecord.repository.WearRecordRepository;

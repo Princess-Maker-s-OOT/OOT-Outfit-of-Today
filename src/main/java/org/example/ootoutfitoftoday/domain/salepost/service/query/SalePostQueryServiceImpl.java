@@ -1,13 +1,18 @@
 package org.example.ootoutfitoftoday.domain.salepost.service.query;
 
+import com.ootcommon.salepost.enums.SaleStatus;
+import com.ootcommon.salepost.response.SaleStatusCount;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.CachedSliceResponse;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
 import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.*;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
