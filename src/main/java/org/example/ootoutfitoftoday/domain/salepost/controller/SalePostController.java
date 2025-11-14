@@ -12,10 +12,7 @@ import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SaleStatusUpdateRequest;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
+import org.example.ootoutfitoftoday.domain.salepost.dto.response.*;
 import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostSuccessCode;
 import org.example.ootoutfitoftoday.domain.salepost.service.command.SalePostCommandService;
@@ -69,7 +66,6 @@ public class SalePostController {
     @Operation(
             summary = "판매글 상세 조회",
             description = "판매글의 상세 정보를 조회합니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "판매글이 성공적으로 조회되었습니다."),
                     @ApiResponse(responseCode = "404", description = "판매글을 찾을 수 없습니다.")
@@ -229,5 +225,40 @@ public class SalePostController {
         );
 
         return Response.success(response, SalePostSuccessCode.SALE_POSTS_RETRIEVED);
+    }
+
+    @Operation(
+            summary = "비회원 판매글 전체 조회",
+            description = "카테고리/상태/키워드로 필터링 된 전체 판매글을 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "판매글이 성공적으로 조회되었습니다."),
+            }
+    )
+    @GetMapping("/public")
+    public ResponseEntity<Response<Slice<NotAuthSalePostListResponse>>> getNotAuthSalePosts(
+            @Parameter(description = "카테고리 ID")
+            @RequestParam(required = false) Long categoryId,
+
+            @Parameter(description = "판매 상태 (SELLING, RESERVED, SOLD_OUT)")
+            @RequestParam(required = false) SaleStatus status,
+
+            @Parameter(description = "검색어 (제목/내용 검색)")
+            @RequestParam(required = false) String keyword,
+
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "DESC") Sort.Direction direction
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
+
+        Slice<NotAuthSalePostListResponse> salePosts = salePostQueryService.getNotAuthSalePostList(
+                categoryId,
+                status,
+                keyword,
+                pageable
+        );
+
+        return Response.success(salePosts, SalePostSuccessCode.SALE_POSTS_RETRIEVED);
     }
 }
