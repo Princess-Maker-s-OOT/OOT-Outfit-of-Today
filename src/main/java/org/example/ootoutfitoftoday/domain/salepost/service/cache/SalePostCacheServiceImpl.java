@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.domain.salepost.service.cache;
 
+import com.ootcommon.salepost.enums.SaleStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.CachedSliceResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.util.NativeQuerySortUtil;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;

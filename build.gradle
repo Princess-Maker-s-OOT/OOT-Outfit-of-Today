@@ -110,6 +110,9 @@ dependencies {
     // Spring Batch - 대용량 데이터 배치 처리
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     testImplementation 'org.springframework.batch:spring-batch-test'
+
+    // 공통 DTO 레포
+    implementation project(':OOT-Common')
 }
 
 // Spring Cloud AWS BOM (버전 통합 관리)

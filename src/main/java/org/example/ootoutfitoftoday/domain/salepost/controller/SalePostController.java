@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.domain.salepost.controller;
 
+import com.ootcommon.salepost.enums.SaleStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,7 +17,6 @@ import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateR
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostSuccessCode;
 import org.example.ootoutfitoftoday.domain.salepost.service.command.SalePostCommandService;
 import org.example.ootoutfitoftoday.domain.salepost.service.query.SalePostQueryService;

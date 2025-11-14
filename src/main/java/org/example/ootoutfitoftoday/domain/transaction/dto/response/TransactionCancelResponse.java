@@ -1,9 +1,9 @@
 package org.example.ootoutfitoftoday.domain.transaction.dto.response;
 
+import com.ootcommon.salepost.enums.SaleStatus;
 import lombok.Builder;
 import lombok.Getter;
 import org.example.ootoutfitoftoday.domain.payment.enums.PaymentStatus;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.transaction.entity.Transaction;
 import org.example.ootoutfitoftoday.domain.transaction.enums.TransactionStatus;
 

@@ -1,5 +1,7 @@
 package org.example.ootoutfitoftoday.domain.clothes.entity;
 
+import com.ootcommon.clothes.enums.ClothesColor;
+import com.ootcommon.clothes.enums.ClothesSize;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -8,8 +10,6 @@ import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothesImage.entity.ClothesImage;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.hibernate.annotations.Where;

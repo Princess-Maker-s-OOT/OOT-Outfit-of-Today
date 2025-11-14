@@ -1,8 +1,8 @@
 package org.example.ootoutfitoftoday.domain.closetclotheslink.dto.response;
 
+import com.ootcommon.clothes.enums.ClothesColor;
+import com.ootcommon.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 
 public record ClosetClothesLinkGetResponse(
 

@@ -1,7 +1,7 @@
 package org.example.ootoutfitoftoday.domain.dashboard.service.query.user;
 
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.DashboardUserSummaryResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.DashboardUserWearStatisticsResponse;
+import com.ootcommon.dashboard.response.DashboardUserSummaryResponse;
+import com.ootcommon.dashboard.response.DashboardUserWearStatisticsResponse;
 
 import java.time.LocalDate;
 
