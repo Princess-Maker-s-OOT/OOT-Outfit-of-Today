@@ -221,8 +221,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         }
 
         // Redis에서 userId 조회
-        Long userId = redisRefreshTokenRepository.findUserIdByToken(refreshToken)
-                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+        Long userId = redisRefreshTokenRepository.findUserIdByToken(refreshToken).orElseThrow(
+                () -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         // Redis에서 deviceId 조회
         String storedDeviceId = redisRefreshTokenRepository.findDeviceIdByToken(refreshToken).orElseThrow(
@@ -281,6 +281,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     // OAuth2 임시 코드를 JWT 토큰으로 교환
     // 임시 코드는 3분간 유효하며 1회용
     // Redis에서 토큰 정보 조회 후 삭제
+    // 분산 락 적용
     @Override
     public AuthLoginResponse exchangeOAuthToken(
             String code,
@@ -316,53 +317,98 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             // 디바이스 정보로 RefreshToken 저장
             User user = userQueryService.findByIdAndIsDeletedFalse(Long.parseLong(userId));
 
-            LocalDateTime expiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
+            // 분산 락 적용
+            String lockKey = USER_LOCK_PREFIX + user.getId();
+            RLock lock = redissonClient.getLock(lockKey);
 
-            // Redis에서 디바이스 수 확인
-            long deviceCount = redisRefreshTokenRepository.countByUserId(user.getId());
+            try {
+                boolean acquired = lock.tryLock(5, 10, TimeUnit.SECONDS);
 
-            if (deviceCount >= maxDevicesPerUser) {
-                // 가장 오래된 디바이스 삭제
-                Optional<DeviceInfoResponse> oldestDeviceOpt = redisRefreshTokenRepository.findOldestDeviceByUserId(user.getId());
+                if (!acquired) {
+                    log.warn("OAuth 토큰 교환 락 획득 실패 - userId: {}", user.getId());
+                    throw new AuthException(AuthErrorCode.CONCURRENT_LOGIN_IN_PROGRESS);
+                }
 
-                if (oldestDeviceOpt.isPresent()) {
-                    DeviceInfoResponse oldestDevice = oldestDeviceOpt.get();
-                    redisRefreshTokenRepository.deleteByUserIdAndDeviceId(user.getId(), oldestDevice.getDeviceId());
-                    log.info("최대 디바이스 수 초과로 가장 오래된 디바이스 삭제: userId={}, deviceId={}", user.getId(), oldestDevice.getDeviceId());
+                log.info("OAuth 토큰 교환 락 획득 성공 - userId: {}", user.getId());
+
+                // 락 보호 영역에서 세션 관리
+                return performOAuthTokenExchangeWithLock(
+                        user,
+                        deviceId,
+                        deviceName,
+                        refreshToken,
+                        accessToken,
+                        httpRequest,
+                        code,
+                        redisKey
+                );
+
+            } finally {
+                if (lock.isHeldByCurrentThread()) {
+                    lock.unlock();
+                    log.info("OAuth 토큰 교환 락 해제 - userId: {}", user.getId());
                 }
             }
-
-            String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
-            String userAgent = httpRequest.getHeader("User-Agent");
-
-            log.info("=== 클라이언트 정보 추출 ===");
-            log.info("IP Address: {}", ipAddress);
-            log.info("User-Agent: {}", userAgent);
-
-            // Redis에 리프레시 토큰 저장
-            redisRefreshTokenRepository.save(
-                    user.getId(),
-                    deviceId,
-                    deviceName,
-                    refreshToken,
-                    expiresAt,
-                    ipAddress,
-                    userAgent
-            );
-
-            log.info("Refresh Token 저장 완료 - userId: {}, deviceId: {}", userId, deviceId);
-
-            // Redis에서 임시 코드(1회용) 삭제
-            redisTemplate.delete(redisKey);
-            log.info("임시 코드(1회용) 삭제 완료 - code: {}", code);
-            log.info("OAuth2 토큰 교환 성공 - userId: {}", userId);
-
-            return new AuthLoginResponse(accessToken, refreshToken);
 
         } catch (Exception e) {
             log.error("토큰 교환 중 오류 발생 - code: {}", code, e);
             throw new AuthException(AuthErrorCode.TOKEN_EXCHANGE_FAILED);
         }
+    }
+
+    // OAuth 토큰 교환의 락 보호 영역
+    private AuthLoginResponse performOAuthTokenExchangeWithLock(
+            User user,
+            String deviceId,
+            String deviceName,
+            String refreshToken,
+            String accessToken,
+            HttpServletRequest httpRequest,
+            String code,
+            String redisKey
+    ) {
+        LocalDateTime expiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
+
+        // Redis에서 디바이스 수 확인
+        long deviceCount = redisRefreshTokenRepository.countByUserId(user.getId());
+
+        if (deviceCount >= maxDevicesPerUser) {
+            // 가장 오래된 디바이스 삭제
+            Optional<DeviceInfoResponse> oldestDeviceOpt = redisRefreshTokenRepository.findOldestDeviceByUserId(user.getId());
+
+            if (oldestDeviceOpt.isPresent()) {
+                DeviceInfoResponse oldestDevice = oldestDeviceOpt.get();
+                redisRefreshTokenRepository.deleteByUserIdAndDeviceId(user.getId(), oldestDevice.getDeviceId());
+                log.info("최대 디바이스 수 초과로 가장 오래된 디바이스 삭제: userId={}, deviceId={}", user.getId(), oldestDevice.getDeviceId());
+            }
+        }
+
+        String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
+
+        log.info("=== 클라이언트 정보 추출 ===");
+        log.info("IP Address: {}", ipAddress);
+        log.info("User-Agent: {}", userAgent);
+
+        // Redis에 리프레시 토큰 저장
+        redisRefreshTokenRepository.save(
+                user.getId(),
+                deviceId,
+                deviceName,
+                refreshToken,
+                expiresAt,
+                ipAddress,
+                userAgent
+        );
+
+        log.info("Refresh Token 저장 완료 - userId: {}, deviceId: {}", user.getId(), deviceId);
+
+        // Redis에서 임시 코드(1회용) 삭제
+        redisTemplate.delete(redisKey);
+        log.info("임시 코드(1회용) 삭제 완료 - code: {}", code);
+        log.info("OAuth2 토큰 교환 성공 - userId: {}", user.getId());
+
+        return new AuthLoginResponse(accessToken, refreshToken);
     }
 
     // 로그아웃
