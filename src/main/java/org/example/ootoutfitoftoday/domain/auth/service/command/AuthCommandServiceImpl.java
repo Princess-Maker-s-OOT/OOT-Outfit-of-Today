@@ -539,12 +539,13 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         }
     }
 
-    // 회원탈퇴
+    // 회원탈퇴 - 분산 락 추가(로그아웃 + 사용자 삭제)
     @Override
     public void withdraw(AuthWithdrawRequest request, AuthUser authUser) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
 
+        // 비밀번호 검증은 락 밖에서 먼저 수행(빠른 실패)
         // 일반 회원만 비밀번호 검증
         if (user.getLoginType() == LoginType.LOGIN_ID) {
             // 비밀번호가 제공되지 않은 경우 예외 발생
@@ -556,29 +557,57 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
             }
+            // 소셜 회원은 비밀번호 검증 없이 바로 탈퇴 처리
         }
-        // 소셜 회원은 비밀번호 검증 없이 바로 탈퇴 처리
 
-        // Redis에서 리프레시 토큰 삭제
-        redisRefreshTokenRepository.deleteAllByUserId(user.getId());
+        String lockKey = USER_LOCK_PREFIX + authUser.getUserId();
+        RLock lock = redissonClient.getLock(lockKey);
 
-        List<ChatParticipatingUser> chatParticipatingUsers = chatParticipatingUserQueryService.getChatParticipatingUsers(user);
+        try {
+            // 회원탈퇴는 중요한 작업이므로 충분한 시간 부여
+            boolean acquired = lock.tryLock(5, 15, TimeUnit.SECONDS);
 
-        chatParticipatingUsers
-                .forEach(chatParticipatingUser1 -> {
-                    List<ChatParticipatingUser> usersInChatroom = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatParticipatingUser1.getChatroom());
-                    usersInChatroom
-                            .forEach(chatParticipatingUser2 -> {
-                                if (!Objects.equals(chatParticipatingUser2.getUser(), user) &&
-                                        chatParticipatingUser2.isDeleted()) {
-                                    chatReferenceToChatroomCommandService.deleteChats(chatParticipatingUser2.getChatroom().getId());
-                                }
-                            });
-                });
+            if (!acquired) {
+                log.warn("회원탈퇴 락 획득 실패 - userId: {}", authUser.getUserId());
+                throw new AuthException(AuthErrorCode.WITHDRAWAL_IN_PROGRESS);
+            }
 
-        userCommandService.softDeleteUser(user);
+            log.info("회원탈퇴 락 획득 성공 - userId: {}", authUser.getUserId());
 
-        log.info("회원탈퇴 완료 - userId: {}", user.getId());
+            // 락 보호 영역: Redis에서 리프레시 토큰 삭제
+            redisRefreshTokenRepository.deleteAllByUserId(user.getId());
+
+            // 락 보호 영역: 채팅 관련 처리
+            List<ChatParticipatingUser> chatParticipatingUsers = chatParticipatingUserQueryService.getChatParticipatingUsers(user);
+
+            chatParticipatingUsers
+                    .forEach(chatParticipatingUser1 -> {
+                        List<ChatParticipatingUser> usersInChatroom = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatParticipatingUser1.getChatroom());
+                        usersInChatroom
+                                .forEach(chatParticipatingUser2 -> {
+                                    if (!Objects.equals(chatParticipatingUser2.getUser(), user) &&
+                                            chatParticipatingUser2.isDeleted()) {
+                                        chatReferenceToChatroomCommandService.deleteChats(chatParticipatingUser2.getChatroom().getId());
+                                    }
+                                });
+                    });
+
+            // 락 보호 영역: 사용자 소프트 삭제
+            userCommandService.softDeleteUser(user);
+
+            log.info("회원탈퇴 완료 - userId: {}", user.getId());
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("회원탈퇴 처리 중 인터럽트 발생 - userId: {}", authUser.getUserId(), e);
+            throw new RuntimeException("회원탈퇴 처리 중 오류가 발생했습니다.", e);
+
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+                log.info("회원탈퇴 락 해제 - userId: {}", authUser.getUserId());
+            }
+        }
     }
 
     // 리프레시 토큰 저장 또는 업데이트
