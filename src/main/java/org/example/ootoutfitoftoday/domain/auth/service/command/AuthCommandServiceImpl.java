@@ -489,28 +489,54 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     // 특정 디바이스 강제 제거
+    // 분산 락 추가
     @Override
     public void removeDevice(
             AuthUser authUser,
             String deviceId,
             String currentDeviceId
     ) {
-        // 현재 로그인한 디바이스 제거 시도 차단
+        // 현재 로그인한 디바이스 제거 시도 차단(락 밖에서 먼저 체크)
         if (deviceId.equals(currentDeviceId)) {
             throw new AuthException(AuthErrorCode.CANNOT_REMOVE_CURRENT_DEVICE);
         }
 
-        // Redis에서 해당 디바이스 존재 여부 확인
-        Optional<String> tokenOpt = redisRefreshTokenRepository.findByUserIdAndDeviceId(authUser.getUserId(), deviceId);
+        String lockKey = USER_LOCK_PREFIX + authUser.getUserId();
+        RLock lock = redissonClient.getLock(lockKey);
 
-        if (tokenOpt.isEmpty()) {
-            throw new AuthException(AuthErrorCode.DEVICE_NOT_FOUND);
+        try {
+            boolean acquired = lock.tryLock(3, 5, TimeUnit.SECONDS);
+
+            if (!acquired) {
+                log.warn("디바이스 제거 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+                throw new AuthException(AuthErrorCode.DEVICE_REMOVAL_IN_PROGRESS);
+            }
+
+            log.info("디바이스 제거 락 획득 성공 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+
+            // 락 보호 영역: Redis에서 해당 디바이스 존재 여부 확인
+            Optional<String> tokenOpt = redisRefreshTokenRepository.findByUserIdAndDeviceId(authUser.getUserId(), deviceId);
+
+            if (tokenOpt.isEmpty()) {
+                throw new AuthException(AuthErrorCode.DEVICE_NOT_FOUND);
+            }
+
+            // 락 보호 영역: Redis에서 디바이스 삭제
+            redisRefreshTokenRepository.deleteByUserIdAndDeviceId(authUser.getUserId(), deviceId);
+
+            log.info("디바이스 강제 제거 완료 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("디바이스 제거 처리 중 인터럽트 발생 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId, e);
+            throw new RuntimeException("디바이스 제거 처리 중 오류가 발생했습니다.", e);
+
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+                log.info("디바이스 제거 락 해제 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+            }
         }
-
-        // Redis에서 디바이스 삭제
-        redisRefreshTokenRepository.deleteByUserIdAndDeviceId(authUser.getUserId(), deviceId);
-
-        log.info("디바이스 강제 제거 완료 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
     }
 
     // 회원탈퇴
