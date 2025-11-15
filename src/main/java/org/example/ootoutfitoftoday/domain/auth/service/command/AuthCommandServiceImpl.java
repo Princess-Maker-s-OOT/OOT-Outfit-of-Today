@@ -414,15 +414,42 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     // 로그아웃
     // DB에서 리프레시 토큰 삭제
     // deviceId 파라미터 추가 -> 특정 디바이스만 로그아웃
+    // 분산 락 추가
     @Override
     public void logout(AuthUser authUser, String deviceId) {
 
-        User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
+        String lockKey = USER_LOCK_PREFIX + authUser.getUserId();
+        RLock lock = redissonClient.getLock(lockKey);
 
-        // Redis에서 리프레시 토큰 삭제
-        redisRefreshTokenRepository.deleteByUserIdAndDeviceId(user.getId(), deviceId);
+        try {
+            // 로그아웃은 짧은 작업이므로 타임아웃을 짧게 설정
+            // - waitTime: 3초(로그인보다 짧게)
+            // - leaseTime: 5초(작업이 빠르므로 짧게)
+            boolean acquired = lock.tryLock(3, 5, TimeUnit.SECONDS);
 
-        log.info("로그아웃 완료 - userId: {}, deviceId: {}", user.getId(), deviceId);
+            if (!acquired) {
+                log.warn("로그아웃 락 획득 실패 - userId: {}, deviceId: {}",
+                        authUser.getUserId(), deviceId);
+                throw new AuthException(AuthErrorCode.LOGOUT_IN_PROGRESS);
+            }
+
+            log.info("로그아웃 락 획득 성공 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+
+            // 락 보호 영역: Redis에서 리프레시 토큰 삭제
+            redisRefreshTokenRepository.deleteByUserIdAndDeviceId(authUser.getUserId(), deviceId);
+
+            log.info("로그아웃 완료 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("로그아웃 처리 중 인터럽트 발생 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId, e);
+            throw new RuntimeException("로그아웃 처리 중 오류가 발생했습니다.", e);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+                log.info("로그아웃 락 해제 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+            }
+        }
     }
 
     // 모든 디바이스에서 로그아웃
