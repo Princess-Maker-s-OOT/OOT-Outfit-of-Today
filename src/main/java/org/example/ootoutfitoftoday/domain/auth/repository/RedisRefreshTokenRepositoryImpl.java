@@ -97,7 +97,7 @@ public class RedisRefreshTokenRepositoryImpl implements RedisRefreshTokenReposit
     public Optional<Long> findUserIdByToken(String token) {
 
         String tokenToUserKey = TOKEN_TO_USER_PREFIX + token;
-        Object userIdObj = redisTemplate.opsForHash().get(tokenToUserKey, "userId");    // TODO: 타입을 오브젝트로...?
+        Object userIdObj = redisTemplate.opsForHash().get(tokenToUserKey, "userId");
 
         if (userIdObj == null) {
 
