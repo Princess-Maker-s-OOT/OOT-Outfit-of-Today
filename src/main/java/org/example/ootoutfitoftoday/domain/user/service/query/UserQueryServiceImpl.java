@@ -6,6 +6,7 @@ import org.example.ootoutfitoftoday.domain.auth.enums.LoginType;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
+import org.example.ootoutfitoftoday.domain.user.dto.UserCacheDto;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
@@ -65,34 +66,22 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.existsByPhoneNumber(phoneNumber);
     }
 
-    // 로그인 시 사용자 조회 캐싱 (기존 유지)
-    // 로그인은 빈번하게 발생하는 작업이므로 캐싱 효과 큼
-    // TTL 10분: 사용자 정보가 변경되더라도 최대 10분 내 반영
+    // 캐싱 없는 Entity 조회 메서드들 (영속성 컨텍스트 필요한 경우 사용)
     @Override
-    @Cacheable(value = "userCache", key = "'loginId:' + #loginId", unless = "#result == null")
     public User findByLoginIdAndIsDeletedFalse(String loginId) {
 
         return userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
-        );
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND));
     }
 
-    // ID로 사용자 조회 캐싱 추가
-    // JWT 검증 후 사용자 정보 조회 시 캐시 활용
-    // 토큰 갱신, API 호출 등에서 반복 조회되므로 성능 향상 효과 큼
     @Override
-    @Cacheable(value = "userCache", key = "'id:' + #id", unless = "#result == null")
     public User findByIdAndIsDeletedFalse(Long id) {
 
         return userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
-        );
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND));
     }
 
-    // 이메일로 사용자 조회 캐싱 추가
-    // OAuth2 로그인 시 이메일로 기존 계정 확인하는 작업 최적화
     @Override
-    @Cacheable(value = "userCache", key = "'email:' + #email", unless = "#result == null")
     public User findByEmailAndIsDeletedFalse(String email) {
 
         return userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(
@@ -167,5 +156,44 @@ public class UserQueryServiceImpl implements UserQueryService {
     public Page<Long> findAllActiveUserIds(Pageable pageable) {
 
         return userRepository.findAllActiveUserIds(pageable);
+    }
+
+    // 로그인 시 사용자 조회 캐싱 (DTO 반환)
+    // 로그인은 빈번하게 발생하는 작업이므로 캐싱 효과 큼
+    // TTL 10분: 사용자 정보가 변경되더라도 최대 10분 내 반영
+    // Entity 대신 DTO를 캐싱하여 Lazy Loading, 순환참조 문제 해결
+    @Override
+    @Cacheable(value = "userCache", key = "'loginId:' + #loginId", unless = "#result == null")
+    public UserCacheDto findCachedByLoginId(String loginId) {
+
+        User user = userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        return UserCacheDto.from(user);
+    }
+
+    // ID로 사용자 조회 캐싱 (DTO 반환)
+    // JWT 검증 후 사용자 정보 조회 시 캐시 활용
+    // 토큰 갱신, API 호출 등에서 반복 조회되므로 성능 향상 효과 큼
+    @Override
+    @Cacheable(value = "userCache", key = "'id:' + #id", unless = "#result == null")
+    public UserCacheDto findCachedById(Long id) {
+
+        User user = userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        return UserCacheDto.from(user);
+    }
+
+    // 이메일로 사용자 조회 캐싱 (DTO 반환)
+    // OAuth2 로그인 시 이메일로 기존 계정 확인하는 작업 최적화
+    @Override
+    @Cacheable(value = "userCache", key = "'email:' + #email", unless = "#result == null")
+    public UserCacheDto findCachedByEmail(String email) {
+
+        User user = userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        return UserCacheDto.from(user);
     }
 }

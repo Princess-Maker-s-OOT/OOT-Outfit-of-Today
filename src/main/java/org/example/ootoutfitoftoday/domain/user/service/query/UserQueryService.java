@@ -2,6 +2,7 @@ package org.example.ootoutfitoftoday.domain.user.service.query;
 
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
+import org.example.ootoutfitoftoday.domain.user.dto.UserCacheDto;
 import org.example.ootoutfitoftoday.domain.user.dto.request.UserPasswordVerificationRequest;
 import org.example.ootoutfitoftoday.domain.user.dto.response.UserGetMyInfoResponse;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
@@ -42,4 +43,10 @@ public interface UserQueryService {
     User findByIdAsNativeQuery(Long id);
 
     Page<Long> findAllActiveUserIds(Pageable pageable);
+
+    UserCacheDto findCachedByLoginId(String loginId);
+
+    UserCacheDto findCachedById(Long id);
+
+    UserCacheDto findCachedByEmail(String email);
 }
