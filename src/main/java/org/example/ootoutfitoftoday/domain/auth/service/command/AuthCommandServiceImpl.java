@@ -132,7 +132,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
-            boolean acquired = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
             if (!acquired) {
                 log.warn("로그인 락 획득 실패 - userId: {}", cachedUser.getId());
@@ -322,7 +322,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             RLock lock = redissonClient.getLock(lockKey);
 
             try {
-                boolean acquired = lock.tryLock(5, 10, TimeUnit.SECONDS);
+                boolean acquired = lock.tryLock(2, 5, TimeUnit.SECONDS);
 
                 if (!acquired) {
                     log.warn("OAuth 토큰 교환 락 획득 실패 - userId: {}", user.getId());
@@ -423,9 +423,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
         try {
             // 로그아웃은 짧은 작업이므로 타임아웃을 짧게 설정
-            // - waitTime: 3초(로그인보다 짧게)
-            // - leaseTime: 5초(작업이 빠르므로 짧게)
-            boolean acquired = lock.tryLock(3, 5, TimeUnit.SECONDS);
+            boolean acquired = lock.tryLock(1, TimeUnit.SECONDS);
 
             if (!acquired) {
                 log.warn("로그아웃 락 획득 실패 - userId: {}, deviceId: {}",
@@ -461,7 +459,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
-            boolean acquired = lock.tryLock(3, 5, TimeUnit.SECONDS);
+            boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
             if (!acquired) {
                 log.warn("전체 로그아웃 락 획득 실패 - userId: {}", authUser.getUserId());
@@ -505,7 +503,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
-            boolean acquired = lock.tryLock(3, 5, TimeUnit.SECONDS);
+            boolean acquired = lock.tryLock(1, TimeUnit.SECONDS);
 
             if (!acquired) {
                 log.warn("디바이스 제거 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
@@ -564,8 +562,11 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
-            // 회원탈퇴는 중요한 작업이므로 충분한 시간 부여
-            boolean acquired = lock.tryLock(5, 15, TimeUnit.SECONDS);
+            // 회원탈퇴는 복잡한 작업이므로 leaseTime 명시
+            // 채팅 관련 처리 시간이 가변적이므로 명시적 제한 필요
+            // - waitTime: 3초
+            // - leaseTime: 10초
+            boolean acquired = lock.tryLock(3, 10, TimeUnit.SECONDS);
 
             if (!acquired) {
                 log.warn("회원탈퇴 락 획득 실패 - userId: {}", authUser.getUserId());
