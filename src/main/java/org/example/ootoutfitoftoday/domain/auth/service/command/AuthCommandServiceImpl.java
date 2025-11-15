@@ -322,7 +322,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             RLock lock = redissonClient.getLock(lockKey);
 
             try {
-                boolean acquired = lock.tryLock(2, 5, TimeUnit.SECONDS);
+                // 락의 안전한 관리를 위해 Watchdog 사용
+                boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
                 if (!acquired) {
                     log.warn("OAuth 토큰 교환 락 획득 실패 - userId: {}", user.getId());
@@ -565,8 +566,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             // 회원탈퇴는 복잡한 작업이므로 leaseTime 명시
             // 채팅 관련 처리 시간이 가변적이므로 명시적 제한 필요
             // - waitTime: 3초
-            // - leaseTime: 10초
-            boolean acquired = lock.tryLock(3, 10, TimeUnit.SECONDS);
+            // - leaseTime: 10초 -> 락의 안전한 관리를 위해 Watchdog 사용
+            boolean acquired = lock.tryLock(3, TimeUnit.SECONDS);
 
             if (!acquired) {
                 log.warn("회원탈퇴 락 획득 실패 - userId: {}", authUser.getUserId());
