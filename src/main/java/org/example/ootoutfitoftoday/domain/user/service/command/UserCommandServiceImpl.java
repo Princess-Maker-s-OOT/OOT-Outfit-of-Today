@@ -369,7 +369,6 @@ public class UserCommandServiceImpl implements UserCommandService {
     private void evictCache(String cacheName, String key) {
 
         Cache cache = cacheManager.getCache(cacheName);
-        
         if (cache != null) {
             cache.evict(key);
         }
