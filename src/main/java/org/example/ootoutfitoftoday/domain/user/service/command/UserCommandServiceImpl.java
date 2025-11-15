@@ -24,6 +24,10 @@ import org.example.ootoutfitoftoday.domain.userimage.exception.UserImageErrorCod
 import org.example.ootoutfitoftoday.domain.userimage.exception.UserImageException;
 import org.example.ootoutfitoftoday.domain.userimage.service.command.UserImageCommandService;
 import org.example.ootoutfitoftoday.domain.userimage.service.query.UserImageQueryService;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,8 +47,18 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final ImageQueryService imageQueryService;
     private final UserImageCommandService userImageCommandService;
     private final UserImageQueryService userImageQueryService;
+    private final CacheManager cacheManager;
 
+    // 회원가입 시 캐시 무효화
+    // 새로운 사용자가 생성되므로 중복 체크 캐시 무효화 필요
+    // loginId, email, nickname, phoneNumber 모두 무효화
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "userExistsCache", key = "'loginId:' + #user.loginId"),
+            @CacheEvict(value = "userExistsCache", key = "'email:' + #user.email"),
+            @CacheEvict(value = "userExistsCache", key = "'nickname:' + #user.nickname"),
+            @CacheEvict(value = "userExistsCache", key = "'phoneNumber:' + #user.phoneNumber")
+    })
     public void save(User user) {
 
         String roleString = user.getRole().name();
@@ -65,8 +79,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         );
     }
 
-    // 소셜 회원 생성
+    // 소셜 회원 생성 시 캐시 무효화
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "userExistsCache", key = "'email:' + #email"),
+            @CacheEvict(value = "userExistsCache", key = "'nickname:' + #nickname")
+    })
     public User createSocialUser(
             String email,
             String nickname,
@@ -93,8 +111,14 @@ public class UserCommandServiceImpl implements UserCommandService {
         return socialUser;
     }
 
-    // 일반 계정에 소셜 정보를 연동하고 DB에 저장
+    // 일반 계정에 소셜 정보를 연동하고 DB에 저장 시 캐시 무효화
+    // 사용자 정보가 변경되므로 해당 사용자의 모든 캐시 무효화
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "userCache", key = "'id:' + #user.id"),
+            @CacheEvict(value = "userCache", key = "'loginId:' + #user.loginId"),
+            @CacheEvict(value = "userCache", key = "'email:' + #user.email")
+    })
     public User linkSocialAccount(
             User user,
             SocialProvider socialProvider,
@@ -124,7 +148,18 @@ public class UserCommandServiceImpl implements UserCommandService {
         return nickname;
     }
 
+    // 회원탈퇴 시 캐시 무효화
+    // 탈퇴한 사용자의 모든 캐시 정보 삭제
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "userCache", key = "'id:' + #user.id"),
+            @CacheEvict(value = "userCache", key = "'loginId:' + #user.loginId"),
+            @CacheEvict(value = "userCache", key = "'email:' + #user.email"),
+            @CacheEvict(value = "userExistsCache", key = "'loginId:' + #user.loginId"),
+            @CacheEvict(value = "userExistsCache", key = "'email:' + #user.email"),
+            @CacheEvict(value = "userExistsCache", key = "'nickname:' + #user.nickname"),
+            @CacheEvict(value = "userExistsCache", key = "'phoneNumber:' + #user.phoneNumber")
+    })
     public void softDeleteUser(User user) {
 
         if (user.isDeleted()) {
@@ -140,12 +175,18 @@ public class UserCommandServiceImpl implements UserCommandService {
         userRepository.save(user);
     }
 
-    // 회원정보 수정
-    //TODO: 리팩토링 고려
+    // 회원정보 수정 시 캐시 무효화
+    // 변경된 정보에 대한 캐시만 선택적으로 무효화
+    // 이메일, 닉네임, 전화번호가 변경되면 해당 exists 캐시도 무효화
     @Override
     public UserUpdateInfoResponse updateInfo(UserUpdateInfoRequest request, AuthUser authUser) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(authUser.getUserId());
+
+        // 변경 전 정보 저장(캐시 무효화용)
+        String oldEmail = user.getEmail();
+        String oldNickname = user.getNickname();
+        String oldPhoneNumber = user.getPhoneNumber();
 
         // 이메일
         if (request.getEmail() != null) {
@@ -186,6 +227,9 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         userRepository.flush();
 
+        // 변경된 정보에 대한 캐시 무효화
+        evictUserCaches(user, oldEmail, oldNickname, oldPhoneNumber);
+
         entityManager.clear();
 
         user = userRepository.findByIdAsNativeQuery(authUser.getUserId());
@@ -198,8 +242,11 @@ public class UserCommandServiceImpl implements UserCommandService {
         );
     }
 
-    // 프로필 이미지 수정(등록)
+    // 프로필 이미지 수정(등록) 시 캐시 무효화
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "userCache", key = "'id:' + #userId")
+    })
     public UserUpdateProfileImageResponse updateProfileImage(Long userId, Long imageId) {
 
         // 사용자 조회
@@ -233,7 +280,8 @@ public class UserCommandServiceImpl implements UserCommandService {
         return UserUpdateProfileImageResponse.of(user.getId(), image.getUrl());
     }
 
-    // 프로필 이미지 삭제(소프트 딜리트)
+    // 프로필 이미지 삭제(소프트 딜리트) 시 캐시 무효화
+    @CacheEvict(value = "userCache", key = "'id:' + #userId")
     public void deleteProfileImage(Long userId) {
 
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
@@ -266,5 +314,63 @@ public class UserCommandServiceImpl implements UserCommandService {
         user.updateTradeLocation(request.tradeAddress(), tradeLocation);
 
         userRepository.updateTradeLocationAsNativeQuery(userId, user.getTradeAddress(), user.getTradeLocation());
+    }
+
+    // 캐시 무효화 헬퍼 메서드
+    // - 프로그래밍 방식으로 캐시 무효화(변경된 항목만 선택적으로)
+    private void evictUserCaches(
+            User user,
+            String oldEmail,
+            String oldNickname,
+            String oldPhoneNumber
+    ) {
+        // 기본 사용자 정보 캐시 무효화
+        evictCache("userCache", "id:" + user.getId());
+        evictCache("userCache", "loginId:" + user.getLoginId());
+
+        // 이메일이 변경된 경우
+        if (!Objects.equals(oldEmail, user.getEmail())) {
+            evictEmailCaches(oldEmail, user.getEmail());
+        } else {
+            evictCache("userCache", "email:" + user.getEmail());
+        }
+
+        // 닉네임이 변경된 경우
+        if (!Objects.equals(oldNickname, user.getNickname())) {
+            evictNicknameCaches(oldNickname, user.getNickname());
+        }
+
+        // 전화번호가 변경된 경우
+        if (!Objects.equals(oldPhoneNumber, user.getPhoneNumber())) {
+            evictPhoneNumberCaches(oldPhoneNumber, user.getPhoneNumber());
+        }
+    }
+
+    private void evictEmailCaches(String oldEmail, String newEmail) {
+
+        evictCache("userCache", "email:" + oldEmail);
+        evictCache("userCache", "email:" + newEmail);
+        evictCache("userExistsCache", "email:" + oldEmail);
+        evictCache("userExistsCache", "email:" + newEmail);
+    }
+
+    private void evictNicknameCaches(String oldNickname, String newNickname) {
+
+        evictCache("userExistsCache", "nickname:" + oldNickname);
+        evictCache("userExistsCache", "nickname:" + newNickname);
+    }
+
+    private void evictPhoneNumberCaches(String oldPhoneNumber, String newPhoneNumber) {
+
+        evictCache("userExistsCache", "phoneNumber:" + oldPhoneNumber);
+        evictCache("userExistsCache", "phoneNumber:" + newPhoneNumber);
+    }
+
+    private void evictCache(String cacheName, String key) {
+
+        Cache cache = cacheManager.getCache(cacheName);
+        if (cache != null) {
+            cache.evict(key);
+        }
     }
 }

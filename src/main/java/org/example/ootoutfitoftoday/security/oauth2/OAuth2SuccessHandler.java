@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 // 인증 성공 시 호출되는 핸들러, 리다이렉트 대신 JSON 응답을 위해 상속
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    // 래디스 키 접두사
+    // Redis 키 접두사
     private static final String REDIS_KEY_PREFIX = "oauth:temp:code:";
 
     private final UserQueryService userQueryService;
@@ -114,7 +114,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             log.info("JWT 토큰 생성 완료 - userId: {}", user.getId());
 
 
-            // 임시 코드 생성 및 래디스 저장
+            // 임시 코드 생성 및 Redis 저장
             String tempCode = generateAndSaveTempCode(user.getId(), accessToken, refreshToken);
 
             log.info("임시 코드 생성 완료 - code: {}, userId: {}", tempCode, user.getId());
@@ -214,7 +214,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 throw new AuthException(AuthErrorCode.TOKEN_SERIALIZATION_FAILED);
             }
 
-            // 래디스에 저장(키: oauth:temp:code:{UUID}, TTL: 3분)
+            // Redis에 저장(키: oauth:temp:code:{UUID}, TTL: 3분)
             String redisKey = REDIS_KEY_PREFIX + tempCode;
             try {
                 redisTemplate.opsForValue().set(redisKey, tokenJson, tempCodeTtlMinutes, TimeUnit.MINUTES);
@@ -223,7 +223,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 throw new AuthException(AuthErrorCode.REDIS_CONNECTION_FAILED);
             }
 
-            // 래디스 저장 즉시 검증
+            // Redis 저장 즉시 검증
             String storedValue = redisTemplate.opsForValue().get(redisKey);
             if (storedValue == null) {
                 log.error("Redis 저장 검증 실패 - key: {}", redisKey);

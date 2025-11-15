@@ -24,7 +24,18 @@ import java.util.UUID;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        // 로그인용
+        @Index(name = "idx_login_id", columnList = "loginId"),
+        // 회원가입 중복 체크용
+        @Index(name = "idx_email", columnList = "email"),
+        @Index(name = "idx_nickname", columnList = "nickname"),
+        @Index(name = "idx_phone_number", columnList = "phoneNumber"),
+        // 소셜 로그인용(복합 인덱스)
+        @Index(name = "idx_social_provider_id", columnList = "socialProvider, socialId"),
+        // isDeleted 필터링용
+        @Index(name = "idx_is_deleted", columnList = "isDeleted")
+})
 public class User extends BaseEntity {
 
     private static final String SOCIAL_LOGIN_ID_PREFIX = "SOCIAL_";

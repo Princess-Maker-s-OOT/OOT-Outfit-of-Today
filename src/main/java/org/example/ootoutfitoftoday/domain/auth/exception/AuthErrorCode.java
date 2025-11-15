@@ -39,7 +39,12 @@ public enum AuthErrorCode implements ErrorCode {
 
     INVALID_OAUTH2_TOKEN("INVALID_OAUTH2_TOKEN", HttpStatus.INTERNAL_SERVER_ERROR, "유효하지 않은 OAuth2 인증 토큰입니다."),
 
-    USER_ALREADY_WITHDRAWN("USER_ALREADY_WITHDRAWN", HttpStatus.GONE, "이미 탈퇴한 사용자입니다.");
+    USER_ALREADY_WITHDRAWN("USER_ALREADY_WITHDRAWN", HttpStatus.GONE, "이미 탈퇴한 사용자입니다."),
+
+    CONCURRENT_LOGIN_IN_PROGRESS("CONCURRENT_LOGIN_IN_PROGRESS", HttpStatus.CONFLICT, "동시 로그인 처리 중입니다. 잠시 후 다시 시도해주세요."),
+    LOGOUT_IN_PROGRESS("LOGOUT_IN_PROGRESS", HttpStatus.CONFLICT, "로그아웃 처리 중입니다. 잠시 후 다시 시도해주세요."),
+    DEVICE_REMOVAL_IN_PROGRESS("DEVICE_REMOVAL_IN_PROGRESS", HttpStatus.CONFLICT, "디바이스 제거 처리 중입니다. 잠시 후 다시 시도해주세요."),
+    WITHDRAWAL_IN_PROGRESS("WITHDRAWAL_IN_PROGRESS", HttpStatus.CONFLICT, "회원탈퇴 처리 중입니다. 잠시 후 다시 시도해주세요.");
 
     private final String code;
     private final HttpStatus httpStatus;

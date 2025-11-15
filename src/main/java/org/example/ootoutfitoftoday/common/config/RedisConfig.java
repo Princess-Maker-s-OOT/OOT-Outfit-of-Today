@@ -17,6 +17,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -67,6 +68,7 @@ public class RedisConfig {
     @Bean
     @Primary
     public ObjectMapper globalObjectMapper() {
+
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -124,6 +126,20 @@ public class RedisConfig {
     }
 
     /**
+     * StringRedisTemplate 설정 추가
+     * - String 전용 RedisTemplate
+     * - OAuth2 임시 코드 저장 및 리프레시 토큰 저장에 사용
+     */
+    @Bean
+    public StringRedisTemplate stringRedisTemplate() {
+
+        StringRedisTemplate template = new StringRedisTemplate();
+        template.setConnectionFactory(redisConnectionFactory());
+
+        return template;
+    }
+
+    /**
      * CacheManager 설정
      * - @Cacheable, @CachePut, @CacheEvict 어노테이션 사용 시 동작
      * - 캐시별로 다른 TTL 설정 가능
@@ -149,9 +165,18 @@ public class RedisConfig {
                 .withCacheConfiguration("clothesCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(30))
                 )
-                // 사용자 정보는 10분 캐싱
+                // 사용자 정보 캐시: 10분
+                // 로그인, 토큰 갱신 등에서 사용자 조회 빈도가 높음
+                // 정보 변경 시 @CacheEvict로 즉시 무효화
                 .withCacheConfiguration("userCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(10))
+                )
+                // 중복 체크 캐시: 1분(짧은 TTL)
+                // 회원가입 또는 정보수정 시 임시로 사용
+                // 실시간성이 중요하므로 짧은 TTL 설정
+                // 회원가입 완료 시 자동으로 무효화됨
+                .withCacheConfiguration("userExistsCache",
+                        defaultConfig.entryTtl(Duration.ofMinutes(1))
                 )
                 // 판매글 리스트는 10분 캐싱
                 .withCacheConfiguration("salePostListCache",
