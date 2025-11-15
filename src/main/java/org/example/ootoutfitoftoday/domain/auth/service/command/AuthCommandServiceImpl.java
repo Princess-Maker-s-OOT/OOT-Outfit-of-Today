@@ -457,10 +457,35 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     @Override
     public void logoutAll(AuthUser authUser) {
 
-        // Redis에서 사용자의 모든 디바이스 삭제
-        redisRefreshTokenRepository.deleteAllByUserId(authUser.getUserId());
+        String lockKey = USER_LOCK_PREFIX + authUser.getUserId();
+        RLock lock = redissonClient.getLock(lockKey);
 
-        log.info("전체 로그아웃 완료 - userId: {}", authUser.getUserId());
+        try {
+            boolean acquired = lock.tryLock(3, 5, TimeUnit.SECONDS);
+
+            if (!acquired) {
+                log.warn("전체 로그아웃 락 획득 실패 - userId: {}", authUser.getUserId());
+                throw new AuthException(AuthErrorCode.LOGOUT_IN_PROGRESS);
+            }
+
+            log.info("전체 로그아웃 락 획득 성공 - userId: {}", authUser.getUserId());
+
+            // 락 보호 영역: Redis에서 사용자의 모든 디바이스 삭제
+            redisRefreshTokenRepository.deleteAllByUserId(authUser.getUserId());
+
+            log.info("전체 로그아웃 완료 - userId: {}", authUser.getUserId());
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("전체 로그아웃 처리 중 인터럽트 발생 - userId: {}", authUser.getUserId(), e);
+            throw new RuntimeException("전체 로그아웃 처리 중 오류가 발생했습니다.", e);
+
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+                log.info("전체 로그아웃 락 해제 - userId: {}", authUser.getUserId());
+            }
+        }
     }
 
     // 특정 디바이스 강제 제거
