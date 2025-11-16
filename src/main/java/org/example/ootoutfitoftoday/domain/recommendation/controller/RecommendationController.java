@@ -29,6 +29,7 @@ import java.util.List;
 
 @Slf4j
 @Tag(name = "추천 기록 관리", description = "기부/판매 추천 기록 조회 및 관리 API")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/recommendations")
@@ -46,7 +47,6 @@ public class RecommendationController {
                     로그인한 사용자의 기부/판매 추천 목록을 페이징하여 조회합니다.
                     기본적으로 생성일 기준 최신순으로 정렬됩니다.
                     """,
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "추천 목록 조회 성공"),
                     @ApiResponse(responseCode = "401", description = "인증 실패"),
@@ -86,7 +86,6 @@ public class RecommendationController {
                     ACCEPTED 상태의 판매 추천을 기반으로 판매글을 생성합니다.
                     이미 판매글이 존재한다면 기존 글을 반환합니다.
                     """,
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "201", description = "판매글 생성 성공"),
                     @ApiResponse(responseCode = "400", description = "잘못된 추천 상태"),
@@ -119,7 +118,6 @@ public class RecommendationController {
                     ACCEPTED 상태의 기부 추천에서 사용자의 거래 위치 기반으로
                     주변 기부처를 거리순으로 검색합니다.
                     """,
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "기부처 검색 성공"),
                     @ApiResponse(responseCode = "400", description = "기부 타입이 아님"),
