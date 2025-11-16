@@ -61,6 +61,9 @@ public class RecommendationController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
+        log.info("Getting recommendations for user: {}, page: {}, size: {}, sort: {}, direction: {}",
+                authUser.getUserId(), page, size, sort, direction);
+
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
 
         Pageable pageable = PageRequest.of(
@@ -73,6 +76,10 @@ public class RecommendationController {
                 authUser.getUserId(),
                 pageable
         );
+
+        log.info("Retrieved {} recommendations for user: {}, totalElements: {}, totalPages: {}",
+                responsePage.getContent().size(), authUser.getUserId(),
+                responsePage.getTotalElements(), responsePage.getTotalPages());
 
         return PageResponse.success(responsePage, RecommendationSuccessCode.RECOMMENDATION_GET_OK);
     }
@@ -100,11 +107,18 @@ public class RecommendationController {
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody RecommendationSalePostCreateRequest request
     ) {
+        log.info("Creating sale post from recommendation: {}, userId: {}", recommendationId, authUser.getUserId());
+        log.debug("Sale post request details - title: {}, price: {}, categoryId: {}",
+                request.title(), request.price(), request.categoryId());
+
         SalePostCreateResponse response = recommendationCommandService.createSalePostFromRecommendation(
                 recommendationId,
                 authUser.getUserId(),
                 request
         );
+
+        log.info("Sale post created successfully from recommendation: {}, salePostId: {}",
+                recommendationId, response.getSalePostId());
 
         return Response.success(response, RecommendationSuccessCode.SALE_POST_FROM_RECOMMENDATION_CREATED);
     }
@@ -131,12 +145,17 @@ public class RecommendationController {
             @RequestParam(required = false) Integer radius,
             @RequestParam(required = false) String keyword
     ) {
+        log.info("Searching donation centers from recommendation: {}, userId: {}, radius: {}, keyword: {}",
+                recommendationId, authUser.getUserId(), radius, keyword);
+
         List<DonationCenterSearchResponse> donationCenters = recommendationQueryService.searchDonationCentersFromRecommendation(
                 recommendationId,
                 authUser.getUserId(),
                 radius,
                 keyword
         );
+
+        log.info("Found {} donation centers for recommendation: {}", donationCenters.size(), recommendationId);
 
         return Response.success(donationCenters, RecommendationSuccessCode.DONATION_CENTER_SEARCH_FROM_RECOMMENDATION_OK);
     }
