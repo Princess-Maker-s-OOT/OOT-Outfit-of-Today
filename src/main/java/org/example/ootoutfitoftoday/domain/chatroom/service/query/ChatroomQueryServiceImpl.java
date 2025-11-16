@@ -39,16 +39,16 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
     // 채팅방 조회
     @Override
     public Slice<ChatroomResponse> getChatrooms(Long userId, Pageable pageable) {
+        log.info("ChatroomService.getChatrooms : userId={} 채팅방 조회", userId);
+
         User currentUser = userQueryService.findByIdAndIsDeletedFalse(userId);
 
-        // 1. 사용자가 참여하고 있는 채팅방 목록을 가져옵니다.
         List<ChatParticipatingUser> userParticipations = chatParticipatingUserQueryService.getChatParticipatingUsers(currentUser);
 
         List<ChatroomResponse> chatroomResponses = userParticipations.stream()
                 .map(participation -> {
                     Chatroom chatroom = participation.getChatroom();
 
-                    // 2. 채팅방의 다른 참여자 정보를 가져옵니다. (N+1 문제 개선 필요)
                     String otherUserNickname = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatroom)
                             .stream()
                             .map(ChatParticipatingUser::getUser)
@@ -57,11 +57,10 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
                             .map(User::getNickname)
                             .orElse("알 수 없는 사용자");
 
-                    // 3. 마지막 채팅과 읽지 않은 채팅 수를 가져옵니다. (N+1 문제 개선 필요)
                     Chat finalChat = chatReferenceToChatroomQueryService.getFinalChat(chatroom);
 
                     String finalChatContent = (finalChat != null) ? finalChat.getContent() : null;
-                    // 시간 계산 버그 수정
+
                     Duration timeSinceFinalChat = (finalChat != null) ? Duration.between(finalChat.getCreatedAt(), LocalDateTime.now()) : null;
 
                     return ChatroomResponse.of(
@@ -70,11 +69,10 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
                             timeSinceFinalChat
                     );
                 })
-                // 정렬 NPE 버그 수정
+
                 .sorted(Comparator.comparing(ChatroomResponse::getAfterFinalChatTime, Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
 
-        // 메모리 내 페이지네이션 (DB 페이지네이션으로 개선 필요)
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), chatroomResponses.size());
         List<ChatroomResponse> subList = (start >= chatroomResponses.size()) ? List.of() : chatroomResponses.subList(start, end);
