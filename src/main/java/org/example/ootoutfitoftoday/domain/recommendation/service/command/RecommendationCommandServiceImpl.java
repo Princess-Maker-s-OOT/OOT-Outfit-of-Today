@@ -48,10 +48,13 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
     // 사용자에게 기부/판매 추천 기록을 생성
     @Override
     public List<RecommendationCreateResponse> generateRecommendations(Long userId) {
+        log.info("Generating recommendations for userId: {}", userId);
 
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
+        log.debug("User found: {}", user.getId());
 
         List<Clothes> clothesList = clothesQueryService.findAllClothesByUserId(userId);
+        log.debug("Total clothes found for user {}: {}", userId, clothesList.size());
 
         // 추천 조건 검사 + 엔티티 생성 (각 옷마다 판매/기부 2개의 추천 생성)
         List<Recommendation> recommendations = clothesList.stream()
@@ -65,7 +68,10 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
                         )))
                 .toList();
 
+        log.debug("Recommendations to be saved: {}", recommendations.size());
+
         List<Recommendation> savedRecommendations = recommendationRepository.saveAll(recommendations);
+        log.info("Successfully saved {} recommendations for userId: {}", savedRecommendations.size(), userId);
 
         return savedRecommendations.stream()
                 .map(RecommendationCreateResponse::from)
@@ -75,12 +81,21 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
     // Spring Batch용: 추천 엔티티만 생성 (저장하지 않음)
     @Override
     public List<Recommendation> createRecommendationsForBatch(Long userId) {
+        log.info("Creating batch recommendations for userId: {}", userId);
+
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
+        log.debug("User found for batch: {}", user.getId());
 
         List<Clothes> clothesList = clothesQueryService.findAllClothesByUserId(userId);
+        log.debug("Total clothes found for batch user {}: {}", userId, clothesList.size());
+
+        long unwornClothesCount = clothesList.stream()
+                .filter(this::isUnwornForOneYear)
+                .count();
+        log.debug("Unworn clothes (1+ year) for user {}: {}", userId, unwornClothesCount);
 
         // 추천 조건 검사 + 엔티티 생성 (각 옷마다 판매/기부 2개의 추천 생성)
-        return clothesList.stream()
+        List<Recommendation> recommendations = clothesList.stream()
                 .filter(this::isUnwornForOneYear)
                 .flatMap(clothes -> Arrays.stream(RecommendationType.values())
                         .map(type -> Recommendation.createForUnwornClothes(
@@ -90,6 +105,9 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
                                 UNWORN_REASON
                         )))
                 .toList();
+
+        log.info("Created {} batch recommendations for userId: {} (unsaved)", recommendations.size(), userId);
+        return recommendations;
     }
 
     // 마지막 착용일이 1년 이상 경과했는지 확인
@@ -98,7 +116,8 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
 
         // lastWornAt이 null이면 착용한 적이 없으므로 추천 대상
         if (lastWornAt == null) {
-
+            log.trace("Clothes {} has never been worn (lastWornAt is null), eligible for recommendation",
+                    clothes.getId());
             return true;
         }
 
@@ -107,7 +126,13 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
 
         LocalDate oneYearAgo = LocalDate.now(clock).minusYears(1);
 
-        return lastWornDate.isBefore(oneYearAgo);
+        boolean isUnworn = lastWornDate.isBefore(oneYearAgo);
+        if (isUnworn) {
+            log.trace("Clothes {} last worn on {}, which is before {}, eligible for recommendation",
+                    clothes.getId(), lastWornDate, oneYearAgo);
+        }
+
+        return isUnworn;
     }
 
     // 추천으로부터 판매글 생성
@@ -117,7 +142,11 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
             Long userId,
             RecommendationSalePostCreateRequest request
     ) {
+        log.info("Creating sale post from recommendation: {}, userId: {}", recommendationId, userId);
+
         Recommendation recommendation = recommendationQueryService.findById(recommendationId);
+        log.debug("Found recommendation: {}, status: {}, type: {}, ownerId: {}",
+                recommendationId, recommendation.getStatus(), recommendation.getType(), recommendation.getUser().getId());
 
         if (recommendation.getStatus() != RecommendationStatus.ACCEPTED) {
             log.warn("Recommendation is not ACCEPTED - recommendationId: {}, status: {}",
@@ -132,8 +161,8 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
         }
 
         if (!recommendation.getUser().getId().equals(userId)) {
-            log.warn("Unauthorized access to recommendation - recommendationId: {}, userId: {}",
-                    recommendationId, userId);
+            log.warn("Unauthorized access to recommendation - recommendationId: {}, requestUserId: {}, ownerUserId: {}",
+                    recommendationId, userId, recommendation.getUser().getId());
             throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND);
         }
 
@@ -146,7 +175,10 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
             return SalePostCreateResponse.from(existingSalePost.get());
         }
 
-        return salePostCommandService.createSalePostFromRecommendation(
+        log.debug("Creating new sale post from recommendation: {}, clothesId: {}",
+                recommendationId, recommendation.getClothes().getId());
+
+        SalePostCreateResponse response = salePostCommandService.createSalePostFromRecommendation(
                 recommendation,
                 request.categoryId(),
                 request.title(),
@@ -157,5 +189,10 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
                 request.tradeLongitude(),
                 request.imageUrls()
         );
+
+        log.info("Successfully created sale post from recommendation: {}, salePostId: {}",
+                recommendationId, response.getSalePostId());
+
+        return response;
     }
 }
