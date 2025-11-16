@@ -55,7 +55,7 @@ CMDS=(
   "docker rm   ${CONTAINER_NAME} || true"
   "mkdir -p /home/ssm-user/app-logs"
   "docker run -d --name ${CONTAINER_NAME} --restart=always -p ${APP_PORT}:${APP_PORT} -v /home/ssm-user/app-logs:/app-logs -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} ${FULL_URI}"
-  "cat > /home/ssm-user/promtail-config.yml <<'PROMTAIL_EOF'
+  "cat > /home/ssm-user/promtail-config.yml <<PROMTAIL_EOF
 ${PROMTAIL_CONFIG_CONTENT}
 PROMTAIL_EOF"
   "docker stop promtail || true"
