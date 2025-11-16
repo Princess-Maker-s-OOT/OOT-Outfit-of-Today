@@ -1,0 +1,16 @@
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+README.md
+.next
+.git
+.gitignore
+*.md
+.env.local
+.env.development
+.DS_Store
+.pnpm-store
+.vscode
+.history
+.claude
