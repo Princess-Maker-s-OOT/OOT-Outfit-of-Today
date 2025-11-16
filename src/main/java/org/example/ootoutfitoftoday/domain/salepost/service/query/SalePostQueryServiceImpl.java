@@ -21,12 +21,15 @@ import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepositor
 import org.example.ootoutfitoftoday.domain.salepost.service.cache.SalePostCacheService;
 import org.example.ootoutfitoftoday.domain.salepost.util.NativeQuerySortUtil;
 import org.example.ootoutfitoftoday.domain.salepost.util.SliceContent;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +42,7 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
 
     private final SalePostRepository salePostRepository;
     private final SalePostCacheService salePostCacheService;
+    private final UserQueryService userQueryService;
     private final EntityManager entityManager;
 
     // 코드 중복 방지를 위한 헬퍼 메서드
@@ -91,9 +95,21 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
             String keyword,
             Pageable pageable
     ) {
+        log.info("SalePostService.getSalePostList : userId={}, categoryId={}", userId, categoryId);
+
+        User user = userQueryService.findByIdAsNativeQuery(userId);
+
+        Location location = PointFormatAndParse.parse(user.getTradeLocation());
+
+        BigDecimal conversionLatitude = location.latitude().multiply(new BigDecimal("10000"));
+        BigDecimal conversionLongitude = location.longitude().multiply(new BigDecimal("10000"));
+
+        Long cacheKeyLatitude = Math.round(conversionLatitude.doubleValue());
+        Long cacheKeyLongitude = Math.round(conversionLongitude.doubleValue());
+
         // SalePostCacheService를 통해 캐시 적용
         CachedSliceResponse<SalePostListResponse> cached = salePostCacheService.getCachedSalePostList(
-                userId, categoryId, status, keyword, pageable
+                user, cacheKeyLatitude, cacheKeyLongitude, categoryId, status, keyword, pageable
         );
         return cached.toSlice();
     }
