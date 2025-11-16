@@ -9,10 +9,10 @@ set -euo pipefail
 : "${FRONTEND_PORT:?FRONTEND_PORT required}"
 
 # ===== ECR 경로 파싱 =====
-REG_URI="$(echo "${FULL_URI}" | cut -d/ -f1)"
-REPO_AND_TAG="$(echo "${FULL_URI}" | cut -d/ -f2- )"
-REPO="$(echo "${REPO_AND_TAG}" | rev | cut -d: -f2- | rev)"
-TAG="$(echo "${REPO_AND_TAG}"  | awk -F: '{print $NF}')"
+REG_URI="${FULL_URI%%/*}"
+REPO_AND_TAG="${FULL_URI#*/}"
+REPO="${REPO_AND_TAG%:*}"
+TAG="${REPO_AND_TAG##*:}"
 
 # SSM 코멘트(100자 제한 방어)
 COMMENT="Deploy Frontend ${REPO}:${TAG}"
@@ -32,6 +32,7 @@ CMDS=(
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
   "docker run -d --name ${CONTAINER_NAME} --restart=always -p ${FRONTEND_PORT}:3000 ${FULL_URI}"
+  "docker image prune -f"
 )
 
 # Bash 배열 → JSON 배열 변환
