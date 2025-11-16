@@ -1,0 +1,101 @@
+name: Frontend Deploy (dev)
+
+on:
+  workflow_dispatch:
+    inputs:
+      frontend_repo:
+        description: 'Frontend repository (owner/repo)'
+        required: true
+        default: 'Princess-Maker-s-OOT/oot-frontend'
+      frontend_branch:
+        description: 'Frontend branch to deploy'
+        required: true
+        default: 'main'
+
+permissions:
+  id-token: write     # OIDC 인증을 위해 필요
+  contents: read      # 코드 Checkout을 위해 필요
+
+env:
+  AWS_REGION: ap-northeast-2
+  ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+  ECR_REPO: ${{ secrets.FRONTEND_ECR_REPO }}
+  IMAGE_TAG: ${{ github.sha }}
+  EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+  CONTAINER_NAME: frontend
+  FRONTEND_PORT: "3000"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-frontend-dev
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout backend repo (for deploy scripts)
+        uses: actions/checkout@v4
+
+      - name: Checkout frontend repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.frontend_repo }}
+          ref: ${{ github.event.inputs.frontend_branch }}
+          path: frontend
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Make scripts executable
+        run: chmod +x frontend-deploy/scripts/*.sh
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/github-oidc-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build & Push to ECR
+        id: push
+        env:
+          FRONTEND_PATH: ./frontend
+        run: |
+          ./frontend-deploy/scripts/ecr-push.sh
+
+      - name: Deploy on EC2 via SSM
+        env:
+          FULL_URI: ${{ steps.push.outputs.FULL_URI }}
+        run: |
+          ./frontend-deploy/scripts/deploy.sh
+
+      - name: Setup Nginx (if not exists)
+        run: |
+          aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
+            --parameters commands="[
+              \"if ! command -v nginx &> /dev/null; then sudo yum install -y nginx || sudo apt-get install -y nginx; fi\",
+              \"sudo systemctl enable nginx\",
+              \"sudo systemctl start nginx || true\"
+            ]" \
+            --region $AWS_REGION --output json
+
+      - name: Update Nginx config
+        run: |
+          NGINX_CONFIG=$(cat frontend-deploy/nginx.conf | base64 -w 0)
+          aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
+            --parameters commands="[
+              \"echo '${NGINX_CONFIG}' | base64 -d | sudo tee /etc/nginx/conf.d/oot-frontend.conf\",
+              \"sudo nginx -t && sudo systemctl reload nginx\"
+            ]" \
+            --region $AWS_REGION --output json
+
+      - name: Verify containers
+        run: |
+          aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
+            --parameters commands="[
+              \"docker ps --format 'table {{.Names}}\\t{{.Image}}\\t{{.Status}}'\"
+            ]" \
+            --region $AWS_REGION --output json
