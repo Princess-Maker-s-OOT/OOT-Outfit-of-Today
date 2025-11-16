@@ -350,8 +350,6 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             String code,
             String redisKey
     ) {
-        LocalDateTime expiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
-
         // MySQL에서 디바이스 수만 카운트
         long deviceCount = refreshTokenRepository.countByUserId(user.getId());
 
@@ -366,30 +364,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             }
         }
 
-        String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
-        String userAgent = httpRequest.getHeader("User-Agent");
-
-        log.info("=== 클라이언트 정보 추출 ===");
-        log.info("IP Address: {}", ipAddress);
-        log.info("User-Agent: {}", userAgent);
-
-        // MySQL에 리프레시 토큰 저장
-        refreshTokenRepository.findByUserIdAndDeviceId(user.getId(), deviceId)
-                .ifPresentOrElse(
-                        existingToken -> existingToken.updateToken(refreshToken, expiresAt, ipAddress, userAgent),
-                        () -> {
-                            RefreshToken newToken = RefreshToken.create(
-                                    user,
-                                    deviceId,
-                                    deviceName,
-                                    refreshToken,
-                                    expiresAt,
-                                    ipAddress,
-                                    userAgent
-                            );
-                            refreshTokenRepository.save(newToken);
-                        }
-                );
+        saveOrUpdateRefreshToken(user, deviceId, deviceName, refreshToken, httpRequest);
 
         log.info("Refresh Token 저장 완료 - userId: {}, deviceId: {}", user.getId(), deviceId);
 
