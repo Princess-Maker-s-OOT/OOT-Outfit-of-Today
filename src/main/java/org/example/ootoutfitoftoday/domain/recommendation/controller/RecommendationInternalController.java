@@ -58,7 +58,7 @@ public class RecommendationInternalController {
                     주의: 이 API는 배치 서버 전용이며, 외부 접근이 제한되어야 합니다.
                     """,
             responses = {
-                    @ApiResponse(responseCode = "200", description = "추천 생성 성공"),
+                    @ApiResponse(responseCode = "201", description = "추천 생성 성공"),
                     @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
                     @ApiResponse(responseCode = "500", description = "서버 내부 오류")
             }
