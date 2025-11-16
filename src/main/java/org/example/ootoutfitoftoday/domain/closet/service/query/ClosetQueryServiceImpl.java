@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.closet.service.query;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetMyResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetPublicResponse;
 import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetGetResponse;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -30,6 +32,8 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
             String sort,
             String direction
     ) {
+        log.info("Fetching public closets - page: {}, size: {}, sort: {}, direction: {}", page, size, sort, direction);
+
         Sort sortObj = Sort.by(Sort.Direction.fromString(direction), sort);
 
         Pageable pageable = PageRequest.of(
@@ -40,19 +44,29 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
 
         Page<Closet> closets = closetRepository.findAllByIsPublicTrue(pageable);
 
+        log.info("Retrieved {} public closets, totalElements: {}", closets.getContent().size(), closets.getTotalElements());
+
         return closets.map(ClosetGetPublicResponse::from);
     }
 
     // 옷장 상세 조회
     @Override
     public ClosetGetResponse getCloset(Long closetId) {
+        log.info("Fetching closet details - closetId: {}", closetId);
 
         Closet closet = closetRepository.findById(closetId)
-                .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Closet not found - closetId: {}", closetId);
+                    return new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND);
+                });
 
         if (closet.isDeleted()) {
+            log.warn("Closet is deleted - closetId: {}", closetId);
             throw new ClosetException(ClosetErrorCode.CLOSET_DELETED);
         }
+
+        log.debug("Closet retrieved - closetId: {}, name: {}, isPublic: {}",
+                closetId, closet.getName(), closet.getIsPublic());
 
         return ClosetGetResponse.from(closet);
     }
@@ -66,6 +80,9 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
             String sort,
             String direction
     ) {
+        log.info("Fetching user's closets - userId: {}, page: {}, size: {}, sort: {}, direction: {}",
+                userId, page, size, sort, direction);
+
         Sort sortObj = Sort.by(Sort.Direction.fromString(direction), sort);
 
         Pageable pageable = PageRequest.of(
@@ -79,13 +96,21 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
                 pageable
         );
 
+        log.info("Retrieved {} closets for userId: {}, totalElements: {}",
+                closets.getContent().size(), userId, closets.getTotalElements());
+
         return closets.map(ClosetGetMyResponse::from);
     }
 
     // 지정된 ID에 해당하는 옷장을 조회
     @Override
     public Closet findClosetById(Long closetId) {
+        log.debug("Finding closet by id: {}", closetId);
+
         return closetRepository.findById(closetId)
-                .orElseThrow(() -> new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Closet not found - closetId: {}", closetId);
+                    return new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND);
+                });
     }
 }
