@@ -23,7 +23,8 @@ public class ChatQueryServiceImpl implements ChatQueryService {
 
     @Override
     public Slice<ChatResponse> getChats(Long chatroomId, Pageable pageable) {
-        log.info("[GET] /v1/chatrooms/{chatroomId}/chats : Service 작동");
+
+        log.info("[GET] /v1/chatrooms/{}/chats : Service 작동", chatroomId);
 
         Chatroom chatroom = chatroomQueryService.getChatroomById(chatroomId);
 
@@ -41,6 +42,7 @@ public class ChatQueryServiceImpl implements ChatQueryService {
 
     @Override
     public boolean existsByChatroom(Long chatroomId) {
+
         return chatRepository.existsByChatroomIdAndIsDeletedFalse(chatroomId);
     }
 }

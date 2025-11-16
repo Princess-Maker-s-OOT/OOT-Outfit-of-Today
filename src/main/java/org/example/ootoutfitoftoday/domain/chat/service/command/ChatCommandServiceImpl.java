@@ -32,7 +32,8 @@ public class ChatCommandServiceImpl implements ChatCommandService {
 
     @Override
     public ChatResponse createChat(ChatRequest chatRequest, Long chatroomId, Long userId) {
-        log.info("ChatService.sendAndSaveMessage : 채팅 동작");
+
+        log.info("ChatService.createChat : chatroomId={}, userId={} 채팅 생성", chatroomId, userId);
 
         Chatroom chatroom = chatroomQueryService.getChatroomById(chatroomId);
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
@@ -46,7 +47,7 @@ public class ChatCommandServiceImpl implements ChatCommandService {
 
         List<ChatParticipatingUser> chatParticipatingUsers = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatroom);
 
-        log.info("ChatService.sendAndSaveMessage : 채팅방 삭제 유무 체크");
+        log.info("ChatService.createChat : 채팅방 삭제 유무 체크");
         chatParticipatingUsers.forEach(chatParticipatingUser -> {
             if (!Objects.equals(chatParticipatingUser.getUser(), user) &&
                     !chatParticipatingUser.getUser().isDeleted() &&
