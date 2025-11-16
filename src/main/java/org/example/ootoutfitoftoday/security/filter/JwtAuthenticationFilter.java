@@ -35,6 +35,76 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final ObjectMapper objectMapper;
 
+    /**
+     * JWT 인증이 필요 없는 경로를 정의
+     * OncePerRequestFilter의 표준 메서드를 오버라이드하여
+     * 필터 적용 여부를 한 곳에서 관리합니다.
+     */
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        String path = request.getServletPath();
+        String method = request.getMethod();
+
+        // Internal API (배치 서버 전용)
+        if (path.startsWith("/v1/internal/")) {
+            log.debug("[JWT FILTER] Skipped for Internal API → {}", path);
+            return true;
+        }
+
+        // Swagger & API Docs
+        if (path.startsWith("/swagger-ui") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/swagger-resources") ||
+                path.startsWith("/webjars")) {
+            return true;
+        }
+
+        // Actuator Health Check & Prometheus
+        if (path.startsWith("/actuator/health") ||
+                path.startsWith("/actuator/info") ||
+                path.startsWith("/actuator/prometheus")) {
+            return true;
+        }
+
+        // OAuth2 소셜 로그인
+        if (path.startsWith("/oauth2/") || path.startsWith("/login/oauth2/")) {
+            return true;
+        }
+
+        // WebSocket
+        if (path.startsWith("/ws") || path.startsWith("/stomp")) {
+            return true;
+        }
+
+        // POST 요청 - 인증 불필요 경로 (회원가입/로그인)
+        if ("POST".equalsIgnoreCase(method) &&
+                (path.startsWith("/v1/auth/signup") ||
+                        path.startsWith("/v1/auth/login") ||
+                        path.startsWith("/v1/auth/refresh") ||
+                        path.startsWith("/v1/auth/oauth2/token/exchange"))) {
+            return true;
+        }
+
+        // GET 요청 - 공개 API
+        if ("GET".equalsIgnoreCase(method)) {
+            // 공개 목록 조회
+            if (path.startsWith("/v1/closets/public") ||
+                    path.startsWith("/v1/sale-posts/public") ||
+                    path.startsWith("/v1/categories") ||
+                    path.startsWith("/v1/donation-centers/search")) {
+                return true;
+            }
+
+            // 단건 조회 (패턴 매칭)
+            if (path.matches("/v1/closets/\\d+") ||
+                    path.matches("/v1/sale-posts/\\d+")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest httpRequest,
@@ -42,20 +112,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain chain
     ) throws ServletException, IOException {
 
-        // context-path 제외하고 URI 가져오기
-        String requestUri = httpRequest.getServletPath();
-        String method = httpRequest.getMethod();
-
         // 필터 진입 테스트 로그
         log.info("JwtAuthenticationFilter 진입: {} {}", httpRequest.getMethod(), httpRequest.getRequestURI());
-
-        // 화이트리스트 경로 예외처리
-        if (isWhitelisted(requestUri, method)) {
-            log.info("화이트리스트 경로 통과: {} {}", method, requestUri);
-            chain.doFilter(httpRequest, httpResponse);
-
-            return;
-        }
 
         // JWT 인증 시작
         // HTTP 요청 헤더에서 "Authorization" 헤더값을 가져옴
@@ -160,67 +218,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         errorResponse.put("code", status.value());
         errorResponse.put("message", message);
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
-    }
-
-    // 인증 불필요 경로는 필터 스킵
-    private boolean isWhitelisted(String uri, String method) {
-        // Swagger & Docs
-        if (uri.startsWith("/swagger-ui") ||
-                uri.startsWith("/v3/api-docs") ||
-                uri.startsWith("/v3/api-docs.yaml") ||
-                uri.startsWith("/swagger-resources") ||
-                uri.startsWith("/webjars")) {
-
-            return true;
-        }
-
-        // Actuator Health Check and Prometheus
-        if (uri.startsWith("/actuator/health") ||
-                uri.startsWith("/actuator/info") ||
-                uri.startsWith("/actuator/prometheus")) {
-
-            return true;
-        }
-
-        // 소셜 로그인
-        if (uri.startsWith("/oauth2/") || uri.startsWith("/login/oauth2/")) {
-
-            return true;
-        }
-
-        // WebSocket
-        if (uri.startsWith("/ws") || uri.startsWith("/stomp")) {
-
-            return true;
-        }
-
-        // POST 요청에서 인증 불필요한 경로 (회원가입/로그인)
-        if ("POST".equalsIgnoreCase(method) &&
-                (uri.startsWith("/v1/auth/signup") ||
-                        uri.startsWith("/v1/auth/login") ||
-                        uri.startsWith("/v1/auth/refresh") ||
-                        uri.startsWith("/v1/auth/oauth2/token/exchange"))) {
-
-            return true;
-        }
-
-        // GET 요청 공개 API
-        if ("GET".equalsIgnoreCase(method)) {
-            // 정확한 경로 매칭
-            if (uri.startsWith("/v1/closets/public") ||
-                    uri.startsWith("/v1/sale-posts/public") ||
-                    uri.startsWith("/v1/categories") ||
-                    uri.startsWith("/v1/donation-centers/search")) {
-                return true;
-            }
-
-            // 패턴 매칭 (단건 조회)
-            if (uri.matches("/v1/closets/\\d+") ||
-                    uri.matches("/v1/sale-posts/\\d+")) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
