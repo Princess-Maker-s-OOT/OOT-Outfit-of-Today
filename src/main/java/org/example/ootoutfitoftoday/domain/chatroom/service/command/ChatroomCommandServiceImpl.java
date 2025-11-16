@@ -60,7 +60,7 @@ public class ChatroomCommandServiceImpl implements ChatroomCommandService {
     // 채팅방 삭제
     @Override
     public void deleteChatroom(Long chatroomId, Long userId) {
-        log.info("ChatroomService.createChatroom : userId={} 채팅방 삭제", userId);
+        log.info("ChatroomService.deleteChatroom : userId={} 채팅방 삭제", userId);
 
         Chatroom chatroom = chatroomRepository.findById(chatroomId).orElseThrow(
                 () -> new ChatroomException(ChatroomErrorCode.NOT_EXIST_CHATROOM)
