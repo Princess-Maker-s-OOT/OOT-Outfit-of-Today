@@ -206,6 +206,10 @@ public class SecurityConfig {
                         // Monitor
                         .requestMatchers("/actuator/info", "/actuator/health", "/actuator/prometheus").permitAll()
 
+                        // Internal API (배치 서버 전용)
+                        // 주의: 프로덕션 환경에서는 네트워크 레벨 접근 제어(IP 화이트리스트 등) 필요
+                        .requestMatchers("/v1/internal/**").permitAll()
+
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
