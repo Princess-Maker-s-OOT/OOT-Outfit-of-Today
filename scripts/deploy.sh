@@ -9,7 +9,7 @@ set -euo pipefail
 : "${APP_PORT:?APP_PORT required}"
 : "${SPRING_PROFILE:?SPRING_PROFILE required}"
 
-MONITORING_EC2_PRIVATE_IP="10.0.1.82"
+MONITORING_EC2_PUBLIC_IP="54.180.9.231"
 
 # ===== ECR 경로 파싱 =====
 REG_URI="$(echo "${FULL_URI}" | cut -d/ -f1)"
@@ -28,36 +28,39 @@ echo "[INFO] REG_URI=${REG_URI}"
 echo "[INFO] EC2_INSTANCE_ID=${EC2_INSTANCE_ID}"
 echo "[INFO] COMMENT=${COMMENT}"
 
-# -----------------------------------------------------------------
-# ▼▼▼ [ 추가 ] Promtail 설정 파일 내용을 변수로 만듭니다 ▼▼▼
-# (EC2에서 이 내용으로 promtail-config.yml 파일을 생성합니다)
-PROMPTAIL_CONFIG_CONTENT=$(cat <<EOF
+PROMTAIL_CONFIG_CONTENT=$(cat <<EOF
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
 positions:
   filename: /tmp/positions.yaml
 clients:
-  - url: http://${MONITORING_EC2_PRIVATE_IP}:3100/loki/api/v1/push
+  - url: http://${MONITORING_EC2_PUBLIC_IP}:3100/loki/api/v1/push
 scrape_configs:
-- job_name: stay-stylish-logs
+- job_name: oot-dev-logs
   static_configs:
   - targets:
       - localhost
     labels:
-      job: "stay-stylish"
-      __path__: /home/ssm-user/app-logs/*.log
+      job: "oot-dev"
+      environment: "dev"
+      __path__: /app-logs/*.log
 EOF
 )
-# -----------------------------------------------------------------
 
-# ===== EC2에서 실행할 커맨드(배열로 안전하게 정의) =====
 CMDS=(
   "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REG_URI}"
   "docker pull ${FULL_URI}"
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
-  "docker run -d --name ${CONTAINER_NAME} --restart=always -p ${APP_PORT}:${APP_PORT} -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} ${FULL_URI}"
+  "mkdir -p /home/ssm-user/app-logs"
+  "docker run -d --name ${CONTAINER_NAME} --restart=always -p ${APP_PORT}:${APP_PORT} -v /home/ssm-user/app-logs:/app-logs -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} ${FULL_URI}"
+  "cat > /home/ssm-user/promtail-config.yml <<PROMTAIL_EOF
+${PROMTAIL_CONFIG_CONTENT}
+PROMTAIL_EOF"
+  "docker stop promtail || true"
+  "docker rm promtail || true"
+  "docker run -d --name promtail --restart=always -v /home/ssm-user/promtail-config.yml:/etc/promtail/config.yml -v /home/ssm-user/app-logs:/app-logs grafana/promtail:latest -config.file=/etc/promtail/config.yml"
 )
 
 # Bash 배열 → JSON 배열 변환 (jq 필수)
