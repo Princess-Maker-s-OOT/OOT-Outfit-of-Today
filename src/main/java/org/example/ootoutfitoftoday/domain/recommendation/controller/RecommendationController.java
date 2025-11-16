@@ -61,7 +61,7 @@ public class RecommendationController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
-        log.info("Getting recommendations for user: {}, page: {}, size: {}, sort: {}, direction: {}",
+        log.info("추천 목록 조회 요청 - 사용자: {}, 페이지: {}, 크기: {}, 정렬: {}, 방향: {}",
                 authUser.getUserId(), page, size, sort, direction);
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
@@ -77,7 +77,7 @@ public class RecommendationController {
                 pageable
         );
 
-        log.info("Retrieved {} recommendations for user: {}, totalElements: {}, totalPages: {}",
+        log.info("추천 목록 조회 완료 - 조회 건수: {}, 사용자: {}, 전체 건수: {}, 전체 페이지: {}",
                 responsePage.getContent().size(), authUser.getUserId(),
                 responsePage.getTotalElements(), responsePage.getTotalPages());
 
@@ -107,8 +107,8 @@ public class RecommendationController {
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody RecommendationSalePostCreateRequest request
     ) {
-        log.info("Creating sale post from recommendation: {}, userId: {}", recommendationId, authUser.getUserId());
-        log.debug("Sale post request details - title: {}, price: {}, categoryId: {}",
+        log.info("추천 기반 판매글 생성 요청 - 추천ID: {}, 사용자: {}", recommendationId, authUser.getUserId());
+        log.debug("판매글 요청 상세 - 제목: {}, 가격: {}, 카테고리ID: {}",
                 request.title(), request.price(), request.categoryId());
 
         SalePostCreateResponse response = recommendationCommandService.createSalePostFromRecommendation(
@@ -117,7 +117,7 @@ public class RecommendationController {
                 request
         );
 
-        log.info("Sale post created successfully from recommendation: {}, salePostId: {}",
+        log.info("추천 기반 판매글 생성 완료 - 추천ID: {}, 판매글ID: {}",
                 recommendationId, response.getSalePostId());
 
         return Response.success(response, RecommendationSuccessCode.SALE_POST_FROM_RECOMMENDATION_CREATED);
@@ -145,7 +145,7 @@ public class RecommendationController {
             @RequestParam(required = false) Integer radius,
             @RequestParam(required = false) String keyword
     ) {
-        log.info("Searching donation centers from recommendation: {}, userId: {}, radius: {}, keyword: {}",
+        log.info("추천 기반 기부처 검색 요청 - 추천ID: {}, 사용자: {}, 반경: {}, 키워드: {}",
                 recommendationId, authUser.getUserId(), radius, keyword);
 
         List<DonationCenterSearchResponse> donationCenters = recommendationQueryService.searchDonationCentersFromRecommendation(
@@ -155,7 +155,7 @@ public class RecommendationController {
                 keyword
         );
 
-        log.info("Found {} donation centers for recommendation: {}", donationCenters.size(), recommendationId);
+        log.info("기부처 검색 완료 - 검색 건수: {}, 추천ID: {}", donationCenters.size(), recommendationId);
 
         return Response.success(donationCenters, RecommendationSuccessCode.DONATION_CENTER_SEARCH_FROM_RECOMMENDATION_OK);
     }
