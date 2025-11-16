@@ -30,15 +30,14 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
     private final UserQueryService userQueryService;
     private final ImageQueryService imageQueryService;
 
-    // 옷장 등록
     @Override
     public ClosetCreateResponse createCloset(Long userId, ClosetCreateRequest request) {
-        log.info("Creating closet for userId: {}", userId);
-        log.debug("Closet details - name: {}, isPublic: {}, imageId: {}",
+        log.info("옷장 생성 시작 - 사용자: {}", userId);
+        log.debug("옷장 상세 정보 - 이름: {}, 공개여부: {}, 이미지ID: {}",
                 request.name(), request.isPublic(), request.imageId());
 
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
-        log.debug("User found: {}", user.getId());
+        log.debug("사용자 조회 완료 - 사용자: {}", user.getId());
 
         Closet closet = Closet.create(
                 user,
@@ -48,13 +47,13 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
         );
 
         if (request.imageId() != null) {
-            log.debug("Attaching image to closet - imageId: {}", request.imageId());
+            log.debug("옷장 이미지 연결 - 이미지ID: {}", request.imageId());
             Image image = imageQueryService.findImageById(request.imageId());
             closet.setClosetImage(image);
         }
 
         Closet savedCloset = closetRepository.save(closet);
-        log.info("Closet created successfully - closetId: {}, userId: {}", savedCloset.getId(), userId);
+        log.info("옷장 생성 완료 - 옷장ID: {}, 사용자: {}", savedCloset.getId(), userId);
 
         return ClosetCreateResponse.from(savedCloset);
     }
@@ -66,25 +65,25 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
             Long closetId,
             ClosetUpdateRequest request
     ) {
-        log.info("Updating closet - closetId: {}, userId: {}", closetId, userId);
-        log.debug("Update request - name: {}, isPublic: {}, imageId: {}",
+        log.info("옷장 수정 시작 - 옷장ID: {}, 사용자: {}", closetId, userId);
+        log.debug("수정 요청 상세 - 이름: {}, 공개여부: {}, 이미지ID: {}",
                 request.name(), request.isPublic(), request.imageId());
 
         Closet updatedCloset = closetRepository.findById(closetId)
                 .orElseThrow(() -> {
-                    log.warn("Closet not found - closetId: {}", closetId);
+                    log.warn("옷장을 찾을 수 없음 - 옷장ID: {}", closetId);
                     return new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND);
                 });
 
         if (!updatedCloset.getUserId().equals(userId)) {
-            log.warn("Unauthorized access to closet - closetId: {}, requestUserId: {}, ownerUserId: {}",
+            log.warn("옷장 접근 권한 없음 - 옷장ID: {}, 요청사용자: {}, 소유자: {}",
                     closetId, userId, updatedCloset.getUserId());
             throw new ClosetException(ClosetErrorCode.CLOSET_FORBIDDEN);
         }
 
         Image newImage = null;
         if (request.imageId() != null) {
-            log.debug("Updating closet image - imageId: {}", request.imageId());
+            log.debug("옷장 이미지 수정 - 이미지ID: {}", request.imageId());
             newImage = imageQueryService.findImageById(request.imageId());
         }
 
@@ -95,7 +94,7 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
         );
 
         updatedCloset.setClosetImage(newImage);
-        log.info("Closet updated successfully - closetId: {}", closetId);
+        log.info("옷장 수정 완료 - 옷장ID: {}", closetId);
 
         return ClosetUpdateResponse.from(updatedCloset);
     }
@@ -106,29 +105,29 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
             Long userId,
             Long closetId
     ) {
-        log.info("Deleting closet - closetId: {}, userId: {}", closetId, userId);
+        log.info("옷장 삭제 시작 - 옷장ID: {}, 사용자: {}", closetId, userId);
 
         Closet closet = closetRepository.findById(closetId)
                 .orElseThrow(() -> {
-                    log.warn("Closet not found for deletion - closetId: {}", closetId);
+                    log.warn("삭제할 옷장을 찾을 수 없음 - 옷장ID: {}", closetId);
                     return new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND);
                 });
 
         if (!Objects.equals(closet.getUserId(), userId)) {
-            log.warn("Unauthorized deletion attempt - closetId: {}, requestUserId: {}, ownerUserId: {}",
+            log.warn("옷장 삭제 권한 없음 - 옷장ID: {}, 요청사용자: {}, 소유자: {}",
                     closetId, userId, closet.getUserId());
             throw new ClosetException(ClosetErrorCode.CLOSET_FORBIDDEN);
         }
 
         closet.softDelete();
-        log.debug("Closet soft deleted - closetId: {}", closetId);
+        log.debug("옷장 소프트 삭제 완료 - 옷장ID: {}", closetId);
 
         if (closet.getClosetImage() != null) {
             closet.getClosetImage().softDelete();
-            log.debug("Closet image soft deleted - closetId: {}", closetId);
+            log.debug("옷장 이미지 소프트 삭제 완료 - 옷장ID: {}", closetId);
         }
 
-        log.info("Closet deleted successfully - closetId: {}, deletedAt: {}", closetId, closet.getDeletedAt());
+        log.info("옷장 삭제 완료 - 옷장ID: {}, 삭제시간: {}", closetId, closet.getDeletedAt());
 
         return ClosetDeleteResponse.of(closet.getId(), closet.getDeletedAt());
     }

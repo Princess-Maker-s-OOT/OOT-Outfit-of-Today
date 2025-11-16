@@ -32,7 +32,7 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
             String sort,
             String direction
     ) {
-        log.info("Fetching public closets - page: {}, size: {}, sort: {}, direction: {}", page, size, sort, direction);
+        log.info("공개 옷장 목록 조회 시작 - 페이지: {}, 크기: {}, 정렬: {}, 방향: {}", page, size, sort, direction);
 
         Sort sortObj = Sort.by(Sort.Direction.fromString(direction), sort);
 
@@ -44,28 +44,27 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
 
         Page<Closet> closets = closetRepository.findAllByIsPublicTrue(pageable);
 
-        log.info("Retrieved {} public closets, totalElements: {}", closets.getContent().size(), closets.getTotalElements());
+        log.info("공개 옷장 목록 조회 완료 - 조회 건수: {}, 전체 건수: {}", closets.getContent().size(), closets.getTotalElements());
 
         return closets.map(ClosetGetPublicResponse::from);
     }
 
-    // 옷장 상세 조회
     @Override
     public ClosetGetResponse getCloset(Long closetId) {
-        log.info("Fetching closet details - closetId: {}", closetId);
+        log.info("옷장 상세 조회 시작 - 옷장ID: {}", closetId);
 
         Closet closet = closetRepository.findById(closetId)
                 .orElseThrow(() -> {
-                    log.warn("Closet not found - closetId: {}", closetId);
+                    log.warn("옷장을 찾을 수 없음 - 옷장ID: {}", closetId);
                     return new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND);
                 });
 
         if (closet.isDeleted()) {
-            log.warn("Closet is deleted - closetId: {}", closetId);
+            log.warn("삭제된 옷장 - 옷장ID: {}", closetId);
             throw new ClosetException(ClosetErrorCode.CLOSET_DELETED);
         }
 
-        log.debug("Closet retrieved - closetId: {}, name: {}, isPublic: {}",
+        log.debug("옷장 조회 완료 - 옷장ID: {}, 이름: {}, 공개여부: {}",
                 closetId, closet.getName(), closet.getIsPublic());
 
         return ClosetGetResponse.from(closet);
@@ -80,7 +79,7 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
             String sort,
             String direction
     ) {
-        log.info("Fetching user's closets - userId: {}, page: {}, size: {}, sort: {}, direction: {}",
+        log.info("내 옷장 목록 조회 시작 - 사용자: {}, 페이지: {}, 크기: {}, 정렬: {}, 방향: {}",
                 userId, page, size, sort, direction);
 
         Sort sortObj = Sort.by(Sort.Direction.fromString(direction), sort);
@@ -96,20 +95,19 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
                 pageable
         );
 
-        log.info("Retrieved {} closets for userId: {}, totalElements: {}",
+        log.info("내 옷장 목록 조회 완료 - 조회 건수: {}, 사용자: {}, 전체 건수: {}",
                 closets.getContent().size(), userId, closets.getTotalElements());
 
         return closets.map(ClosetGetMyResponse::from);
     }
 
-    // 지정된 ID에 해당하는 옷장을 조회
     @Override
     public Closet findClosetById(Long closetId) {
-        log.debug("Finding closet by id: {}", closetId);
+        log.debug("옷장 조회 - 옷장ID: {}", closetId);
 
         return closetRepository.findById(closetId)
                 .orElseThrow(() -> {
-                    log.warn("Closet not found - closetId: {}", closetId);
+                    log.warn("옷장을 찾을 수 없음 - 옷장ID: {}", closetId);
                     return new ClosetException(ClosetErrorCode.CLOSET_NOT_FOUND);
                 });
     }

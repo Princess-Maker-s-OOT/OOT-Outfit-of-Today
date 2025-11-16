@@ -52,8 +52,8 @@ public class ClosetController {
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody ClosetCreateRequest closetCreateRequest
     ) {
-        log.info("Creating closet for userId: {}, name: {}", authUser.getUserId(), closetCreateRequest.name());
-        log.debug("Closet create request - isPublic: {}, imageId: {}",
+        log.info("옷장 생성 요청 - 사용자: {}, 이름: {}", authUser.getUserId(), closetCreateRequest.name());
+        log.debug("옷장 생성 상세 - 공개여부: {}, 이미지ID: {}",
                 closetCreateRequest.isPublic(), closetCreateRequest.imageId());
 
         ClosetCreateResponse closetCreateResponse = closetCommandService.createCloset(
@@ -61,7 +61,7 @@ public class ClosetController {
                 closetCreateRequest
         );
 
-        log.info("Closet created successfully - closetId: {}, userId: {}",
+        log.info("옷장 생성 완료 - 옷장ID: {}, 사용자: {}",
                 closetCreateResponse.closetId(), authUser.getUserId());
 
         return Response.success(closetCreateResponse, ClosetSuccessCode.CLOSET_CREATED);
@@ -90,7 +90,7 @@ public class ClosetController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
-        log.info("Getting public closets - page: {}, size: {}, sort: {}, direction: {}", page, size, sort, direction);
+        log.info("공개 옷장 목록 조회 요청 - 페이지: {}, 크기: {}, 정렬: {}, 방향: {}", page, size, sort, direction);
 
         Page<ClosetGetPublicResponse> closetGetPublicResponses = closetQueryService.getPublicClosets(
                 page,
@@ -99,7 +99,7 @@ public class ClosetController {
                 direction
         );
 
-        log.info("Retrieved {} public closets, totalElements: {}, totalPages: {}",
+        log.info("공개 옷장 목록 조회 완료 - 조회 건수: {}, 전체 건수: {}, 전체 페이지: {}",
                 closetGetPublicResponses.getContent().size(),
                 closetGetPublicResponses.getTotalElements(),
                 closetGetPublicResponses.getTotalPages());
@@ -128,11 +128,11 @@ public class ClosetController {
     public ResponseEntity<Response<ClosetGetResponse>> getCloset(
             @PathVariable Long closetId
     ) {
-        log.info("Getting closet details - closetId: {}", closetId);
+        log.info("옷장 상세 조회 요청 - 옷장ID: {}", closetId);
 
         ClosetGetResponse closetGetResponse = closetQueryService.getCloset(closetId);
 
-        log.debug("Closet retrieved - closetId: {}, name: {}, isPublic: {}",
+        log.debug("옷장 조회 완료 - 옷장ID: {}, 이름: {}, 공개여부: {}",
                 closetId, closetGetResponse.name(), closetGetResponse.isPublic());
 
         return Response.success(closetGetResponse, ClosetSuccessCode.CLOSET_GET_OK);
@@ -165,7 +165,7 @@ public class ClosetController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
-        log.info("Getting my closets for userId: {}, page: {}, size: {}, sort: {}, direction: {}",
+        log.info("내 옷장 목록 조회 요청 - 사용자: {}, 페이지: {}, 크기: {}, 정렬: {}, 방향: {}",
                 authUser.getUserId(), page, size, sort, direction);
 
         Page<ClosetGetMyResponse> closetGetMyResponses = closetQueryService.getMyClosets(
@@ -176,7 +176,7 @@ public class ClosetController {
                 direction
         );
 
-        log.info("Retrieved {} closets for userId: {}, totalElements: {}",
+        log.info("내 옷장 목록 조회 완료 - 조회 건수: {}, 사용자: {}, 전체 건수: {}",
                 closetGetMyResponses.getContent().size(), authUser.getUserId(),
                 closetGetMyResponses.getTotalElements());
 
@@ -209,8 +209,8 @@ public class ClosetController {
             @PathVariable Long closetId,
             @Valid @RequestBody ClosetUpdateRequest closetUpdateRequest
     ) {
-        log.info("Updating closet - closetId: {}, userId: {}", closetId, authUser.getUserId());
-        log.debug("Update request - name: {}, isPublic: {}, imageId: {}",
+        log.info("옷장 수정 요청 - 옷장ID: {}, 사용자: {}", closetId, authUser.getUserId());
+        log.debug("수정 요청 상세 - 이름: {}, 공개여부: {}, 이미지ID: {}",
                 closetUpdateRequest.name(), closetUpdateRequest.isPublic(), closetUpdateRequest.imageId());
 
         ClosetUpdateResponse closetUpdateResponse = closetCommandService.updateCloset(
@@ -219,7 +219,7 @@ public class ClosetController {
                 closetUpdateRequest
         );
 
-        log.info("Closet updated successfully - closetId: {}", closetId);
+        log.info("옷장 수정 완료 - 옷장ID: {}", closetId);
 
         return Response.success(closetUpdateResponse, ClosetSuccessCode.CLOSET_UPDATE_OK);
     }
@@ -247,14 +247,14 @@ public class ClosetController {
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long closetId
     ) {
-        log.info("Deleting closet - closetId: {}, userId: {}", closetId, authUser.getUserId());
+        log.info("옷장 삭제 요청 - 옷장ID: {}, 사용자: {}", closetId, authUser.getUserId());
 
         ClosetDeleteResponse response = closetCommandService.deleteCloset(
                 authUser.getUserId(),
                 closetId
         );
 
-        log.info("Closet deleted successfully - closetId: {}, deletedAt: {}",
+        log.info("옷장 삭제 완료 - 옷장ID: {}, 삭제시간: {}",
                 response.closetId(), response.deletedAt());
 
         return Response.success(response, ClosetSuccessCode.CLOSET_DELETE_OK);
