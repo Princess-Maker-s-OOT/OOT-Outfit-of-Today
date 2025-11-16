@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.response.PageResponse;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Tag(name = "옷장 관리", description = "옷장관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -50,10 +52,17 @@ public class ClosetController {
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody ClosetCreateRequest closetCreateRequest
     ) {
+        log.info("Creating closet for userId: {}, name: {}", authUser.getUserId(), closetCreateRequest.name());
+        log.debug("Closet create request - isPublic: {}, imageId: {}",
+                closetCreateRequest.isPublic(), closetCreateRequest.imageId());
+
         ClosetCreateResponse closetCreateResponse = closetCommandService.createCloset(
                 authUser.getUserId(),
                 closetCreateRequest
         );
+
+        log.info("Closet created successfully - closetId: {}, userId: {}",
+                closetCreateResponse.closetId(), authUser.getUserId());
 
         return Response.success(closetCreateResponse, ClosetSuccessCode.CLOSET_CREATED);
     }
@@ -81,6 +90,7 @@ public class ClosetController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
+        log.info("Getting public closets - page: {}, size: {}, sort: {}, direction: {}", page, size, sort, direction);
 
         Page<ClosetGetPublicResponse> closetGetPublicResponses = closetQueryService.getPublicClosets(
                 page,
@@ -88,6 +98,11 @@ public class ClosetController {
                 sort,
                 direction
         );
+
+        log.info("Retrieved {} public closets, totalElements: {}, totalPages: {}",
+                closetGetPublicResponses.getContent().size(),
+                closetGetPublicResponses.getTotalElements(),
+                closetGetPublicResponses.getTotalPages());
 
         return PageResponse.success(closetGetPublicResponses, ClosetSuccessCode.CLOSETS_GET_PUBLIC_OK);
     }
@@ -113,7 +128,12 @@ public class ClosetController {
     public ResponseEntity<Response<ClosetGetResponse>> getCloset(
             @PathVariable Long closetId
     ) {
+        log.info("Getting closet details - closetId: {}", closetId);
+
         ClosetGetResponse closetGetResponse = closetQueryService.getCloset(closetId);
+
+        log.debug("Closet retrieved - closetId: {}, name: {}, isPublic: {}",
+                closetId, closetGetResponse.name(), closetGetResponse.isPublic());
 
         return Response.success(closetGetResponse, ClosetSuccessCode.CLOSET_GET_OK);
     }
@@ -145,6 +165,8 @@ public class ClosetController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
+        log.info("Getting my closets for userId: {}, page: {}, size: {}, sort: {}, direction: {}",
+                authUser.getUserId(), page, size, sort, direction);
 
         Page<ClosetGetMyResponse> closetGetMyResponses = closetQueryService.getMyClosets(
                 authUser.getUserId(),
@@ -153,6 +175,10 @@ public class ClosetController {
                 sort,
                 direction
         );
+
+        log.info("Retrieved {} closets for userId: {}, totalElements: {}",
+                closetGetMyResponses.getContent().size(), authUser.getUserId(),
+                closetGetMyResponses.getTotalElements());
 
         return PageResponse.success(closetGetMyResponses, ClosetSuccessCode.CLOSETS_GET_MY_OK);
     }
@@ -183,12 +209,17 @@ public class ClosetController {
             @PathVariable Long closetId,
             @Valid @RequestBody ClosetUpdateRequest closetUpdateRequest
     ) {
+        log.info("Updating closet - closetId: {}, userId: {}", closetId, authUser.getUserId());
+        log.debug("Update request - name: {}, isPublic: {}, imageId: {}",
+                closetUpdateRequest.name(), closetUpdateRequest.isPublic(), closetUpdateRequest.imageId());
 
         ClosetUpdateResponse closetUpdateResponse = closetCommandService.updateCloset(
                 authUser.getUserId(),
                 closetId,
                 closetUpdateRequest
         );
+
+        log.info("Closet updated successfully - closetId: {}", closetId);
 
         return Response.success(closetUpdateResponse, ClosetSuccessCode.CLOSET_UPDATE_OK);
     }
@@ -216,11 +247,15 @@ public class ClosetController {
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long closetId
     ) {
+        log.info("Deleting closet - closetId: {}, userId: {}", closetId, authUser.getUserId());
 
         ClosetDeleteResponse response = closetCommandService.deleteCloset(
                 authUser.getUserId(),
                 closetId
         );
+
+        log.info("Closet deleted successfully - closetId: {}, deletedAt: {}",
+                response.closetId(), response.deletedAt());
 
         return Response.success(response, ClosetSuccessCode.CLOSET_DELETE_OK);
     }
