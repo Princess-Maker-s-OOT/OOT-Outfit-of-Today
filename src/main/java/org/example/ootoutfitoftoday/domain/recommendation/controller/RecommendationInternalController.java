@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.recommendation.controller;
 
 import com.ootcommon.recommendation.dto.RecommendationBatchCreateResponse;
+import com.ootcommon.recommendation.type.RecommendationType;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,11 +16,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 배치 서버 전용 Internal API Controller
  * 배치 서버에서 메인 서버의 추천 생성 로직을 호출하기 위한 API를 제공합니다.
- * <p>
  * 보안 참고사항:
  * - /v1/internal/** 경로는 Spring Security에서 permitAll() 처리됨
  * - 프로덕션 환경에서는 네트워크 레벨 접근 제어(IP 화이트리스트 등) 필요
@@ -80,14 +82,14 @@ public class RecommendationInternalController {
         if (recommendations.isEmpty()) {
             log.debug("[Internal API] No unworn clothes found for user: {}", userId);
         } else {
+            Map<RecommendationType, Long> counts = recommendations.stream()
+                    .collect(Collectors.groupingBy(Recommendation::getType, Collectors.counting()));
             log.debug("[Internal API] Recommendation types generated for user {}: SALE={}, DONATION={}",
                     userId,
-                    recommendations.stream().filter(r -> r.getType().name().equals("SALE")).count(),
-                    recommendations.stream().filter(r -> r.getType().name().equals("DONATION")).count());
+                    counts.getOrDefault(RecommendationType.SALE, 0L),
+                    counts.getOrDefault(RecommendationType.DONATION, 0L));
         }
-
-        // 미저장 상태의 엔티티를 DTO로 변환하여 배치 서버에 전달
-        // 배치 서버의 Writer에서 이 데이터를 받아 실제 저장을 수행
+        
         List<RecommendationBatchCreateResponse> responseList = recommendations.stream()
                 .map(rec -> RecommendationBatchCreateResponse.of(
                         rec.getUser().getId(),
