@@ -2,7 +2,7 @@ spring:
   application:
     name: oot-server
   profiles:
-    active: local # 기본 실행 프로파일 지정
+    active: ${SPRING_PROFILES_ACTIVE:local} # 환경변수 우선, 없으면 local
 
   # SQL 초기화 설정 추가
   # TODO
