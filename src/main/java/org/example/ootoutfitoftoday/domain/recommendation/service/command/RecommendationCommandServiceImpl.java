@@ -45,18 +45,16 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
     private final UserQueryService userQueryService;
     private final Clock clock;
 
-    // 사용자에게 기부/판매 추천 기록을 생성
     @Override
     public List<RecommendationCreateResponse> generateRecommendations(Long userId) {
-        log.info("Generating recommendations for userId: {}", userId);
+        log.info("추천 생성 시작 - 사용자: {}", userId);
 
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
-        log.debug("User found: {}", user.getId());
+        log.debug("사용자 조회 완료 - 사용자: {}", user.getId());
 
         List<Clothes> clothesList = clothesQueryService.findAllClothesByUserId(userId);
-        log.debug("Total clothes found for user {}: {}", userId, clothesList.size());
+        log.debug("전체 옷 조회 완료 - 사용자: {}, 옷 개수: {}", userId, clothesList.size());
 
-        // 추천 조건 검사 + 엔티티 생성 (각 옷마다 판매/기부 2개의 추천 생성)
         List<Recommendation> recommendations = clothesList.stream()
                 .filter(this::isUnwornForOneYear)
                 .flatMap(clothes -> Arrays.stream(RecommendationType.values())
@@ -68,33 +66,31 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
                         )))
                 .toList();
 
-        log.debug("Recommendations to be saved: {}", recommendations.size());
+        log.debug("저장 예정 추천 건수: {}", recommendations.size());
 
         List<Recommendation> savedRecommendations = recommendationRepository.saveAll(recommendations);
-        log.info("Successfully saved {} recommendations for userId: {}", savedRecommendations.size(), userId);
+        log.info("추천 저장 완료 - 저장 건수: {}, 사용자: {}", savedRecommendations.size(), userId);
 
         return savedRecommendations.stream()
                 .map(RecommendationCreateResponse::from)
                 .toList();
     }
 
-    // Spring Batch용: 추천 엔티티만 생성 (저장하지 않음)
     @Override
     public List<Recommendation> createRecommendationsForBatch(Long userId) {
-        log.info("Creating batch recommendations for userId: {}", userId);
+        log.info("배치 추천 생성 시작 - 사용자: {}", userId);
 
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
-        log.debug("User found for batch: {}", user.getId());
+        log.debug("배치용 사용자 조회 완료 - 사용자: {}", user.getId());
 
         List<Clothes> clothesList = clothesQueryService.findAllClothesByUserId(userId);
-        log.debug("Total clothes found for batch user {}: {}", userId, clothesList.size());
+        log.debug("배치용 전체 옷 조회 완료 - 사용자: {}, 옷 개수: {}", userId, clothesList.size());
 
         long unwornClothesCount = clothesList.stream()
                 .filter(this::isUnwornForOneYear)
                 .count();
-        log.debug("Unworn clothes (1+ year) for user {}: {}", userId, unwornClothesCount);
+        log.debug("1년 이상 미착용 옷 개수 - 사용자: {}, 개수: {}", userId, unwornClothesCount);
 
-        // 추천 조건 검사 + 엔티티 생성 (각 옷마다 판매/기부 2개의 추천 생성)
         List<Recommendation> recommendations = clothesList.stream()
                 .filter(this::isUnwornForOneYear)
                 .flatMap(clothes -> Arrays.stream(RecommendationType.values())
@@ -106,29 +102,25 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
                         )))
                 .toList();
 
-        log.info("Created {} batch recommendations for userId: {} (unsaved)", recommendations.size(), userId);
+        log.info("배치 추천 생성 완료 (미저장) - 생성 건수: {}, 사용자: {}", recommendations.size(), userId);
         return recommendations;
     }
 
-    // 마지막 착용일이 1년 이상 경과했는지 확인
     private boolean isUnwornForOneYear(Clothes clothes) {
         LocalDateTime lastWornAt = clothes.getLastWornAt();
 
-        // lastWornAt이 null이면 착용한 적이 없으므로 추천 대상
         if (lastWornAt == null) {
-            log.trace("Clothes {} has never been worn (lastWornAt is null), eligible for recommendation",
-                    clothes.getId());
+            log.trace("착용 기록 없음 (추천 대상) - 옷ID: {}", clothes.getId());
             return true;
         }
 
-        // lastWornAt을 LocalDate로 변환하여 1년 전과 비교
         LocalDate lastWornDate = lastWornAt.toLocalDate();
 
         LocalDate oneYearAgo = LocalDate.now(clock).minusYears(1);
 
         boolean isUnworn = lastWornDate.isBefore(oneYearAgo);
         if (isUnworn) {
-            log.trace("Clothes {} last worn on {}, which is before {}, eligible for recommendation",
+            log.trace("1년 이상 미착용 (추천 대상) - 옷ID: {}, 마지막착용: {}, 기준일: {}",
                     clothes.getId(), lastWornDate, oneYearAgo);
         }
 
@@ -142,26 +134,26 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
             Long userId,
             RecommendationSalePostCreateRequest request
     ) {
-        log.info("Creating sale post from recommendation: {}, userId: {}", recommendationId, userId);
+        log.info("추천 기반 판매글 생성 시작 - 추천ID: {}, 사용자: {}", recommendationId, userId);
 
         Recommendation recommendation = recommendationQueryService.findById(recommendationId);
-        log.debug("Found recommendation: {}, status: {}, type: {}, ownerId: {}",
+        log.debug("추천 조회 완료 - 추천ID: {}, 상태: {}, 타입: {}, 소유자: {}",
                 recommendationId, recommendation.getStatus(), recommendation.getType(), recommendation.getUser().getId());
 
         if (recommendation.getStatus() != RecommendationStatus.ACCEPTED) {
-            log.warn("Recommendation is not ACCEPTED - recommendationId: {}, status: {}",
+            log.warn("추천 상태가 ACCEPTED가 아님 - 추천ID: {}, 상태: {}",
                     recommendationId, recommendation.getStatus());
             throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_ACCEPTED);
         }
 
         if (recommendation.getType() != RecommendationType.SALE) {
-            log.warn("Recommendation is not SALE type - recommendationId: {}, type: {}",
+            log.warn("추천 타입이 SALE이 아님 - 추천ID: {}, 타입: {}",
                     recommendationId, recommendation.getType());
             throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_SALE_TYPE);
         }
 
         if (!recommendation.getUser().getId().equals(userId)) {
-            log.warn("Unauthorized access to recommendation - recommendationId: {}, requestUserId: {}, ownerUserId: {}",
+            log.warn("추천 접근 권한 없음 - 추천ID: {}, 요청사용자: {}, 소유자: {}",
                     recommendationId, userId, recommendation.getUser().getId());
             throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND);
         }
@@ -169,13 +161,13 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
         Optional<SalePost> existingSalePost = salePostQueryService.findByRecommendationId(recommendationId);
 
         if (existingSalePost.isPresent()) {
-            log.info("Sale post already exists for recommendation - recommendationId: {}, salePostId: {}",
+            log.info("기존 판매글 존재 - 추천ID: {}, 판매글ID: {}",
                     recommendationId, existingSalePost.get().getId());
 
             return SalePostCreateResponse.from(existingSalePost.get());
         }
 
-        log.debug("Creating new sale post from recommendation: {}, clothesId: {}",
+        log.debug("신규 판매글 생성 - 추천ID: {}, 옷ID: {}",
                 recommendationId, recommendation.getClothes().getId());
 
         SalePostCreateResponse response = salePostCommandService.createSalePostFromRecommendation(
@@ -190,7 +182,7 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
                 request.imageUrls()
         );
 
-        log.info("Successfully created sale post from recommendation: {}, salePostId: {}",
+        log.info("판매글 생성 완료 - 추천ID: {}, 판매글ID: {}",
                 recommendationId, response.getSalePostId());
 
         return response;

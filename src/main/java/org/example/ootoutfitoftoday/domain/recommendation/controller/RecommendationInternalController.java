@@ -69,22 +69,22 @@ public class RecommendationInternalController {
     public ResponseEntity<Response<List<RecommendationBatchCreateResponse>>> createRecommendationsForBatch(
             @PathVariable Long userId
     ) {
-        log.info("[Internal API] Creating recommendations for user: {}", userId);
+        log.info("[Internal API] 배치 추천 생성 요청 - 사용자: {}", userId);
         long startTime = System.currentTimeMillis();
 
         List<Recommendation> recommendations =
                 recommendationCommandService.createRecommendationsForBatch(userId);
 
         long processingTime = System.currentTimeMillis() - startTime;
-        log.info("[Internal API] Generated {} recommendations for user: {} in {}ms",
+        log.info("[Internal API] 배치 추천 생성 완료 - 생성 건수: {}, 사용자: {}, 처리시간: {}ms",
                 recommendations.size(), userId, processingTime);
 
         if (recommendations.isEmpty()) {
-            log.debug("[Internal API] No unworn clothes found for user: {}", userId);
+            log.debug("[Internal API] 미착용 옷 없음 - 사용자: {}", userId);
         } else {
             Map<RecommendationType, Long> counts = recommendations.stream()
                     .collect(Collectors.groupingBy(Recommendation::getType, Collectors.counting()));
-            log.debug("[Internal API] Recommendation types generated for user {}: SALE={}, DONATION={}",
+            log.debug("[Internal API] 추천 타입별 생성 건수 - 사용자: {}, 판매: {}, 기부: {}",
                     userId,
                     counts.getOrDefault(RecommendationType.SALE, 0L),
                     counts.getOrDefault(RecommendationType.DONATION, 0L));
@@ -118,7 +118,7 @@ public class RecommendationInternalController {
     )
     @GetMapping("/health")
     public ResponseEntity<Response<String>> healthCheck() {
-        log.debug("[Internal API] Health check requested");
+        log.debug("[Internal API] 헬스체크 요청");
 
         return Response.success("Internal API is healthy", RecommendationSuccessCode.RECOMMENDATION_GET_OK);
     }
