@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.userimage.service.query;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.userimage.entity.UserImage;
 import org.example.ootoutfitoftoday.domain.userimage.exception.UserImageErrorCode;
 import org.example.ootoutfitoftoday.domain.userimage.exception.UserImageException;
@@ -8,6 +9,7 @@ import org.example.ootoutfitoftoday.domain.userimage.repository.UserImageReposit
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -18,7 +20,10 @@ public class UserImageQueryServiceImpl implements UserImageQueryService {
     @Override
     public UserImage findByIdAndIsDeletedFalse(Long userImageId) {
 
-        return userImageRepository.findByIdAndIsDeletedFalse(userImageId)
-                .orElseThrow(() -> new UserImageException(UserImageErrorCode.USER_IMAGE_NOT_FOUND));
+        return userImageRepository.findByIdAndIsDeletedFalse(userImageId).orElseThrow(() -> {
+            log.warn("사용자 이미지를 찾을 수 없음 - userImageId: {}", userImageId);
+
+            return new UserImageException(UserImageErrorCode.USER_IMAGE_NOT_FOUND);
+        });
     }
 }
