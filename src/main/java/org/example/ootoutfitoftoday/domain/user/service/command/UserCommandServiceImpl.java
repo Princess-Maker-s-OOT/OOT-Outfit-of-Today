@@ -2,6 +2,7 @@ package org.example.ootoutfitoftoday.domain.user.service.command;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.util.DefaultLocationConstants;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -163,6 +165,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     public void softDeleteUser(User user) {
 
         if (user.isDeleted()) {
+            log.warn("이미 탈퇴한 사용자 - userId: {}", user.getId());
             throw new AuthException(AuthErrorCode.USER_ALREADY_WITHDRAWN);
         }
 
@@ -192,6 +195,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         if (request.getEmail() != null) {
             if (userQueryService.existsByEmail(request.getEmail()) &&
                     !Objects.equals(user.getEmail(), request.getEmail())) {
+                log.warn("이메일 중복 - userId: {}, duplicateEmail: {}", authUser.getUserId(), request.getEmail());
                 throw new AuthException(AuthErrorCode.DUPLICATE_EMAIL);
             }
             user.updateEmail(request.getEmail());
@@ -201,6 +205,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         if (request.getNickname() != null) {
             if (userQueryService.existsByNickname(request.getNickname()) &&
                     !Objects.equals(user.getNickname(), request.getNickname())) {
+                log.warn("닉네임 중복 - userId: {}, duplicateNickname: {}", authUser.getUserId(), request.getNickname());
                 throw new AuthException(AuthErrorCode.DUPLICATE_NICKNAME);
             }
             user.updateNickname(request.getNickname());
@@ -220,6 +225,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         if (request.getPhoneNumber() != null) {
             if (userQueryService.existsByPhoneNumber(request.getPhoneNumber()) &&
                     !Objects.equals(user.getPhoneNumber(), request.getPhoneNumber())) {
+                log.warn("전화번호 중복 - userId: {}, duplicatePhoneNumber: {}", authUser.getUserId(), request.getPhoneNumber());
                 throw new AuthException(AuthErrorCode.DUPLICATE_PHONE_NUMBER);
             }
             user.updatePhoneNumber(request.getPhoneNumber());
@@ -269,6 +275,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                 // 활성 상태인 경우 -> 기존 이미지 교체
                 user.changeProfileImage(image);
             } catch (UserImageException e) {
+                log.warn("기존 프로필 이미지 소프트 삭제됨, 새로 생성 - userId: {}, userImageId: {}", userId, user.getUserImage().getId());
                 // 기존 프로필 이미지가 소프트 딜리트 되어 조회 실패 시 새로 생성
                 UserImage savedUserImage = userImageCommandService.createAndSave(image);
                 user.assignProfileImage(savedUserImage);
@@ -288,6 +295,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         // UserImage 존재 여부 체크
         if (user.getUserImage() == null) {
+            log.warn("프로필 이미지 없음 - userId: {}", userId);
             throw new UserImageException(UserImageErrorCode.PROFILE_IMAGE_NOT_FOUND);
         }
 
@@ -305,9 +313,12 @@ public class UserCommandServiceImpl implements UserCommandService {
     // 유저 거래 위치 수정
     @Override
     public void updateMyTradeLocation(UserUpdateTradeLocationRequest request, Long userId) {
-        User user = userRepository.findByIdAndIsDeletedFalse(userId).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
-        );
+
+        User user = userRepository.findByIdAndIsDeletedFalse(userId).orElseThrow(() -> {
+            log.warn("거래 위치 수정 실패 - 사용자 없음 - userId: {}", userId);
+
+            return new UserException(UserErrorCode.USER_NOT_FOUND);
+        });
 
         String tradeLocation = PointFormatAndParse.format(request.tradeLongitude(), request.tradeLatitude());
 
