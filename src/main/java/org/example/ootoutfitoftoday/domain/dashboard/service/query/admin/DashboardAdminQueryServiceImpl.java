@@ -26,22 +26,33 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
         String cacheKey = date.toString();
 
         var cache = cacheManager.getCache(DashboardAdminCacheNames.USER);
-        if (cache == null) throw new IllegalStateException("해당 캐시 이름이 등록되어 있지 않습니다: " + DashboardAdminCacheNames.USER);
-
+        
+        if (cache == null) {
+            throw new IllegalStateException("해당 캐시 이름이 등록되어 있지 않습니다: " + DashboardAdminCacheNames.USER);
+        }
+        
         AdminUserStatisticsResponse cached = cache.get(cacheKey, AdminUserStatisticsResponse.class);
-        if (cached == null) throw new NoSuchElementException("캐시된 사용자 통계 데이터가 없습니다.");
-
+        
+        if (cached == null) {
+            throw new NoSuchElementException("캐시된 사용자 통계 데이터가 없습니다.");
+        }
+        
         return cached;
     }
 
     @Override
     public AdminClothesStatisticsResponse adminClothesStatistics() {
         var cache = cacheManager.getCache(DashboardAdminCacheNames.CLOTHES);
-        if (cache == null) throw new IllegalStateException("의류 캐시가 등록되어 있지 않습니다: " + DashboardAdminCacheNames.CLOTHES);
-
+       
+        if (cache == null) {
+            throw new IllegalStateException("의류 캐시가 등록되어 있지 않습니다: " + DashboardAdminCacheNames.CLOTHES);
+        }
+        
         AdminClothesStatisticsResponse cached = cache.get("default", AdminClothesStatisticsResponse.class);
-        if (cached == null) throw new NoSuchElementException("캐시된 의류 통계 데이터가 없습니다.");
-
+        if (cached == null) {
+            throw new NoSuchElementException("캐시된 의류 통계 데이터가 없습니다.");
+        }
+        
         return cached;
     }
 
@@ -51,22 +62,34 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
         String cacheKey = date.toString();
 
         var cache = cacheManager.getCache(DashboardAdminCacheNames.SALE_POST);
-        if (cache == null) throw new IllegalStateException("해당 캐시 이름이 등록되어 있지 않습니다: " + DashboardAdminCacheNames.SALE_POST);
-
+        
+        if (cache == null) {
+            throw new IllegalStateException("해당 캐시 이름이 등록되어 있지 않습니다: " + DashboardAdminCacheNames.SALE_POST);
+        }
+        
         AdminSalePostStatisticsResponse cached = cache.get(cacheKey, AdminSalePostStatisticsResponse.class);
-        if (cached == null) throw new NoSuchElementException("캐시된 판매글 통계 데이터가 없습니다.");
-
+        
+        if (cached == null) {
+            throw new NoSuchElementException("캐시된 판매글 통계 데이터가 없습니다.");
+        }
+        
         return cached;
     }
 
     @Override
     public AdminTopCategoryStatisticsResponse adminTopCategoryStatistics() {
         var cache = cacheManager.getCache(DashboardAdminCacheNames.CATEGORY);
-        if (cache == null) throw new IllegalStateException("카테고리 캐시가 등록되어 있지 않습니다: " + DashboardAdminCacheNames.CATEGORY);
-
+        
+        if (cache == null) {
+            throw new IllegalStateException("카테고리 캐시가 등록되어 있지 않습니다: " + DashboardAdminCacheNames.CATEGORY);
+        }
+        
         AdminTopCategoryStatisticsResponse cached = cache.get("default", AdminTopCategoryStatisticsResponse.class);
-        if (cached == null) throw new NoSuchElementException("캐시된 카테고리 통계 데이터가 없습니다.");
-
+        
+        if (cached == null) {
+            throw new NoSuchElementException("캐시된 카테고리 통계 데이터가 없습니다.");
+        }
+        
         return cached;
     }
 }
