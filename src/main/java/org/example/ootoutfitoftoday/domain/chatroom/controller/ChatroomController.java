@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.common.response.SliceResponse;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Tag(name = "채팅방", description = "채팅방 API")
 @RestController
 @RequestMapping("/v1/chatrooms")
@@ -52,6 +54,8 @@ public class ChatroomController {
             @RequestBody ChatroomRequest chatroomRequest,
             @AuthenticationPrincipal AuthUser authUser
     ) {
+        log.info("[POST] /v1/chatrooms : Controller 작동");
+
         Long userId = authUser.getUserId();
 
         chatroomCommandService.createChatroom(chatroomRequest, userId);
@@ -82,6 +86,8 @@ public class ChatroomController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
+        log.info("[GET] /v1/chatrooms : Controller 작동");
+
         Long userId = authUser.getUserId();
 
         Pageable pageable = PageRequest.of(page, size);
@@ -113,7 +119,10 @@ public class ChatroomController {
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long chatroomId
     ) {
+        log.info("[DELETE] /v1/chatrooms/{} : Controller 작동", chatroomId);
+
         Long userId = authUser.getUserId();
+
         chatroomCommandService.deleteChatroom(chatroomId, userId);
 
         return Response.success(null, ChatroomSuccessCode.DELETED_CHATROOM);
