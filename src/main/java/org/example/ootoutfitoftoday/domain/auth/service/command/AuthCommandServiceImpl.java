@@ -228,6 +228,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         // MySQL에서 리프레시 토큰 조회
         RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken).orElseThrow(() -> {
             log.warn("토큰 재발급 실패 - 유효하지 않은 리프레시 토큰 - deviceId: {}", deviceId);
+
             return new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         });
 

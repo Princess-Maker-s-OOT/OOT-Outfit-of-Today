@@ -316,6 +316,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         User user = userRepository.findByIdAndIsDeletedFalse(userId).orElseThrow(() -> {
             log.warn("거래 위치 수정 실패 - 사용자 없음 - userId: {}", userId);
+
             return new UserException(UserErrorCode.USER_NOT_FOUND);
         });
 

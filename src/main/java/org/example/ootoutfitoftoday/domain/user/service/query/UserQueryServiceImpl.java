@@ -74,6 +74,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         return userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(() -> {
             log.warn("사용자를 찾을 수 없음 - loginId: {}", loginId);
+
             return new UserException(UserErrorCode.USER_NOT_FOUND);
         });
     }
@@ -83,6 +84,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         return userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
             log.warn("사용자를 찾을 수 없음 - userId: {}", id);
+
             return new UserException(UserErrorCode.USER_NOT_FOUND);
         });
     }
@@ -92,6 +94,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         return userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(() -> {
             log.warn("사용자를 찾을 수 없음 - email: {}", email);
+
             return new UserException(UserErrorCode.USER_NOT_FOUND);
         });
     }
@@ -177,6 +180,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         User user = userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(() -> {
             log.warn("캐시된 사용자 조회 실패 - loginId: {}", loginId);
+
             return new UserException(UserErrorCode.USER_NOT_FOUND);
         });
 
@@ -192,6 +196,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         User user = userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
             log.warn("캐시된 사용자 조회 실패 - userId: {}", id);
+
             return new UserException(UserErrorCode.USER_NOT_FOUND);
         });
 
@@ -206,6 +211,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         User user = userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(() -> {
             log.warn("캐시된 사용자 조회 실패 - email: {}", email);
+
             return new UserException(UserErrorCode.USER_NOT_FOUND);
         });
 
