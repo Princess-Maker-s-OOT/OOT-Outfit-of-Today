@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.auth.repository.RefreshTokenRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +25,6 @@ public class RefreshTokenCleanupScheduler {
      * - expiresAt이 현재 시간보다 이전인 토큰 삭제
      */
     @Scheduled(cron = "0 0 3 * * *")
-    @Transactional
     public void cleanupExpiredTokens() {
         log.info("만료된 Refresh Token 정리 작업 시작");
 
