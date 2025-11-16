@@ -55,7 +55,7 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
 
     // 상태별 판매글 조회
     @Query("""
-            SELECT sp.status, count(sp)
+            SELECT new com.ootcommon.salepost.response.SaleStatusCount(sp.status, COUNT(sp))
             FROM SalePost sp
             WHERE sp.isDeleted = false
             GROUP BY sp.status
