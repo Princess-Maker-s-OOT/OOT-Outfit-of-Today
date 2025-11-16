@@ -29,7 +29,6 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class SalePostCacheServiceImpl implements SalePostCacheService {
 
-    private final UserQueryService userQueryService;
     private final EntityManager entityManager;
 
     /**
@@ -40,19 +39,20 @@ public class SalePostCacheServiceImpl implements SalePostCacheService {
     @Override
     @Cacheable(
             value = "salePostListCache",
-            key = "{#userId, #categoryId, #status, #keyword, #pageable}",
+            key = "{#latitude, #longitude, #categoryId, #status, #keyword, #pageable.pageNumber, #pageable.pageSize, #pageable.sort.toString()}",
             unless = "#result == null || #result.content.isEmpty()"
     )
     public CachedSliceResponse<SalePostListResponse> getCachedSalePostList(
-            Long userId,
+            User user,
+            Long latitude,
+            Long longitude,
             Long categoryId,
             SaleStatus status,
             String keyword,
             Pageable pageable
     ) {
-        User user = userQueryService.findByIdAsNativeQuery(userId);
+        log.info("SalePostCacheService.getCachedSalePostList : latitude={}, longitude={}", latitude, longitude);
 
-        // 1. DTO 프로젝션을 위한 SQL 정의 (N+1 방지)
         String baseSql = """
                 SELECT
                     s.id,
@@ -78,10 +78,8 @@ public class SalePostCacheServiceImpl implements SalePostCacheService {
                 AND (:keyword IS NULL OR s.title LIKE :keyword OR s.content LIKE :keyword)
                 """;
 
-        // 2. ORDER BY 절 추가
         String finalSql = NativeQuerySortUtil.buildOrderClause(baseSql, pageable);
 
-        // 3. Native Query 객체 생성 (엔티티 매핑 없이)
         Query query = entityManager.createNativeQuery(finalSql);
 
         query.setParameter("userPoint", user.getTradeLocation());
@@ -94,22 +92,18 @@ public class SalePostCacheServiceImpl implements SalePostCacheService {
         }
         query.setParameter("keyword", keyword);
 
-        // 4. Slice 구현을 위한 LIMIT/OFFSET 설정
         int offset = pageable.getPageNumber() * pageable.getPageSize();
         int limit = pageable.getPageSize() + 1;
 
         query.setFirstResult(offset);
         query.setMaxResults(limit);
 
-        // 5. 쿼리 실행 및 결과 목록 획득 (Object[] 리스트)
         @SuppressWarnings("unchecked")
         List<Object[]> results = query.getResultList();
 
-        // 6. Slice 객체 생성 로직 (hasNext 판단)
         boolean hasNext = results.size() > pageable.getPageSize();
         List<Object[]> content = hasNext ? results.subList(0, pageable.getPageSize()) : results;
 
-        // 7. Object[]를 SalePostListResponse DTO로 직접 변환
         List<SalePostListResponse> responseContent = content.stream()
                 .map(row -> {
                     org.example.ootoutfitoftoday.common.util.Location location = org.example.ootoutfitoftoday.common.util.PointFormatAndParse.parse((String) row[5]);
