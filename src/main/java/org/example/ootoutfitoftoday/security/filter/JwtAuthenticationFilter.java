@@ -35,6 +35,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final ObjectMapper objectMapper;
 
+    /**
+     * INTERNAL API 경로는 JWT 인증을 완전히 스킵
+     * "/v1/internal/" 로 시작하는 모든 요청은 JWT 필터를 거치지 않고 통과함
+     */
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        // context-path(/api) 제거된 경로 기준으로 체크
+        String path = request.getServletPath();
+
+        // Internal API는 필터 제외
+        if (path.startsWith("/v1/internal/")) {
+            log.debug("[JWT FILTER] Skipped for Internal API → {}", path);
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest httpRequest,
