@@ -20,7 +20,6 @@ public class CustomChatRepositoryImpl implements CustomChatRepository {
         QChat chat = QChat.chat;
         QChatroom chatroom = QChatroom.chatroom;
 
-        // Chat 일괄 논리적 삭제
         queryFactory.update(chat)
                 .set(chat.isDeleted, true)
                 .set(chat.deletedAt, deletedAt)
