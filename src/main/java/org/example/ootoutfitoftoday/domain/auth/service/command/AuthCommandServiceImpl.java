@@ -142,7 +142,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.error("로그인 실패 - 락 획득 실패 - userId: {}", cachedUser.getId());
+                log.warn("로그인 실패 - 락 획득 실패 - userId: {}", cachedUser.getId());
                 throw new AuthException(AuthErrorCode.CONCURRENT_LOGIN_IN_PROGRESS);
             }
 
@@ -319,7 +319,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                 boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
                 if (!acquired) {
-                    log.error("OAuth 토큰 교환 실패 - 락 획득 실패 - userId: {}", user.getId());
+                    log.warn("OAuth 토큰 교환 실패 - 락 획득 실패 - userId: {}", user.getId());
                     throw new AuthException(AuthErrorCode.CONCURRENT_LOGIN_IN_PROGRESS);
                 }
 
@@ -407,7 +407,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(1, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.error("로그아웃 실패 - 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+                log.warn("로그아웃 실패 - 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
                 throw new AuthException(AuthErrorCode.LOGOUT_IN_PROGRESS);
             }
 
@@ -446,7 +446,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.error("전체 로그아웃 실패 - 락 획득 실패 - userId: {}", authUser.getUserId());
+                log.warn("전체 로그아웃 실패 - 락 획득 실패 - userId: {}", authUser.getUserId());
                 throw new AuthException(AuthErrorCode.LOGOUT_IN_PROGRESS);
             }
 
@@ -495,7 +495,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(1, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.error("디바이스 제거 실패 - 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+                log.warn("디바이스 제거 실패 - 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
                 throw new AuthException(AuthErrorCode.DEVICE_REMOVAL_IN_PROGRESS);
             }
 
@@ -561,7 +561,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(3, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.error("회원탈퇴 실패 - 락 획득 실패 - userId: {}", authUser.getUserId());
+                log.warn("회원탈퇴 실패 - 락 획득 실패 - userId: {}", authUser.getUserId());
                 throw new AuthException(AuthErrorCode.WITHDRAWAL_IN_PROGRESS);
             }
 
