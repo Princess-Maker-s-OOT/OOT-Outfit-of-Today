@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.response.Response;
+import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationBatchCreateResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationSuccessCode;
 import org.example.ootoutfitoftoday.domain.recommendation.service.command.RecommendationCommandService;
@@ -38,11 +39,11 @@ public class RecommendationInternalController {
      * 배치용 추천 생성
      * 배치 서버의 RecommendationItemProcessor에서 호출하여
      * 특정 사용자에 대한 추천을 생성
-     * 생성된 Recommendation 엔티티는 미저장 상태로 반환되며,
-     * 배치 서버의 Writer에서 실제 저장이 이루어짐
+     * 생성된 추천 데이터는 DTO 형태로 반환되며,
+     * 배치 서버의 Writer에서 이 데이터를 받아 저장
      *
      * @param userId 추천을 생성할 대상 사용자 ID
-     * @return 생성된 추천 엔티티 목록 (미저장 상태)
+     * @return 생성된 추천 데이터 목록 (배치 서버에서 저장에 사용)
      */
     @Operation(
             summary = "[Internal] 배치용 추천 생성",
@@ -50,9 +51,9 @@ public class RecommendationInternalController {
                     배치 서버의 Processor에서 호출하는 Internal API입니다.
                     
                     특정 사용자에 대해 1년 이상 미착용 옷을 조회하고
-                    판매/기부 추천 엔티티를 생성하여 반환합니다.
+                    판매/기부 추천 데이터를 생성하여 반환합니다.
                     
-                    반환된 엔티티는 미저장 상태이며, 배치 서버의 Writer에서 저장됩니다.
+                    반환된 데이터는 배치 서버의 Writer에서 저장됩니다.
                     
                     주의: 이 API는 배치 서버 전용이며, 외부 접근이 제한되어야 합니다.
                     """,
@@ -63,7 +64,7 @@ public class RecommendationInternalController {
             }
     )
     @PostMapping("/users/{userId}")
-    public ResponseEntity<Response<Integer>> createRecommendationsForBatch(
+    public ResponseEntity<Response<List<RecommendationBatchCreateResponse>>> createRecommendationsForBatch(
             @PathVariable Long userId
     ) {
         log.info("[Internal API] Creating recommendations for user: {}", userId);
@@ -73,10 +74,13 @@ public class RecommendationInternalController {
 
         log.info("[Internal API] Generated {} recommendations for user: {}", recommendations.size(), userId);
 
-        // 배치 서버에서는 엔티티를 직접 받아서 저장하므로, 생성된 개수만 반환
-        // 실제로는 배치 서버가 직접 DB에 접근하여 저장하는 구조이므로
-        // 이 API는 주로 테스트/검증 목적으로 사용됨
-        return Response.success(recommendations.size(), RecommendationSuccessCode.RECOMMENDATION_CREATED);
+        // 미저장 상태의 엔티티를 DTO로 변환하여 배치 서버에 전달
+        // 배치 서버의 Writer에서 이 데이터를 받아 실제 저장을 수행
+        List<RecommendationBatchCreateResponse> responseList = recommendations.stream()
+                .map(RecommendationBatchCreateResponse::from)
+                .toList();
+
+        return Response.success(responseList, RecommendationSuccessCode.RECOMMENDATION_CREATED);
     }
 
     /**
