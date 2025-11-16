@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.ootcommon.dashboard.constant.DashboardAdminCacheNames;
+import com.ootcommon.dashboard.constant.DashboardUserCacheNames;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -148,29 +150,31 @@ public class RedisConfig {
     public CacheManager cacheManager() {
         // 기본 캐시 설정
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(1))  // 기본 TTL 1시간
+                .entryTtl(Duration.ofHours(1))
+                .disableCachingNullValues()  // ← 추가: null 값 캐싱 방지
+                .computePrefixWith(cacheName -> cacheName + "::")  // ← 추가: prefix 명시
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())
                 )
                 .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(redisObjectMapper())
+                        RedisSerializationContext.SerializationPair.fromSerializer(
+                                new GenericJackson2JsonRedisSerializer(redisObjectMapper())
                         )
                 );
 
-        // 캐시별 개별 설정(예시)
         return RedisCacheManager.builder(redisConnectionFactory())
                 .cacheDefaults(defaultConfig)
-                // 특정 캐시는 다른 TTL 적용 가능
-                // 옷 정보는 30분 캐싱
                 .withCacheConfiguration("clothesCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(30))
                 )
+
                 // 사용자 정보 캐시: 10분
                 // 로그인, 토큰 갱신 등에서 사용자 조회 빈도가 높음
                 // 정보 변경 시 @CacheEvict로 즉시 무효화
                 .withCacheConfiguration("userCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(10))
                 )
+
                 // 중복 체크 캐시: 1분(짧은 TTL)
                 // 회원가입 또는 정보수정 시 임시로 사용
                 // 실시간성이 중요하므로 짧은 TTL 설정
@@ -178,21 +182,32 @@ public class RedisConfig {
                 .withCacheConfiguration("userExistsCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(1))
                 )
+
                 // 판매글 리스트는 10분 캐싱
                 .withCacheConfiguration("salePostListCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(10))
                 )
-                .withCacheConfiguration("dashboard:admin:user",
-                        defaultConfig.entryTtl(Duration.ofMinutes(2))
+
+                // 관리자 대시보드
+                .withCacheConfiguration(DashboardAdminCacheNames.USER,
+                        defaultConfig.entryTtl(Duration.ofMinutes(3))
                 )
-                .withCacheConfiguration("dashboard:admin:clothes",
-                        defaultConfig.entryTtl(Duration.ofMinutes(2))
+                .withCacheConfiguration(DashboardAdminCacheNames.CLOTHES,
+                        defaultConfig.entryTtl(Duration.ofMinutes(3))
                 )
-                .withCacheConfiguration("dashboard:admin:salePost",
-                        defaultConfig.entryTtl(Duration.ofMinutes(2))
+                .withCacheConfiguration(DashboardAdminCacheNames.SALE_POST,
+                        defaultConfig.entryTtl(Duration.ofMinutes(3))
                 )
-                .withCacheConfiguration("dashboard:admin:category",
-                        defaultConfig.entryTtl(Duration.ofMinutes(2))
+                .withCacheConfiguration(DashboardAdminCacheNames.CATEGORY,
+                        defaultConfig.entryTtl(Duration.ofMinutes(3))
+                )
+
+                // 사용자 대시보드: 24시간 배치 주기 → TTL 25시간
+                .withCacheConfiguration(DashboardUserCacheNames.SUMMARY,
+                        defaultConfig.entryTtl(Duration.ofHours(25))
+                )
+                .withCacheConfiguration(DashboardUserCacheNames.WEAR_STATISTICS,
+                        defaultConfig.entryTtl(Duration.ofHours(25))
                 )
                 .build();
     }
