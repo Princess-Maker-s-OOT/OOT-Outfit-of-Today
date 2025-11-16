@@ -111,9 +111,9 @@ public class SalePostController {
 
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        log.info("[GET] /v1/sale-posts : Controller 작동");
-
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
+
+        log.info("[GET] /v1/sale-posts: categoryId={}, status={}, keyword={}, pageable={}", categoryId, status, keyword, pageable);
 
         Slice<SalePostListResponse> salePosts = salePostQueryService.getSalePostList(
                 authUser.getUserId(),

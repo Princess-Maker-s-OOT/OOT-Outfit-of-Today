@@ -101,11 +101,13 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
 
         Location location = PointFormatAndParse.parse(user.getTradeLocation());
 
-        BigDecimal conversionLatitude = location.latitude().multiply(new BigDecimal("10000"));
-        BigDecimal conversionLongitude = location.longitude().multiply(new BigDecimal("10000"));
+        final BigDecimal LOCATION_PRECISION_FACTOR = new BigDecimal("10000");
 
-        Long cacheKeyLatitude = Math.round(conversionLatitude.doubleValue());
-        Long cacheKeyLongitude = Math.round(conversionLongitude.doubleValue());
+        BigDecimal conversionLatitude = location.latitude().multiply(LOCATION_PRECISION_FACTOR);
+        BigDecimal conversionLongitude = location.longitude().multiply(LOCATION_PRECISION_FACTOR);
+
+        Long cacheKeyLatitude = conversionLatitude.setScale(0, java.math.RoundingMode.HALF_UP).longValue();
+        Long cacheKeyLongitude = conversionLongitude.setScale(0, java.math.RoundingMode.HALF_UP).longValue();
 
         // SalePostCacheService를 통해 캐시 적용
         CachedSliceResponse<SalePostListResponse> cached = salePostCacheService.getCachedSalePostList(
