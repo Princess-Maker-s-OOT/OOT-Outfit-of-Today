@@ -1,9 +1,9 @@
 package org.example.ootoutfitoftoday.domain.recommendation.dto.response;
 
+import com.ootcommon.recommendation.entity.RecommendationBatchHistory;
+import com.ootcommon.recommendation.status.BatchStatus;
 import lombok.AccessLevel;
 import lombok.Builder;
-import org.example.ootoutfitoftoday.domain.recommendation.entity.RecommendationBatchHistory;
-import org.example.ootoutfitoftoday.domain.recommendation.status.BatchStatus;
 
 import java.time.LocalDateTime;
 
