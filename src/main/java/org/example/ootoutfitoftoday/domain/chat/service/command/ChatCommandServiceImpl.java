@@ -49,12 +49,10 @@ public class ChatCommandServiceImpl implements ChatCommandService {
         log.info("ChatService.sendAndSaveMessage : 채팅방 삭제 유무 체크");
         chatParticipatingUsers.forEach(chatParticipatingUser -> {
             if (!Objects.equals(chatParticipatingUser.getUser(), user) &&
-                    // 2. 상대방의 user.isDeleted()가 false인가? user.isDeleted()가 true라면 패스
                     !chatParticipatingUser.getUser().isDeleted() &&
-                    // 3. 상대방이 채팅방을 삭제했는가? 했다면
                     chatParticipatingUser.isDeleted()
             ) {
-                // 4. 상대 채팅방 isDeleted true로 수정
+
                 chatParticipatingUser.restore();
             }
         });

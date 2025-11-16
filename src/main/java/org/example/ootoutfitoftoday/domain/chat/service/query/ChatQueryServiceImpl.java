@@ -21,7 +21,6 @@ public class ChatQueryServiceImpl implements ChatQueryService {
     private final ChatRepository chatRepository;
     private final ChatroomQueryService chatroomQueryService;
 
-    // 채팅방 들어갈 시 조회되는 채팅 리스트
     @Override
     public Slice<ChatResponse> getChats(Long chatroomId, Pageable pageable) {
         log.info("[GET] /v1/chatrooms/{chatroomId}/chats : Service 작동");
