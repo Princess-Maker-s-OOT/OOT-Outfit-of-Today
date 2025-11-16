@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.chat.service.query;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.chat.dto.response.ChatResponse;
 import org.example.ootoutfitoftoday.domain.chat.entity.Chat;
 import org.example.ootoutfitoftoday.domain.chat.repository.ChatRepository;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -22,6 +24,8 @@ public class ChatQueryServiceImpl implements ChatQueryService {
     // 채팅방 들어갈 시 조회되는 채팅 리스트
     @Override
     public Slice<ChatResponse> getChats(Long chatroomId, Pageable pageable) {
+        log.info("[GET] /v1/chatrooms/{chatroomId}/chats : Service 작동");
+
         Chatroom chatroom = chatroomQueryService.getChatroomById(chatroomId);
 
         Slice<Chat> chats = chatRepository.findByChatroomAndIsDeletedFalseOrderByCreatedAtDesc(chatroom, pageable);

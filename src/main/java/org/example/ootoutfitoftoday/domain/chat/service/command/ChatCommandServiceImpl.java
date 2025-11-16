@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.chat.service.command;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.chat.dto.request.ChatRequest;
 import org.example.ootoutfitoftoday.domain.chat.dto.response.ChatResponse;
 import org.example.ootoutfitoftoday.domain.chat.entity.Chat;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -30,6 +32,8 @@ public class ChatCommandServiceImpl implements ChatCommandService {
 
     @Override
     public ChatResponse createChat(ChatRequest chatRequest, Long chatroomId, Long userId) {
+        log.info("ChatService.sendAndSaveMessage : 채팅 동작");
+
         Chatroom chatroom = chatroomQueryService.getChatroomById(chatroomId);
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
         Chat chat = Chat.create(
@@ -42,8 +46,8 @@ public class ChatCommandServiceImpl implements ChatCommandService {
 
         List<ChatParticipatingUser> chatParticipatingUsers = chatParticipatingUserQueryService.getAllParticipatingUserByChatroom(chatroom);
 
+        log.info("ChatService.sendAndSaveMessage : 채팅방 삭제 유무 체크");
         chatParticipatingUsers.forEach(chatParticipatingUser -> {
-            // 1. 상대방 정보를 찾고
             if (!Objects.equals(chatParticipatingUser.getUser(), user) &&
                     // 2. 상대방의 user.isDeleted()가 false인가? user.isDeleted()가 true라면 패스
                     !chatParticipatingUser.getUser().isDeleted() &&

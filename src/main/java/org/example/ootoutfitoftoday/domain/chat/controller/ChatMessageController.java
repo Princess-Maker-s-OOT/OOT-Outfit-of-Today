@@ -33,7 +33,8 @@ public class ChatMessageController {
             @DestinationVariable(value = "chatroomNo") Long chatroomId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        log.info("ChatController.sendAndSaveMessage");
+        log.info("ChatController.sendAndSaveMessage 채팅 동작");
+
         Long userId = userDetails.getUserId();
 
         return chatCommandService.createChat(chatRequest, chatroomId, userId);
