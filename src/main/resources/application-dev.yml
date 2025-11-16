@@ -61,3 +61,20 @@ toss:
   api:
     url:
       confirm: https://api.tosspayments.com/v1/payments/confirm
+
+# Logging 설정 (Loki로 전송)
+logging:
+  file:
+    name: /app-logs/application.log
+    max-size: 100MB
+    max-history: 7
+    total-size-cap: 1GB
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    org.example.ootoutfitoftoday: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
