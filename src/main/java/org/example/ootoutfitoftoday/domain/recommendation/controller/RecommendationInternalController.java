@@ -68,11 +68,23 @@ public class RecommendationInternalController {
             @PathVariable Long userId
     ) {
         log.info("[Internal API] Creating recommendations for user: {}", userId);
+        long startTime = System.currentTimeMillis();
 
         List<Recommendation> recommendations =
                 recommendationCommandService.createRecommendationsForBatch(userId);
 
-        log.info("[Internal API] Generated {} recommendations for user: {}", recommendations.size(), userId);
+        long processingTime = System.currentTimeMillis() - startTime;
+        log.info("[Internal API] Generated {} recommendations for user: {} in {}ms",
+                recommendations.size(), userId, processingTime);
+
+        if (recommendations.isEmpty()) {
+            log.debug("[Internal API] No unworn clothes found for user: {}", userId);
+        } else {
+            log.debug("[Internal API] Recommendation types generated for user {}: SALE={}, DONATION={}",
+                    userId,
+                    recommendations.stream().filter(r -> r.getType().name().equals("SALE")).count(),
+                    recommendations.stream().filter(r -> r.getType().name().equals("DONATION")).count());
+        }
 
         // 미저장 상태의 엔티티를 DTO로 변환하여 배치 서버에 전달
         // 배치 서버의 Writer에서 이 데이터를 받아 실제 저장을 수행
