@@ -51,10 +51,14 @@ EOF
 CMDS=(
   "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REG_URI}"
   "docker pull ${FULL_URI}"
+  "docker network create oot-network || true"
+  "docker stop oot-redis || true"
+  "docker rm oot-redis || true"
+  "docker run -d --name oot-redis --network oot-network --restart=always -p 6379:6379 redis:7-alpine redis-server --requirepass oot"
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
   "mkdir -p /home/ssm-user/app-logs"
-  "docker run -d --name ${CONTAINER_NAME} --restart=always -p ${APP_PORT}:${APP_PORT} -v /home/ssm-user/app-logs:/app-logs -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} ${FULL_URI}"
+  "docker run -d --name ${CONTAINER_NAME} --network oot-network --restart=always -p ${APP_PORT}:${APP_PORT} -v /home/ssm-user/app-logs:/app-logs -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} ${FULL_URI}"
   "cat > /home/ssm-user/promtail-config.yml <<PROMTAIL_EOF
 ${PROMTAIL_CONFIG_CONTENT}
 PROMTAIL_EOF"
