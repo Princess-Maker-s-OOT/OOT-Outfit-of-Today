@@ -23,11 +23,8 @@ echo "[ECR] Copying Dockerfile and .dockerignore to frontend project"
 cp "$(dirname "$0")/../Dockerfile" "${FRONTEND_PATH}/"
 cp "$(dirname "$0")/../.dockerignore" "${FRONTEND_PATH}/"
 
-echo "[ECR] Build ${ECR_REPO}:${IMAGE_TAG}"
-docker build -t "${ECR_REPO}:${IMAGE_TAG}" "${FRONTEND_PATH}"
-
-echo "[ECR] Tag -> ${FULL_URI}"
-docker tag "${ECR_REPO}:${IMAGE_TAG}" "${FULL_URI}"
+echo "[ECR] Build ${FULL_URI}"
+docker build --pull -t "${FULL_URI}" "${FRONTEND_PATH}"
 
 echo "[ECR] Push -> ${FULL_URI}"
 docker push "${FULL_URI}"
