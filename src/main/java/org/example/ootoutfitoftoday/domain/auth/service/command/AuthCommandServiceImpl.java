@@ -79,15 +79,19 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     public void signup(AuthSignupRequest request) {
 
         if (userQueryService.existsByLoginId(request.getLoginId())) {
+            log.warn("회원가입 실패 - 로그인 ID 중복 - loginId: {}", request.getLoginId());
             throw new AuthException(AuthErrorCode.DUPLICATE_LOGIN_ID);
         }
         if (userQueryService.existsByEmail(request.getEmail())) {
+            log.warn("회원가입 실패 - 이메일 중복 - email: {}", request.getEmail());
             throw new AuthException(AuthErrorCode.DUPLICATE_EMAIL);
         }
         if (userQueryService.existsByNickname(request.getNickname())) {
+            log.warn("회원가입 실패 - 닉네임 중복 - nickname: {}", request.getNickname());
             throw new AuthException(AuthErrorCode.DUPLICATE_NICKNAME);
         }
         if (userQueryService.existsByPhoneNumber(request.getPhoneNumber())) {
+            log.warn("회원가입 실패 - 전화번호 중복 - phoneNumber: {}", request.getPhoneNumber());
             throw new AuthException(AuthErrorCode.DUPLICATE_PHONE_NUMBER);
         }
 
@@ -120,10 +124,12 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
         // 삭제된 사용자 체크
         if (cachedUser.isDeleted()) {
+            log.warn("로그인 실패 - 삭제된 사용자 - loginId: {}", request.getLoginId());
             throw new UserException(UserErrorCode.USER_NOT_FOUND);
         }
         // 비밀번호 검증(락 획득 전에 먼저 수행 - 빠른 실패)
         if (!passwordEncoder.matches(request.getPassword(), cachedUser.getPassword())) {
+            log.warn("로그인 실패 - 비밀번호 불일치 - loginId: {}", request.getLoginId());
             throw new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
 
@@ -136,7 +142,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.warn("로그인 락 획득 실패 - userId: {}", cachedUser.getId());
+                log.warn("로그인 실패 - 락 획득 실패 - userId: {}", cachedUser.getId());
                 throw new AuthException(AuthErrorCode.CONCURRENT_LOGIN_IN_PROGRESS);
             }
 
@@ -209,26 +215,32 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     ) {
         // 리프레시 토큰 타입 검증 추가
         if (!jwtUtil.isRefreshToken(refreshToken)) {
+            log.warn("토큰 재발급 실패 - 잘못된 토큰 타입 - deviceId: {}", deviceId);
             throw new AuthException(AuthErrorCode.INVALID_TOKEN_TYPE);
         }
 
         // 리프레시 토큰 만료 확인
         if (jwtUtil.isExpired(refreshToken)) {
+            log.warn("토큰 재발급 실패 - 리프레시 토큰 만료 - deviceId: {}", deviceId);
             throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
         }
 
         // MySQL에서 리프레시 토큰 조회
-        RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken).orElseThrow(
-                () -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+        RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken).orElseThrow(() -> {
+            log.warn("토큰 재발급 실패 - 유효하지 않은 리프레시 토큰 - deviceId: {}", deviceId);
+
+            return new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        });
 
         // 디바이스 ID 검증
         if (!storedToken.getDeviceId().equals(deviceId)) {
-            log.warn("사용자 Device ID 불일치: {}, stored: {}, requested: {}", storedToken.getUser().getId(), storedToken.getDeviceId(), deviceId);
+            log.warn("토큰 재발급 실패 - 디바이스 ID 불일치 - userId: {}, storedDeviceId: {}, requestedDeviceId: {}", storedToken.getUser().getId(), storedToken.getDeviceId(), deviceId);
             throw new AuthException(AuthErrorCode.DEVICE_MISMATCH);
         }
 
         // 리프레시 토큰 유효성 확인
         if (!storedToken.isValid(LocalDateTime.now())) {
+            log.warn("토큰 재발급 실패 - 리프레시 토큰 만료 - userId: {}, deviceId: {}", storedToken.getUser().getId(), deviceId);
             refreshTokenRepository.delete(storedToken);
             throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
         }
@@ -281,7 +293,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
         // 코드가 없거나 만료된 경우
         if (tokenJson == null) {
-            log.warn("유효하지 않거나 만료된 임시 코드 - code: {}", code);
+            log.warn("OAuth 토큰 교환 실패 - 유효하지 않거나 만료된 임시 코드 - code: {}", code);
             throw new AuthException(AuthErrorCode.INVALID_OR_EXPIRED_CODE);
         }
 
@@ -307,7 +319,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                 boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
                 if (!acquired) {
-                    log.warn("OAuth 토큰 교환 락 획득 실패 - userId: {}", user.getId());
+                    log.warn("OAuth 토큰 교환 실패 - 락 획득 실패 - userId: {}", user.getId());
                     throw new AuthException(AuthErrorCode.CONCURRENT_LOGIN_IN_PROGRESS);
                 }
 
@@ -333,8 +345,11 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                 }
             }
 
+        } catch (AuthException e) {
+            // AuthException은 그대로 재throw
+            throw e;
         } catch (Exception e) {
-            log.error("토큰 교환 중 오류 발생 - code: {}", code, e);
+            log.error("OAuth 토큰 교환 중 오류 발생 - code: {}", code, e);
             throw new AuthException(AuthErrorCode.TOKEN_EXCHANGE_FAILED);
         }
     }
@@ -392,9 +407,10 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(1, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.warn("로그아웃 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+                log.warn("로그아웃 실패 - 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
                 throw new AuthException(AuthErrorCode.LOGOUT_IN_PROGRESS);
             }
+
 
             log.info("로그아웃 락 획득 성공 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
 
@@ -430,7 +446,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.warn("전체 로그아웃 락 획득 실패 - userId: {}", authUser.getUserId());
+                log.warn("전체 로그아웃 실패 - 락 획득 실패 - userId: {}", authUser.getUserId());
                 throw new AuthException(AuthErrorCode.LOGOUT_IN_PROGRESS);
             }
 
@@ -447,6 +463,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             throw new RuntimeException("전체 로그아웃 처리 중 오류가 발생했습니다.", e);
 
         } finally {
+
             // 락 해제
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
@@ -465,6 +482,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     ) {
         // 현재 로그인한 디바이스 제거 시도 차단(락 밖에서 먼저 체크)
         if (deviceId.equals(currentDeviceId)) {
+            log.warn("디바이스 제거 실패 - 현재 디바이스 제거 시도 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
             throw new AuthException(AuthErrorCode.CANNOT_REMOVE_CURRENT_DEVICE);
         }
 
@@ -477,15 +495,18 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(1, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.warn("디바이스 제거 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+                log.warn("디바이스 제거 실패 - 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
                 throw new AuthException(AuthErrorCode.DEVICE_REMOVAL_IN_PROGRESS);
             }
 
             log.info("디바이스 제거 락 획득 성공 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
 
             // 락 보호 영역: MySQL에서 디바이스 존재 확인 및 삭제
-            RefreshToken token = refreshTokenRepository.findByUserIdAndDeviceId(authUser.getUserId(), deviceId).orElseThrow(
-                    () -> new AuthException(AuthErrorCode.DEVICE_NOT_FOUND));
+            RefreshToken token = refreshTokenRepository.findByUserIdAndDeviceId(authUser.getUserId(), deviceId).orElseThrow(() -> {
+                log.warn("디바이스 제거 실패 - 디바이스를 찾을 수 없음 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
+
+                return new AuthException(AuthErrorCode.DEVICE_NOT_FOUND);
+            });
 
             refreshTokenRepository.delete(token);
 
@@ -517,10 +538,12 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             // 비밀번호가 제공되지 않은 경우 예외 발생
             // 민감 작업이므로 보안을 위해 null과 불일치 동일하게 처리
             if (request.getPassword() == null || request.getPassword().isBlank()) {
+                log.warn("회원탈퇴 실패 - 비밀번호 누락 - userId: {}", authUser.getUserId());
                 throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
             }
 
             if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                log.warn("회원탈퇴 실패 - 비밀번호 불일치 - userId: {}", authUser.getUserId());
                 throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
             }
             // 소셜 회원은 비밀번호 검증 없이 바로 탈퇴 처리
@@ -538,7 +561,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(3, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.warn("회원탈퇴 락 획득 실패 - userId: {}", authUser.getUserId());
+                log.warn("회원탈퇴 실패 - 락 획득 실패 - userId: {}", authUser.getUserId());
                 throw new AuthException(AuthErrorCode.WITHDRAWAL_IN_PROGRESS);
             }
 

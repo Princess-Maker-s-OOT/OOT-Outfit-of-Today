@@ -1,6 +1,7 @@
 package org.example.ootoutfitoftoday.domain.user.service.query;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.auth.enums.LoginType;
 import org.example.ootoutfitoftoday.domain.auth.enums.SocialProvider;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -66,27 +68,35 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.existsByPhoneNumber(phoneNumber);
     }
 
-    // 캐싱 없는 Entity 조회 메서드들 (영속성 컨텍스트 필요한 경우 사용)
+    // 캐싱 없는 Entity 조회 메서드들(영속성 컨텍스트 필요한 경우 사용)
     @Override
     public User findByLoginIdAndIsDeletedFalse(String loginId) {
 
-        return userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND));
+        return userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(() -> {
+            log.warn("사용자를 찾을 수 없음 - loginId: {}", loginId);
+
+            return new UserException(UserErrorCode.USER_NOT_FOUND);
+        });
     }
 
     @Override
     public User findByIdAndIsDeletedFalse(Long id) {
 
-        return userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND));
+        return userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
+            log.warn("사용자를 찾을 수 없음 - userId: {}", id);
+
+            return new UserException(UserErrorCode.USER_NOT_FOUND);
+        });
     }
 
     @Override
     public User findByEmailAndIsDeletedFalse(String email) {
 
-        return userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND)
-        );
+        return userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(() -> {
+            log.warn("사용자를 찾을 수 없음 - email: {}", email);
+
+            return new UserException(UserErrorCode.USER_NOT_FOUND);
+        });
     }
 
     // 소셜 로그인 사용자 조회는 캐싱하지 않음
@@ -119,11 +129,13 @@ public class UserQueryServiceImpl implements UserQueryService {
         // 일반 유저는 비밀번호 필수
         // 비민감 작업이므로 명확한 에러 메시지
         if (request.getPassword() == null || request.getPassword().isBlank()) {
+            log.warn("비밀번호 검증 실패 - 비밀번호 누락 - userId: {}", authUser.getUserId());
             throw new AuthException(AuthErrorCode.VALIDATION_FAILED);
         }
 
         // 일반 회원만 비밀번호 검증 진행
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            log.warn("비밀번호 검증 실패 - 비밀번호 불일치 - userId: {}", authUser.getUserId());
             throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
         }
     }
@@ -166,8 +178,11 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Cacheable(value = "userCache", key = "'loginId:' + #loginId", unless = "#result == null")
     public UserCacheDto findCachedByLoginId(String loginId) {
 
-        User user = userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(() -> {
+            log.warn("캐시된 사용자 조회 실패 - loginId: {}", loginId);
+
+            return new UserException(UserErrorCode.USER_NOT_FOUND);
+        });
 
         return UserCacheDto.from(user);
     }
@@ -179,8 +194,11 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Cacheable(value = "userCache", key = "'id:' + #id", unless = "#result == null")
     public UserCacheDto findCachedById(Long id) {
 
-        User user = userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
+            log.warn("캐시된 사용자 조회 실패 - userId: {}", id);
+
+            return new UserException(UserErrorCode.USER_NOT_FOUND);
+        });
 
         return UserCacheDto.from(user);
     }
@@ -191,8 +209,11 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Cacheable(value = "userCache", key = "'email:' + #email", unless = "#result == null")
     public UserCacheDto findCachedByEmail(String email) {
 
-        User user = userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(
-                () -> new UserException(UserErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(() -> {
+            log.warn("캐시된 사용자 조회 실패 - email: {}", email);
+
+            return new UserException(UserErrorCode.USER_NOT_FOUND);
+        });
 
         return UserCacheDto.from(user);
     }
