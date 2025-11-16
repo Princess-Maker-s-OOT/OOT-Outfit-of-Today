@@ -12,11 +12,11 @@ import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthLoginRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthSignupRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.request.AuthWithdrawRequest;
 import org.example.ootoutfitoftoday.domain.auth.dto.response.AuthLoginResponse;
-import org.example.ootoutfitoftoday.domain.auth.dto.response.DeviceInfoResponse;
+import org.example.ootoutfitoftoday.domain.auth.entity.RefreshToken;
 import org.example.ootoutfitoftoday.domain.auth.enums.LoginType;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthErrorCode;
 import org.example.ootoutfitoftoday.domain.auth.exception.AuthException;
-import org.example.ootoutfitoftoday.domain.auth.repository.RedisRefreshTokenRepository;
+import org.example.ootoutfitoftoday.domain.auth.repository.RefreshTokenRepository;
 import org.example.ootoutfitoftoday.domain.chat.service.command.ChatReferenceToChatroomCommandService;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
 import org.example.ootoutfitoftoday.domain.chatparticipatinguser.service.query.ChatParticipatingUserQueryService;
@@ -51,18 +51,18 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     // Redis 키 접두사
     private static final String REDIS_KEY_PREFIX = "oauth:temp:code:";
 
-    // 락 키 접두사 추가
+    // 분산 락 키 접두사 추가
     private static final String USER_LOCK_PREFIX = "auth:user:lock:";
 
     // Redis 분산 락을 위한 Redisson 클라이언트 추가
     private final RedissonClient redissonClient;
+
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
     private final ChatParticipatingUserQueryService chatParticipatingUserQueryService;
     private final ChatReferenceToChatroomCommandService chatReferenceToChatroomCommandService;
-    // MySQL 리포지토리 제거, Redis 리포지토리로 대체
-    private final RedisRefreshTokenRepository redisRefreshTokenRepository;
-    // private final RefreshTokenRepository refreshTokenRepository;
+    // MySQL 리포지토리로 원복
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
@@ -122,7 +122,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         if (cachedUser.isDeleted()) {
             throw new UserException(UserErrorCode.USER_NOT_FOUND);
         }
-        // 비밀번호 검증
+        // 비밀번호 검증(락 획득 전에 먼저 수행 - 빠른 실패)
         if (!passwordEncoder.matches(request.getPassword(), cachedUser.getPassword())) {
             throw new AuthException(AuthErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
@@ -132,6 +132,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
+            // 락 획득 시도(2초 대기)
             boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
             if (!acquired) {
@@ -153,6 +154,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             throw new RuntimeException("로그인 처리 중 오류가 발생했습니다.", e);
 
         } finally {
+            // 락 해제
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
                 log.info("로그인 락 해제 - userId: {}", cachedUser.getId());
@@ -166,19 +168,19 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             AuthLoginRequest request,
             HttpServletRequest httpRequest
     ) {
-        // Redis에서 현재 디바이스 수 조회
-        long deviceCount = redisRefreshTokenRepository.countByUserId(user.getId());
+        // MySQL에서 디바이스 수만 카운트
+        long deviceCount = refreshTokenRepository.countByUserId(user.getId());
 
         log.info("현재 활성 디바이스 수: {} (최대: {})", deviceCount, maxDevicesPerUser);
 
         // 최대 디바이스 수 초과 시 가장 오래된 디바이스 삭제
         if (deviceCount >= maxDevicesPerUser) {
             // 가장 오래된 디바이스 삭제
-            Optional<DeviceInfoResponse> oldestDeviceOpt = redisRefreshTokenRepository.findOldestDeviceByUserId(user.getId());
+            Optional<RefreshToken> oldestDeviceOpt = refreshTokenRepository.findTopByUserIdOrderByLastUsedAtAsc(user.getId());
 
             if (oldestDeviceOpt.isPresent()) {
-                DeviceInfoResponse oldestDevice = oldestDeviceOpt.get();
-                redisRefreshTokenRepository.deleteByUserIdAndDeviceId(user.getId(), oldestDevice.getDeviceId());
+                RefreshToken oldestDevice = oldestDeviceOpt.get();
+                refreshTokenRepository.deleteByUserIdAndDeviceId(user.getId(), oldestDevice.getDeviceId());
                 log.info("최대 디바이스 수 초과로 가장 오래된 디바이스 삭제 - userId: {}, deviceId: {}", user.getId(), oldestDevice.getDeviceId());
             }
         }
@@ -189,7 +191,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         // 리프레시 토큰 생성
         String refreshToken = jwtUtil.createRefreshToken(user.getId());
 
-        // Redis에 리프레시 토큰 저장
+        // MySQL에 리프레시 토큰 저장
         saveOrUpdateRefreshToken(user, request.getDeviceId(), request.getDeviceName(), refreshToken, httpRequest);
 
         log.info("로그인 완료 - userId: {}, deviceId: {}", user.getId(), request.getDeviceId());
@@ -215,38 +217,25 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
         }
 
-        // Redis에서 토큰 존재 여부 확인
-        if (!redisRefreshTokenRepository.existsByToken(refreshToken)) {
-            throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
-        }
-
-        // Redis에서 userId 조회
-        Long userId = redisRefreshTokenRepository.findUserIdByToken(refreshToken).orElseThrow(
+        // MySQL에서 리프레시 토큰 조회
+        RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken).orElseThrow(
                 () -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
-        // Redis에서 deviceId 조회
-        String storedDeviceId = redisRefreshTokenRepository.findDeviceIdByToken(refreshToken).orElseThrow(
-                () -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
-
-        // 디바이스 ID 검증(보안 강화)
-        if (!storedDeviceId.equals(deviceId)) {
-            log.warn("사용자 Device ID 불일치: userId={}, stored: {}, requested: {}", userId, storedDeviceId, deviceId);
+        // 디바이스 ID 검증
+        if (!storedToken.getDeviceId().equals(deviceId)) {
+            log.warn("사용자 Device ID 불일치: {}, stored: {}, requested: {}", storedToken.getUser().getId(), storedToken.getDeviceId(), deviceId);
             throw new AuthException(AuthErrorCode.DEVICE_MISMATCH);
         }
 
-        // 토큰 메타데이터 조회하여 만료 확인
-        DeviceInfoResponse tokenMetadata = redisRefreshTokenRepository.findTokenMetadata(refreshToken).orElseThrow(
-                () -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
-
-        if (tokenMetadata.getExpiresAt().isBefore(LocalDateTime.now())) {
-            // 만료된 토큰 삭제
-            redisRefreshTokenRepository.deleteByUserIdAndDeviceId(userId, deviceId);
+        // 리프레시 토큰 유효성 확인
+        if (!storedToken.isValid(LocalDateTime.now())) {
+            refreshTokenRepository.delete(storedToken);
             throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
         }
 
-        // User 조회
+        // userId로 User 조회
+        Long userId = storedToken.getUser().getId();
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
-
 
         // 새로운 액세스 토큰 생성
         String newAccessToken = jwtUtil.createAccessToken(userId, user.getRole());
@@ -261,17 +250,9 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
+        // MySQL에서 토큰 업데이트
         // updateToken 호출 시 lastUsedAt도 자동 갱신됨
-        // Redis에서 토큰 업데이트 (RTR)
-        redisRefreshTokenRepository.updateToken(
-                userId,
-                deviceId,
-                refreshToken,       // 기존 토큰
-                newRefreshToken,    // 새 토큰
-                newExpiresAt,
-                ipAddress,
-                userAgent
-        );
+        storedToken.updateToken(newRefreshToken, newExpiresAt, ipAddress, userAgent);
 
         log.info("토큰 재발급 완료 - userId: {}, deviceId: {}", userId, deviceId);
 
@@ -345,6 +326,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                 );
 
             } finally {
+                // 락 해제
                 if (lock.isHeldByCurrentThread()) {
                     lock.unlock();
                     log.info("OAuth 토큰 교환 락 해제 - userId: {}", user.getId());
@@ -368,39 +350,21 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             String code,
             String redisKey
     ) {
-        LocalDateTime expiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
-
-        // Redis에서 디바이스 수 확인
-        long deviceCount = redisRefreshTokenRepository.countByUserId(user.getId());
+        // MySQL에서 디바이스 수만 카운트
+        long deviceCount = refreshTokenRepository.countByUserId(user.getId());
 
         if (deviceCount >= maxDevicesPerUser) {
             // 가장 오래된 디바이스 삭제
-            Optional<DeviceInfoResponse> oldestDeviceOpt = redisRefreshTokenRepository.findOldestDeviceByUserId(user.getId());
+            Optional<RefreshToken> oldestDeviceOpt = refreshTokenRepository.findTopByUserIdOrderByLastUsedAtAsc(user.getId());
 
             if (oldestDeviceOpt.isPresent()) {
-                DeviceInfoResponse oldestDevice = oldestDeviceOpt.get();
-                redisRefreshTokenRepository.deleteByUserIdAndDeviceId(user.getId(), oldestDevice.getDeviceId());
+                RefreshToken oldestDevice = oldestDeviceOpt.get();
+                refreshTokenRepository.deleteByUserIdAndDeviceId(user.getId(), oldestDevice.getDeviceId());
                 log.info("최대 디바이스 수 초과로 가장 오래된 디바이스 삭제: userId={}, deviceId={}", user.getId(), oldestDevice.getDeviceId());
             }
         }
 
-        String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
-        String userAgent = httpRequest.getHeader("User-Agent");
-
-        log.info("=== 클라이언트 정보 추출 ===");
-        log.info("IP Address: {}", ipAddress);
-        log.info("User-Agent: {}", userAgent);
-
-        // Redis에 리프레시 토큰 저장
-        redisRefreshTokenRepository.save(
-                user.getId(),
-                deviceId,
-                deviceName,
-                refreshToken,
-                expiresAt,
-                ipAddress,
-                userAgent
-        );
+        saveOrUpdateRefreshToken(user, deviceId, deviceName, refreshToken, httpRequest);
 
         log.info("Refresh Token 저장 완료 - userId: {}, deviceId: {}", user.getId(), deviceId);
 
@@ -419,6 +383,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     @Override
     public void logout(AuthUser authUser, String deviceId) {
 
+        // 사용자별 분산 락 획득
         String lockKey = USER_LOCK_PREFIX + authUser.getUserId();
         RLock lock = redissonClient.getLock(lockKey);
 
@@ -427,15 +392,14 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             boolean acquired = lock.tryLock(1, TimeUnit.SECONDS);
 
             if (!acquired) {
-                log.warn("로그아웃 락 획득 실패 - userId: {}, deviceId: {}",
-                        authUser.getUserId(), deviceId);
+                log.warn("로그아웃 락 획득 실패 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
                 throw new AuthException(AuthErrorCode.LOGOUT_IN_PROGRESS);
             }
 
             log.info("로그아웃 락 획득 성공 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
 
-            // 락 보호 영역: Redis에서 리프레시 토큰 삭제
-            redisRefreshTokenRepository.deleteByUserIdAndDeviceId(authUser.getUserId(), deviceId);
+            // 락 보호 영역: MySQL에서 리프레시 토큰 삭제
+            refreshTokenRepository.deleteByUserIdAndDeviceId(authUser.getUserId(), deviceId);
 
             log.info("로그아웃 완료 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
 
@@ -444,6 +408,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             log.error("로그아웃 처리 중 인터럽트 발생 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId, e);
             throw new RuntimeException("로그아웃 처리 중 오류가 발생했습니다.", e);
         } finally {
+            // 락 해제
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
                 log.info("로그아웃 락 해제 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
@@ -456,10 +421,12 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     @Override
     public void logoutAll(AuthUser authUser) {
 
+        // 사용자별 분산 락 획득
         String lockKey = USER_LOCK_PREFIX + authUser.getUserId();
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
+            // 락 획득 시도(2초 대기)
             boolean acquired = lock.tryLock(2, TimeUnit.SECONDS);
 
             if (!acquired) {
@@ -469,8 +436,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
             log.info("전체 로그아웃 락 획득 성공 - userId: {}", authUser.getUserId());
 
-            // 락 보호 영역: Redis에서 사용자의 모든 디바이스 삭제
-            redisRefreshTokenRepository.deleteAllByUserId(authUser.getUserId());
+            // 락 보호 영역: MySQL에서 모든 디바이스 삭제
+            refreshTokenRepository.deleteByUserId(authUser.getUserId());
 
             log.info("전체 로그아웃 완료 - userId: {}", authUser.getUserId());
 
@@ -480,6 +447,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             throw new RuntimeException("전체 로그아웃 처리 중 오류가 발생했습니다.", e);
 
         } finally {
+            // 락 해제
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
                 log.info("전체 로그아웃 락 해제 - userId: {}", authUser.getUserId());
@@ -500,10 +468,12 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             throw new AuthException(AuthErrorCode.CANNOT_REMOVE_CURRENT_DEVICE);
         }
 
+        // 사용자별 분산 락 획득
         String lockKey = USER_LOCK_PREFIX + authUser.getUserId();
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
+            // 락 획득 시도(1초 대기)
             boolean acquired = lock.tryLock(1, TimeUnit.SECONDS);
 
             if (!acquired) {
@@ -513,15 +483,11 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
             log.info("디바이스 제거 락 획득 성공 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
 
-            // 락 보호 영역: Redis에서 해당 디바이스 존재 여부 확인
-            Optional<String> tokenOpt = redisRefreshTokenRepository.findByUserIdAndDeviceId(authUser.getUserId(), deviceId);
+            // 락 보호 영역: MySQL에서 디바이스 존재 확인 및 삭제
+            RefreshToken token = refreshTokenRepository.findByUserIdAndDeviceId(authUser.getUserId(), deviceId).orElseThrow(
+                    () -> new AuthException(AuthErrorCode.DEVICE_NOT_FOUND));
 
-            if (tokenOpt.isEmpty()) {
-                throw new AuthException(AuthErrorCode.DEVICE_NOT_FOUND);
-            }
-
-            // 락 보호 영역: Redis에서 디바이스 삭제
-            redisRefreshTokenRepository.deleteByUserIdAndDeviceId(authUser.getUserId(), deviceId);
+            refreshTokenRepository.delete(token);
 
             log.info("디바이스 강제 제거 완료 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
 
@@ -531,6 +497,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             throw new RuntimeException("디바이스 제거 처리 중 오류가 발생했습니다.", e);
 
         } finally {
+            // 락 해제
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
                 log.info("디바이스 제거 락 해제 - userId: {}, deviceId: {}", authUser.getUserId(), deviceId);
@@ -559,6 +526,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             // 소셜 회원은 비밀번호 검증 없이 바로 탈퇴 처리
         }
 
+        // 사용자별 분산 락 획득
         String lockKey = USER_LOCK_PREFIX + authUser.getUserId();
         RLock lock = redissonClient.getLock(lockKey);
 
@@ -576,8 +544,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
             log.info("회원탈퇴 락 획득 성공 - userId: {}", authUser.getUserId());
 
-            // 락 보호 영역: Redis에서 리프레시 토큰 삭제
-            redisRefreshTokenRepository.deleteAllByUserId(user.getId());
+            // 락 보호 영역: MySQL에서 리프레시 토큰 삭제
+            refreshTokenRepository.deleteByUserId(user.getId());
 
             // 락 보호 영역: 채팅 관련 처리
             List<ChatParticipatingUser> chatParticipatingUsers = chatParticipatingUserQueryService.getChatParticipatingUsers(user);
@@ -605,6 +573,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             throw new RuntimeException("회원탈퇴 처리 중 오류가 발생했습니다.", e);
 
         } finally {
+            // 락 해제
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
                 log.info("회원탈퇴 락 해제 - userId: {}", authUser.getUserId());
@@ -620,7 +589,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             String refreshToken,
             HttpServletRequest httpRequest
     ) {
-        LocalDateTime expiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
+        LocalDateTime newExpiresAt = jwtUtil.calculateRefreshTokenExpiresAt();
 
         // 클라이언트 IP 추출
         String ipAddress = HttpRequestUtil.getClientIp(httpRequest);
@@ -628,28 +597,24 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         // User-Agent 추출
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        // Redis에서 기존 토큰 확인
-        Optional<String> existingTokenOpt = redisRefreshTokenRepository.findByUserIdAndDeviceId(user.getId(), deviceId);
-
-        if (existingTokenOpt.isPresent()) {
-            // 기존 토큰이 있으면 업데이트 (RTR)
-            String existingToken = existingTokenOpt.get();
-            redisRefreshTokenRepository.updateToken(
-                    user.getId(),
-                    deviceId,
-                    existingToken,
-                    refreshToken,
-                    expiresAt,
-                    ipAddress,
-                    userAgent
-            );
-
-            log.debug("기존 디바이스 토큰 업데이트 - userId: {}, deviceId: {}", user.getId(), deviceId);
-        } else {
-            // 없으면 새로 저장
-            redisRefreshTokenRepository.save(user.getId(), deviceId, deviceName, refreshToken, expiresAt, ipAddress, userAgent);
-
-            log.debug("새 디바이스 토큰 저장 - userId: {}, deviceId: {}", user.getId(), deviceId);
-        }
+        // MySQL에서 기존 토큰 확인
+        refreshTokenRepository.findByUserIdAndDeviceId(user.getId(), deviceId)
+                .ifPresentOrElse(
+                        // 기존 토큰이 있으면 갱신(lastUsedAt도 자동 갱신됨)
+                        existingToken -> existingToken.updateToken(refreshToken, newExpiresAt, ipAddress, userAgent),
+                        () -> {
+                            // 없으면 새로 생성하여 저장(모든 필드 포함)
+                            RefreshToken newToken = RefreshToken.create(
+                                    user,
+                                    deviceId,
+                                    deviceName,
+                                    refreshToken,
+                                    newExpiresAt,
+                                    ipAddress,
+                                    userAgent
+                            );
+                            refreshTokenRepository.save(newToken);
+                        }
+                );
     }
 }
