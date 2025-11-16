@@ -1,5 +1,7 @@
 package org.example.ootoutfitoftoday.domain.recommendation.service.query;
 
+import com.ootcommon.recommendation.status.RecommendationStatus;
+import com.ootcommon.recommendation.type.RecommendationType;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.donation.dto.response.DonationCenterSearchResponse;
 import org.example.ootoutfitoftoday.domain.donation.service.query.DonationCenterQueryService;
@@ -8,8 +10,6 @@ import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationErrorCode;
 import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationException;
 import org.example.ootoutfitoftoday.domain.recommendation.repository.RecommendationRepository;
-import org.example.ootoutfitoftoday.domain.recommendation.status.RecommendationStatus;
-import org.example.ootoutfitoftoday.domain.recommendation.type.RecommendationType;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.data.domain.Page;

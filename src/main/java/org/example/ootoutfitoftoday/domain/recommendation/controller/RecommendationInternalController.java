@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.domain.recommendation.controller;
 
+import com.ootcommon.recommendation.dto.RecommendationBatchCreateResponse;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -7,7 +8,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.response.Response;
-import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationBatchCreateResponse;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationSuccessCode;
 import org.example.ootoutfitoftoday.domain.recommendation.service.command.RecommendationCommandService;
@@ -77,7 +77,13 @@ public class RecommendationInternalController {
         // 미저장 상태의 엔티티를 DTO로 변환하여 배치 서버에 전달
         // 배치 서버의 Writer에서 이 데이터를 받아 실제 저장을 수행
         List<RecommendationBatchCreateResponse> responseList = recommendations.stream()
-                .map(RecommendationBatchCreateResponse::from)
+                .map(rec -> RecommendationBatchCreateResponse.of(
+                        rec.getUser().getId(),
+                        rec.getClothes().getId(),
+                        rec.getType().name(),
+                        rec.getReason(),
+                        rec.getStatus().name()
+                ))
                 .toList();
 
         return Response.success(responseList, RecommendationSuccessCode.RECOMMENDATION_CREATED);

@@ -1,11 +1,11 @@
 package org.example.ootoutfitoftoday.domain.recommendation.dto.response;
 
+import com.ootcommon.recommendation.status.RecommendationStatus;
+import com.ootcommon.recommendation.type.RecommendationType;
 import lombok.AccessLevel;
 import lombok.Builder;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
-import org.example.ootoutfitoftoday.domain.recommendation.status.RecommendationStatus;
-import org.example.ootoutfitoftoday.domain.recommendation.type.RecommendationType;
 
 import java.time.LocalDateTime;
 

@@ -1,5 +1,7 @@
 package org.example.ootoutfitoftoday.domain.recommendation.entity;
 
+import com.ootcommon.recommendation.status.RecommendationStatus;
+import com.ootcommon.recommendation.type.RecommendationType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -7,8 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
-import org.example.ootoutfitoftoday.domain.recommendation.status.RecommendationStatus;
-import org.example.ootoutfitoftoday.domain.recommendation.type.RecommendationType;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 
 @Entity

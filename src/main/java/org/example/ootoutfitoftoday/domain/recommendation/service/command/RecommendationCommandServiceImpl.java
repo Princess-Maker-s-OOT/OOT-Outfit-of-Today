@@ -1,5 +1,7 @@
 package org.example.ootoutfitoftoday.domain.recommendation.service.command;
 
+import com.ootcommon.recommendation.status.RecommendationStatus;
+import com.ootcommon.recommendation.type.RecommendationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
@@ -11,8 +13,6 @@ import org.example.ootoutfitoftoday.domain.recommendation.exception.Recommendati
 import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationException;
 import org.example.ootoutfitoftoday.domain.recommendation.repository.RecommendationRepository;
 import org.example.ootoutfitoftoday.domain.recommendation.service.query.RecommendationQueryService;
-import org.example.ootoutfitoftoday.domain.recommendation.status.RecommendationStatus;
-import org.example.ootoutfitoftoday.domain.recommendation.type.RecommendationType;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.service.command.SalePostCommandService;
