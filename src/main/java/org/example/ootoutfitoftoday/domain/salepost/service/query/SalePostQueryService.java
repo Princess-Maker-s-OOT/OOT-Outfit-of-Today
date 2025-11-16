@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.domain.salepost.service.query;
 
+import org.example.ootoutfitoftoday.common.util.Location;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.*;
 import com.ootcommon.salepost.enums.SaleStatus;
 import com.ootcommon.salepost.response.SaleStatusCount;
@@ -7,9 +8,11 @@ import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailR
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

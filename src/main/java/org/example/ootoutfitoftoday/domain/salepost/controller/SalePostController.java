@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
@@ -29,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Tag(name = "판매글 관리", description = "판매글 관련 API")
 // @SecurityRequirement(name = "bearerAuth")
 @RestController
@@ -110,6 +112,8 @@ public class SalePostController {
             @AuthenticationPrincipal AuthUser authUser
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
+
+        log.info("[GET] /v1/sale-posts: categoryId={}, status={}, keyword={}, pageable={}", categoryId, status, keyword, pageable);
 
         Slice<SalePostListResponse> salePosts = salePostQueryService.getSalePostList(
                 authUser.getUserId(),
