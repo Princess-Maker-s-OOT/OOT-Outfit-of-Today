@@ -18,10 +18,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -43,13 +46,16 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
             Long userId,
             Pageable pageable
     ) {
+        log.info("Fetching recommendations for userId: {}, page: {}, size: {}",
+                userId, pageable.getPageNumber(), pageable.getPageSize());
+
         Page<Recommendation> idsPage = recommendationRepository.findRecommendationIdsByUserId(
                 userId,
                 pageable
         );
 
         if (idsPage.isEmpty()) {
-
+            log.debug("No recommendations found for userId: {}", userId);
             return Page.empty(pageable);
         }
 
@@ -57,9 +63,13 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
                 .map(Recommendation::getId)
                 .toList();
 
+        log.debug("Step 1: Retrieved {} recommendation IDs for userId: {}", ids.size(), userId);
+
         // ID 목록으로 JOIN FETCH를 통한 전체 엔티티 그래프 로드 (N+1 방지)
         List<Recommendation> recommendations =
                 recommendationRepository.findRecommendationsWithDetailsByIds(ids);
+
+        log.debug("Step 2: Loaded {} recommendations with details for userId: {}", recommendations.size(), userId);
 
         Map<Long, Recommendation> recommendationMap = recommendations.stream()
                 .collect(Collectors.toMap(Recommendation::getId, r -> r));
@@ -69,6 +79,9 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
                 .map(recommendationMap::get)
                 .map(RecommendationGetMyResponse::from)
                 .toList();
+
+        log.info("Successfully fetched {} recommendations for userId: {}, totalElements: {}",
+                content.size(), userId, idsPage.getTotalElements());
 
         // 페이징 메타데이터를 유지하면서 새로운 Page 객체 생성
         return new PageImpl<>(
@@ -87,9 +100,13 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
      */
     @Override
     public Recommendation findById(Long recommendationId) {
+        log.debug("Finding recommendation by id: {}", recommendationId);
 
         return recommendationRepository.findById(recommendationId)
-                .orElseThrow(() -> new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Recommendation not found: {}", recommendationId);
+                    return new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND);
+                });
     }
 
     /**
@@ -110,23 +127,36 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
             Integer radius,
             String keyword
     ) {
+        log.info("Searching donation centers from recommendation: {}, userId: {}, radius: {}, keyword: {}",
+                recommendationId, userId, radius, keyword);
+
         Recommendation recommendation = findById(recommendationId);
+        log.debug("Found recommendation: {}, status: {}, type: {}, ownerId: {}",
+                recommendationId, recommendation.getStatus(), recommendation.getType(), recommendation.getUser().getId());
 
         if (!recommendation.getUser().getId().equals(userId)) {
+            log.warn("Unauthorized access to recommendation - recommendationId: {}, requestUserId: {}, ownerUserId: {}",
+                    recommendationId, userId, recommendation.getUser().getId());
             throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND);
         }
 
         if (recommendation.getStatus() != RecommendationStatus.ACCEPTED) {
+            log.warn("Recommendation is not ACCEPTED - recommendationId: {}, status: {}",
+                    recommendationId, recommendation.getStatus());
             throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_ACCEPTED);
         }
 
         if (recommendation.getType() != RecommendationType.DONATION) {
+            log.warn("Recommendation is not DONATION type - recommendationId: {}, type: {}",
+                    recommendationId, recommendation.getType());
             throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_DONATION_TYPE);
         }
 
         User user = userQueryService.findByIdAsNativeQuery(userId);
+        log.debug("User trade location: {}", user.getTradeLocation());
 
         if (user.getTradeLocation() == null || user.getTradeLocation().isEmpty()) {
+            log.warn("User location not found for userId: {}", userId);
             throw new RecommendationException(RecommendationErrorCode.USER_LOCATION_NOT_FOUND);
         }
 
@@ -134,12 +164,17 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
         Double longitude = coordinates[0];
         Double latitude = coordinates[1];
 
-        return donationCenterQueryService.searchNearbyDonationCenters(
+        log.debug("Parsed user coordinates - latitude: {}, longitude: {}", latitude, longitude);
+
+        List<DonationCenterSearchResponse> results = donationCenterQueryService.searchNearbyDonationCenters(
                 latitude,
                 longitude,
                 radius,
                 keyword
         );
+
+        log.info("Found {} donation centers for recommendation: {}", results.size(), recommendationId);
+        return results;
     }
 
     /**
@@ -152,6 +187,7 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
      * @throws RecommendationException 파싱 실패 시
      */
     private double[] parseTradeLocation(String tradeLocation) {
+        log.debug("Parsing trade location: {}", tradeLocation);
         try {
             String locationStr = tradeLocation
                     .replace("POINT(", "")
@@ -161,6 +197,7 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
             String[] coords = locationStr.split("\\s+");
 
             if (coords.length != 2) {
+                log.error("Invalid trade location format - expected 2 coordinates, got: {}", coords.length);
                 throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
             }
 
@@ -168,12 +205,15 @@ public class RecommendationQueryServiceImpl implements RecommendationQueryServic
             double longitude = Double.parseDouble(coords[1]);
 
             if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+                log.error("Invalid coordinates range - latitude: {}, longitude: {}", latitude, longitude);
                 throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
             }
 
+            log.debug("Successfully parsed location - latitude: {}, longitude: {}", latitude, longitude);
             return new double[]{longitude, latitude};
 
         } catch (NumberFormatException e) {
+            log.error("Failed to parse trade location coordinates: {}", tradeLocation, e);
             throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
         }
     }
