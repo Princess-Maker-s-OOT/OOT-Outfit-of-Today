@@ -55,14 +55,18 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
             Integer radius,
             String keyword
     ) {
+        long methodStartTime = System.currentTimeMillis();
+        log.debug("searchNearbyDonationCenters 메서드 시작");
 
         // 좌표 유효성 검증
         validateCoordinates(latitude, longitude);
+        log.debug("좌표 유효성 검증 통과 - 위도: {}, 경도: {}", latitude, longitude);
 
         // 기본값 설정
         final Integer searchRadius = (radius == null || radius <= 0) ? 5000 : radius;  // 기본 5km
+        log.debug("검색 반경 설정 - 입력값: {}, 적용값: {}m", radius, searchRadius);
 
-        log.info("기부처 검색 시작: latitude={}, longitude={}, radius={}, keyword={}",
+        log.info("기부처 검색 시작 - 위도: {}, 경도: {}, 반경: {}m, 키워드: {}",
                 latitude, longitude, searchRadius, keyword);
 
         // 키워드가 지정된 경우 해당 키워드로만 검색, 아니면 기본 키워드들로 검색
@@ -70,7 +74,10 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
                 ? List.of(keyword)
                 : DEFAULT_KEYWORDS;
 
+        log.debug("검색 키워드 목록: {} (총 {}개)", searchKeywords, searchKeywords.size());
+
         // 각 키워드로 검색하여 결과를 합침 (중복 제거)
+        long searchStartTime = System.currentTimeMillis();
         List<DonationCenterSearchResponse> allResults = searchKeywords.stream()
                 .flatMap(kw -> searchByKeyword(kw, latitude, longitude, searchRadius).stream())
                 .distinct()  // 중복 제거 (kakaoPlaceId 기준으로 중복이 발생할 수 있음)
@@ -80,7 +87,15 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
                 ))
                 .collect(Collectors.toList());
 
-        log.info("기부처 검색 완료: 총 {}개 발견", allResults.size());
+        long searchTime = System.currentTimeMillis() - searchStartTime;
+        log.debug("키워드 검색 및 정렬 완료 - 소요시간: {}ms", searchTime);
+
+        long totalTime = System.currentTimeMillis() - methodStartTime;
+        log.info("기부처 검색 완료 - 총 {}개 발견, 전체 소요시간: {}ms", allResults.size(), totalTime);
+
+        if (allResults.isEmpty()) {
+            log.warn("기부처 검색 결과 없음 - 위도: {}, 경도: {}, 반경: {}m", latitude, longitude, searchRadius);
+        }
 
         return allResults;
     }
@@ -92,6 +107,9 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
             Double longitude,
             Integer radius
     ) {
+        long apiStartTime = System.currentTimeMillis();
+        log.debug("카카오맵 API 호출 시작 - 키워드: {}, 위도: {}, 경도: {}, 반경: {}m",
+                keyword, latitude, longitude, radius);
 
         // 카카오맵 API 호출
         KakaoPlaceResponse response = kakaoMapClient.searchByKeyword(
@@ -103,35 +121,59 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
                 15     // size: 최대 15개
         );
 
+        long apiTime = System.currentTimeMillis() - apiStartTime;
+        log.debug("카카오맵 API 호출 완료 - 키워드: {}, 소요시간: {}ms", keyword, apiTime);
+
         if (response == null || response.documents() == null || response.documents().isEmpty()) {
-            log.debug("검색 결과 없음: keyword={}", keyword);
+            log.debug("검색 결과 없음 - 키워드: {}", keyword);
             return List.of();
         }
 
+        log.debug("카카오맵 API 응답 - 키워드: {}, 결과 건수: {}, 전체 건수: {}",
+                keyword, response.documents().size(),
+                response.meta() != null ? response.meta().totalCount() : "N/A");
+
         // 응답받은 각 장소를 처리하고 DB에 저장
-        return response.documents().stream()
+        long processingStartTime = System.currentTimeMillis();
+        List<DonationCenterSearchResponse> results = response.documents().stream()
                 .map(this::processDonationCenter)
                 .collect(Collectors.toList());
+
+        long processingTime = System.currentTimeMillis() - processingStartTime;
+        log.debug("기부처 처리 완료 - 키워드: {}, 처리 건수: {}, 소요시간: {}ms",
+                keyword, results.size(), processingTime);
+
+        return results;
     }
 
     private DonationCenterSearchResponse processDonationCenter(KakaoPlaceResponse.Document document) {
+        log.trace("기부처 처리 시작 - 장소명: {}, 카카오ID: {}", document.placeName(), document.id());
 
         // Point 객체 생성
-        Point location = createPoint(
-                Double.parseDouble(document.x()),  // 경도
-                Double.parseDouble(document.y())   // 위도
-        );
+        double longitude = Double.parseDouble(document.x());
+        double latitude = Double.parseDouble(document.y());
+        log.trace("좌표 파싱 - 카카오ID: {}, 경도: {}, 위도: {}", document.id(), longitude, latitude);
+
+        Point location = createPoint(longitude, latitude);
+
+        // 주소 결정 (도로명 주소 우선)
+        String address = document.roadAddressName() != null && !document.roadAddressName().isBlank()
+                ? document.roadAddressName()
+                : document.addressName();
+        log.trace("주소 결정 - 카카오ID: {}, 도로명: {}, 지번: {}, 선택: {}",
+                document.id(), document.roadAddressName(), document.addressName(), address);
+
+        // 전화번호 처리
+        String phoneNumber = document.phone() != null && !document.phone().isBlank()
+                ? document.phone()
+                : null;
 
         // CommandService를 통해 기부처 생성 또는 조회 (Command 책임 분리)
         DonationCenter center = donationCenterCommandService.createOrGet(
                 document.id(),
                 document.placeName(),
-                document.roadAddressName() != null && !document.roadAddressName().isBlank()
-                        ? document.roadAddressName()
-                        : document.addressName(),
-                document.phone() != null && !document.phone().isBlank()
-                        ? document.phone()
-                        : null,
+                address,
+                phoneNumber,
                 location,
                 document.categoryName()
         );
@@ -141,27 +183,47 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
                 ? Integer.parseInt(document.distance())
                 : null;
 
+        log.trace("기부처 처리 완료 - 기부처ID: {}, 카카오ID: {}, 장소명: {}, 거리: {}m",
+                center.getId(), document.id(), document.placeName(), distance);
+
         return DonationCenterSearchResponse.fromWithDistance(center, distance);
     }
 
     // 좌표 유효성 검증
     private void validateCoordinates(Double latitude, Double longitude) {
+        log.trace("좌표 유효성 검증 시작 - 위도: {}, 경도: {}", latitude, longitude);
+
         if (latitude == null || longitude == null) {
+            log.warn("좌표값 누락 - 위도: {}, 경도: {}", latitude, longitude);
             throw new DonationException(DonationErrorCode.INVALID_COORDINATES);
         }
 
         // 위도는 -90 ~ 90, 경도는 -180 ~ 180
         if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+            log.warn("잘못된 좌표 범위 - 위도: {} (유효범위: -90~90), 경도: {} (유효범위: -180~180)",
+                    latitude, longitude);
             throw new DonationException(DonationErrorCode.INVALID_COORDINATES);
         }
+
+        // 대한민국 좌표 범위 체크 (경고만 출력)
+        boolean isInKorea = latitude >= 33.0 && latitude <= 43.0
+                && longitude >= 124.0 && longitude <= 132.0;
+        if (!isInKorea) {
+            log.warn("대한민국 범위 외 좌표 - 위도: {}, 경도: {} (대한민국: 위도 33~43, 경도 124~132)",
+                    latitude, longitude);
+        }
+
+        log.trace("좌표 유효성 검증 완료");
     }
 
     // Point 객체 생성
     private Point createPoint(double longitude, double latitude) {
+        log.trace("Point 객체 생성 - 경도: {}, 위도: {}, SRID: {}", longitude, latitude, SRID);
 
         Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
         point.setSRID(SRID);
 
+        log.trace("Point 객체 생성 완료 - WKT: {}", point.toText());
         return point;
     }
 }
