@@ -17,58 +17,66 @@ REPO_AND_TAG="$(echo "${FULL_URI}" | cut -d/ -f2- )"
 REPO="$(echo "${REPO_AND_TAG}" | rev | cut -d: -f2- | rev)"
 TAG="$(echo "${REPO_AND_TAG}"  | awk -F: '{print $NF}')"
 
-# SSM 코멘트(100자 제한 방어)
 COMMENT="Deploy ${REPO}:${TAG}"
 if [ ${#COMMENT} -gt 100 ]; then
   COMMENT="${COMMENT:0:100}"
 fi
 
+echo "[INFO] Deploy start"
 echo "[INFO] FULL_URI=${FULL_URI}"
 echo "[INFO] REG_URI=${REG_URI}"
 echo "[INFO] EC2_INSTANCE_ID=${EC2_INSTANCE_ID}"
-echo "[INFO] COMMENT=${COMMENT}"
 
-# ======== PROMTAIL CONFIG (heredoc 제거 버전) ========
-PROMTAIL_CONFIG_ESCAPED=$(printf "%s" "
+# ===== Promtail config 내용 =====
+PROMTAIL_CONFIG_CONTENT=$(cat <<EOF
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
+
 positions:
   filename: /tmp/positions.yaml
+
 clients:
   - url: http://${MONITORING_EC2_PUBLIC_IP}:3100/loki/api/v1/push
+
 scrape_configs:
 - job_name: oot-dev-logs
   static_configs:
   - targets:
       - localhost
     labels:
-      job: \"oot-dev\"
-      environment: \"dev\"
+      job: "oot-dev"
+      environment: "dev"
       __path__: /app-logs/*.log
-")
+EOF
+)
 
-# ===== SSM에서 실행할 명령어들 =====
+# ===== 실제 EC2에서 실행될 명령 리스트 =====
 CMDS=(
   "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REG_URI}"
   "docker pull ${FULL_URI}"
   "docker network create oot-network || true"
-  "echo '[INFO] Fetching Redis configuration from Parameter Store...'"
-  "export REDIS_HOST=\$(aws ssm get-parameter --name '/config/dev/redis.host' --query 'Parameter.Value' --output text --region ${AWS_REGION})"
-  "export REDIS_PORT=\$(aws ssm get-parameter --name '/config/dev/redis.port' --query 'Parameter.Value' --output text --region ${AWS_REGION})"
-  "export REDIS_PASSWORD=\$(aws ssm get-parameter --name '/config/dev/redis.password' --with-decryption --query 'Parameter.Value' --output text --region ${AWS_REGION})"
-  "echo \"[INFO] Redis configuration: host=\${REDIS_HOST}, port=\${REDIS_PORT}\""
+
+  "echo '[INFO] Fetching Redis config from Parameter Store...'"
+   "VALUES=(\$(aws ssm get-parameters --names '/config/dev/redis.host' '/config/dev/redis.port' '/config/dev/redis.password' --with-decryption --query 'Parameters[].Value' --output text --region ${AWS_REGION}));
+   export REDIS_HOST=\${VALUES[0]};
+   export REDIS_PORT=\${VALUES[1]};
+   export REDIS_PASSWORD=\${VALUES[2]}"
+
+  "echo \"[INFO] Redis: host=\${REDIS_HOST}, port=\${REDIS_PORT}\""
   "docker stop oot-redis || true"
-  "docker rm oot-redis || true"
+  "docker rm   oot-redis || true"
   "docker run -d --name oot-redis --network oot-network --restart=always -p \${REDIS_PORT}:6379 redis:7-alpine redis-server --requirepass \${REDIS_PASSWORD}"
+
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
   "mkdir -p /home/ssm-user/app-logs"
 
-  # ===== heredoc 제거 → echo 사용 =====
-  "echo \"${PROMTAIL_CONFIG_ESCAPED}\" > /home/ssm-user/promtail-config.yml"
-
-  "docker run -d --name ${CONTAINER_NAME} --network oot-network --restart=always -p ${APP_PORT}:${APP_PORT} \
+  # Spring Boot container run
+  "docker run -d --name ${CONTAINER_NAME} \
+      --network oot-network \
+      --restart=always \
+      -p ${APP_PORT}:${APP_PORT} \
       -v /home/ssm-user/app-logs:/app-logs \
       -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} \
       -e REDIS_HOST=\${REDIS_HOST} \
@@ -76,22 +84,26 @@ CMDS=(
       -e REDIS_PASSWORD=\${REDIS_PASSWORD} \
       ${FULL_URI}"
 
+  # Promtail config 생성
+  "cat > /home/ssm-user/promtail-config.yml <<'PROMTAIL_EOF'
+${PROMTAIL_CONFIG_CONTENT}
+PROMTAIL_EOF"
+
   "docker stop promtail || true"
-  "docker rm promtail || true"
-  "docker run -d --name promtail --restart=always \
+  "docker rm   promtail || true"
+  "docker run -d --name promtail \
+      --restart=always \
       -v /home/ssm-user/promtail-config.yml:/etc/promtail/config.yml \
       -v /home/ssm-user/app-logs:/app-logs \
-      grafana/promtail:latest -config.file=/etc/promtail/config.yml"
+      grafana/promtail:latest \
+      -config.file=/etc/promtail/config.yml"
 )
 
-# Bash 배열 → JSON 배열 변환
-COMMANDS_JSON=$(jq -Rn \
-  --argjson arr "$(printf '%s\n' "${CMDS[@]}" | jq -R . | jq -s .)" \
-  '$arr')
+# ===== json 변환 =====
+COMMANDS_JSON=$(jq -Rn --argjson arr "$(printf '%s\n' "${CMDS[@]}" | jq -R . | jq -s .)" '$arr')
+echo "[DEBUG] COMMANDS_JSON generated"
 
-echo "[DEBUG] COMMANDS_JSON=${COMMANDS_JSON}"
-
-# ===== SSM 명령 전송 =====
+# ===== SSM 실행 =====
 RESP=$(aws ssm send-command \
   --document-name "AWS-RunShellScript" \
   --comment "${COMMENT}" \
@@ -103,7 +115,7 @@ RESP=$(aws ssm send-command \
 CMD_ID=$(echo "${RESP}" | jq -r '.Command.CommandId')
 echo "[INFO] SSM CommandId: ${CMD_ID}"
 
-# ===== SSM 완료 대기 =====
+# ===== SSM 결과 대기 =====
 for i in {1..30}; do
   STATUS=$(aws ssm get-command-invocation \
     --command-id "${CMD_ID}" \
@@ -118,6 +130,13 @@ for i in {1..30}; do
     Success) exit 0 ;;
     Failed|Cancelled|TimedOut)
       echo "[ERROR] SSM failed: ${STATUS}"
+      echo "[ERROR] Fetching error details..."
+      aws ssm get-command-invocation \
+        --command-id "${CMD_ID}" \
+        --instance-id "${EC2_INSTANCE_ID}" \
+        --region "${AWS_REGION}" \
+        --query '[StandardOutputContent,StandardErrorContent]' \
+        --output text
       exit 1
       ;;
   esac
@@ -126,4 +145,11 @@ for i in {1..30}; do
 done
 
 echo "[ERROR] SSM command did not complete in time"
+echo "[ERROR] Fetching current status..."
+aws ssm get-command-invocation \
+  --command-id "${CMD_ID}" \
+  --instance-id "${EC2_INSTANCE_ID}" \
+  --region "${AWS_REGION}" \
+  --query '[Status,StandardOutputContent,StandardErrorContent]' \
+  --output text
 exit 1
