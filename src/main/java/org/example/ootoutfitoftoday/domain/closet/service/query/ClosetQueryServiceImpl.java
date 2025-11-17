@@ -32,7 +32,7 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
             String sort,
             String direction
     ) {
-        log.info("공개 옷장 목록 조회 시작 - 페이지: {}, 크기: {}, 정렬: {}, 방향: {}", page, size, sort, direction);
+        log.debug("공개 옷장 목록 조회 시작 - 페이지: {}, 크기: {}, 정렬: {}, 방향: {}", page, size, sort, direction);
 
         Sort sortObj = Sort.by(Sort.Direction.fromString(direction), sort);
 

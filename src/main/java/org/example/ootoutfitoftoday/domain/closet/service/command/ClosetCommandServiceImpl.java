@@ -32,7 +32,7 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
 
     @Override
     public ClosetCreateResponse createCloset(Long userId, ClosetCreateRequest request) {
-        log.info("옷장 생성 시작 - 사용자: {}", userId);
+        log.debug("옷장 생성 시작 - 사용자: {}", userId);
         log.debug("옷장 상세 정보 - 이름: {}, 공개여부: {}, 이미지ID: {}",
                 request.name(), request.isPublic(), request.imageId());
 
