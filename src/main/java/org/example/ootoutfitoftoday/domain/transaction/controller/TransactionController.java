@@ -9,7 +9,7 @@ import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
 import org.example.ootoutfitoftoday.domain.payment.exception.PaymentSuccessCode;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
-import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
+import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCancelResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCompleteResponse;
@@ -37,7 +37,7 @@ public class TransactionController {
     @PostMapping("/request")
     public ResponseEntity<Response<TransactionResponse>> requestTransaction(
             @AuthenticationPrincipal AuthUser authUser,
-            @Valid @RequestBody RequestTransactionRequest request
+            @Valid @RequestBody TransactionRequest request
     ) {
         TransactionResponse response = transactionCommandService.requestTransaction(
                 authUser.getUserId(),
