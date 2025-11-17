@@ -58,9 +58,10 @@ CMDS=(
   "docker network create oot-network || true"
 
   "echo '[INFO] Fetching Redis config from Parameter Store...'"
-  "export REDIS_HOST=\$(aws ssm get-parameter --name '/config/dev/redis.host' --query 'Parameter.Value' --output text --region ${AWS_REGION})"
-  "export REDIS_PORT=\$(aws ssm get-parameter --name '/config/dev/redis.port' --query 'Parameter.Value' --output text --region ${AWS_REGION})"
-  "export REDIS_PASSWORD=\$(aws ssm get-parameter --name '/config/dev/redis.password' --with-decryption --query 'Parameter.Value' --output text --region ${AWS_REGION})"
+   "VALUES=(\$(aws ssm get-parameters --names '/config/dev/redis.host' '/config/dev/redis.port' '/config/dev/redis.password' --with-decryption --query 'Parameters[].Value' --output text --region ${AWS_REGION}));
+   export REDIS_HOST=\${VALUES[0]};
+   export REDIS_PORT=\${VALUES[1]};
+   export REDIS_PASSWORD=\${VALUES[2]}"
 
   "echo \"[INFO] Redis: host=\${REDIS_HOST}, port=\${REDIS_PORT}\""
   "docker stop oot-redis || true"
