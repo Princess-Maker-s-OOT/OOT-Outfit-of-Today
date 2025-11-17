@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.response.PageResponse;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
@@ -23,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Tag(name = "착용 기록 관리", description = "옷 착용 기록 및 이력 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -56,11 +58,14 @@ public class WearRecordController {
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody WearRecordCreateRequest request
     ) {
+        log.info("착용 기록 등록 요청 시작 - 사용자 ID: {}, 옷 ID: {}", authUser.getUserId(), request.clothesId());
+
         WearRecordCreateResponse response = wearRecordCommandService.createWearRecord(
                 authUser.getUserId(),
                 request
         );
 
+        log.info("착용 기록 등록 완료 - 착용 기록 ID: {}", response.wearRecordId());
         return Response.success(response, WearRecordSuccessCode.WEAR_RECORD_CREATED);
     }
 
@@ -91,6 +96,9 @@ public class WearRecordController {
             @RequestParam(defaultValue = "wornAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
+        log.info("내 착용 기록 리스트 조회 요청 - 사용자 ID: {}, 페이지: {}, 사이즈: {}, 정렬: {} {}",
+                authUser.getUserId(), page, size, sort, direction);
+
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
 
         Pageable pageable = PageRequest.of(
@@ -104,6 +112,8 @@ public class WearRecordController {
                 pageable
         );
 
+        log.info("내 착용 기록 리스트 조회 완료 - 총 {}건 중 {}건 반환",
+                responsePage.getTotalElements(), responsePage.getNumberOfElements());
         return PageResponse.success(responsePage, WearRecordSuccessCode.WEAR_RECORDS_GET_OK);
     }
 }
