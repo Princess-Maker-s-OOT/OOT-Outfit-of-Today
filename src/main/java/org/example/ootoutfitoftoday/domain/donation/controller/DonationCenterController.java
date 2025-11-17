@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.donation.dto.response.DonationCenterSearchResponse;
 import org.example.ootoutfitoftoday.domain.donation.exception.DonationSuccessCode;
@@ -22,6 +23,7 @@ import java.util.List;
 /**
  * 기부처 검색 컨트롤러 (Public API - 인증 불필요)
  */
+@Slf4j
 @Tag(name = "기부처 검색", description = "주변 기부처 검색 관련 API (비회원 접근 가능)")
 @RestController
 @RequiredArgsConstructor
@@ -88,6 +90,9 @@ public class DonationCenterController {
             )
             @RequestParam(required = false) String keyword
     ) {
+        log.info("주변 기부처 검색 요청 - 위도: {}, 경도: {}, 반경: {}m, 키워드: {}",
+                latitude, longitude, radius, keyword);
+        long startTime = System.currentTimeMillis();
 
         List<DonationCenterSearchResponse> donationCenters = donationCenterQueryService.searchNearbyDonationCenters(
                 latitude,
@@ -95,6 +100,15 @@ public class DonationCenterController {
                 radius,
                 keyword
         );
+
+        long processingTime = System.currentTimeMillis() - startTime;
+        log.info("주변 기부처 검색 완료 - 검색 건수: {}, 처리시간: {}ms", donationCenters.size(), processingTime);
+
+        if (!donationCenters.isEmpty()) {
+            log.debug("검색 결과 요약 - 최근접 기부처: {}, 거리: {}m",
+                    donationCenters.get(0).name(),
+                    donationCenters.get(0).distance());
+        }
 
         return Response.success(donationCenters, DonationSuccessCode.DONATION_CENTER_SEARCH_SUCCESS);
     }
