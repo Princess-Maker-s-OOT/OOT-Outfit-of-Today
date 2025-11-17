@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor
-public class RequestTransactionRequest {
+public class TransactionRequest {
 
     @NotNull(message = "판매글 ID는 필수입니다.")
     private Long salePostId;
