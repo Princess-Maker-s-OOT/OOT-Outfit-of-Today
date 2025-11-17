@@ -1,11 +1,11 @@
 package org.example.ootoutfitoftoday.domain.salepost.dto.response;
 
+import com.ootcommon.salepost.enums.SaleStatus;
 import lombok.Builder;
 import lombok.Getter;
 import org.example.ootoutfitoftoday.common.util.Location;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

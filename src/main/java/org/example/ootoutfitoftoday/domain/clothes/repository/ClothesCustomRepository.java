@@ -1,13 +1,13 @@
 package org.example.ootoutfitoftoday.domain.clothes.repository;
 
-import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
+import com.ootcommon.category.response.CategoryStat;
+import com.ootcommon.clothes.enums.ClothesColor;
+import com.ootcommon.clothes.enums.ClothesSize;
+import com.ootcommon.clothes.response.ClothesColorCount;
+import com.ootcommon.clothes.response.ClothesSizeCount;
+import com.ootcommon.wearrecord.response.ClothesWearCount;
+import com.ootcommon.wearrecord.response.NotWornOverPeriod;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.NotWornOverPeriod;
 import org.springframework.data.domain.Slice;
 
 import java.util.List;

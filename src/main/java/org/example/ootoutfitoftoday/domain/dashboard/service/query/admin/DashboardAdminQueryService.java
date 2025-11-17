@@ -1,9 +1,9 @@
 package org.example.ootoutfitoftoday.domain.dashboard.service.query.admin;
 
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminClothesStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminSalePostStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminTopCategoryStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminUserStatisticsResponse;
+import com.ootcommon.dashboard.response.AdminClothesStatisticsResponse;
+import com.ootcommon.dashboard.response.AdminSalePostStatisticsResponse;
+import com.ootcommon.dashboard.response.AdminTopCategoryStatisticsResponse;
+import com.ootcommon.dashboard.response.AdminUserStatisticsResponse;
 
 import java.time.LocalDate;
 

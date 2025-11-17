@@ -1,6 +1,6 @@
 package org.example.ootoutfitoftoday.domain.wearrecord.repository;
 
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
+import com.ootcommon.wearrecord.response.ClothesWearCount;
 
 import java.time.LocalDate;
 import java.util.List;

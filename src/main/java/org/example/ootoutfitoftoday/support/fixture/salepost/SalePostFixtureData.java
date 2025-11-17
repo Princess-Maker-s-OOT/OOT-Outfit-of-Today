@@ -1,6 +1,6 @@
 package org.example.ootoutfitoftoday.support.fixture.salepost;
 
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
+import com.ootcommon.salepost.enums.SaleStatus;
 
 import java.math.BigDecimal;
 

@@ -189,8 +189,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/v1/closets/public",
                                 "/v1/closets/{closetId}",
-                                // "/v1/sale-posts",
-                                // "/v1/sale-posts/{salePostId}",
+                                "/v1/sale-posts/public",
+                                "/v1/sale-posts/{salePostId}",
                                 "/v1/categories",
                                 "/v1/donation-centers/search").permitAll()
 
@@ -205,6 +205,10 @@ public class SecurityConfig {
 
                         // Monitor
                         .requestMatchers("/actuator/info", "/actuator/health", "/actuator/prometheus").permitAll()
+
+                        // Internal API (배치 서버 전용)
+                        // 주의: 프로덕션 환경에서는 네트워크 레벨 접근 제어(IP 화이트리스트 등) 필요
+                        .requestMatchers("/v1/internal/**").permitAll()
 
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()

@@ -1,10 +1,10 @@
 package org.example.ootoutfitoftoday.domain.wearrecord.repository;
 
+import com.ootcommon.wearrecord.response.ClothesWearCount;
+import com.ootcommon.wearrecord.response.QClothesWearCount;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.domain.clothes.entity.QClothes;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.QClothesWearCount;
 import org.example.ootoutfitoftoday.domain.wearrecord.entity.QWearRecord;
 
 import java.time.DayOfWeek;

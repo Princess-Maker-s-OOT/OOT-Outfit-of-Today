@@ -1,9 +1,9 @@
 package org.example.ootoutfitoftoday.domain.salepost.repository;
 
+import com.ootcommon.salepost.enums.SaleStatus;
+import com.ootcommon.salepost.response.SaleStatusCount;
 import jakarta.persistence.LockModeType;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.SaleStatusCount;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -55,7 +55,7 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
 
     // 상태별 판매글 조회
     @Query("""
-            SELECT sp.status, count(sp)
+            SELECT new com.ootcommon.salepost.response.SaleStatusCount(sp.status, COUNT(sp))
             FROM SalePost sp
             WHERE sp.isDeleted = false
             GROUP BY sp.status

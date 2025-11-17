@@ -1,11 +1,11 @@
 package org.example.ootoutfitoftoday.domain.clothes.dto.response;
 
+import com.ootcommon.clothes.enums.ClothesColor;
+import com.ootcommon.clothes.enums.ClothesSize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesColor;
-import org.example.ootoutfitoftoday.domain.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.clothesImage.dto.reponse.ClothesImageResponse;
 
 import java.util.List;

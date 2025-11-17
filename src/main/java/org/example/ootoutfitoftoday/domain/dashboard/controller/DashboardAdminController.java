@@ -1,5 +1,9 @@
 package org.example.ootoutfitoftoday.domain.dashboard.controller;
 
+import com.ootcommon.dashboard.response.AdminClothesStatisticsResponse;
+import com.ootcommon.dashboard.response.AdminSalePostStatisticsResponse;
+import com.ootcommon.dashboard.response.AdminTopCategoryStatisticsResponse;
+import com.ootcommon.dashboard.response.AdminUserStatisticsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -7,10 +11,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminClothesStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminSalePostStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminTopCategoryStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminUserStatisticsResponse;
 import org.example.ootoutfitoftoday.domain.dashboard.exception.DashboardSuccessCode;
 import org.example.ootoutfitoftoday.domain.dashboard.service.query.admin.DashboardAdminQueryService;
 import org.springframework.http.ResponseEntity;

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.response.SliceResponse;
 import org.example.ootoutfitoftoday.domain.chat.dto.response.ChatResponse;
 import org.example.ootoutfitoftoday.domain.chat.exception.ChatSuccessCode;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Tag(name = "채팅", description = "채팅 관련 API")
 @RestController
 @RequestMapping("/v1/chatrooms/{chatroomId}/chats")
@@ -48,6 +50,9 @@ public class ChatController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
+
+        log.info("[GET] /v1/chatrooms/{}/chats : Controller 작동", chatroomId);
+
         Pageable pageable = PageRequest.of(page, size);
 
         Slice<ChatResponse> chatResponses = chatQueryService.getChats(chatroomId, pageable);

@@ -1,6 +1,6 @@
 package org.example.ootoutfitoftoday.domain.clothes.repository;
 
-import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
+import com.ootcommon.category.response.CategoryStat;
 import org.example.ootoutfitoftoday.domain.clothes.entity.Clothes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -39,12 +39,13 @@ public interface ClothesRepository extends JpaRepository<Clothes, Long>, Clothes
     int countAllClothesByUserIdAndIsDeletedFalse(Long userId);
 
     @Query("""
-            SELECT c.category.name, count(c)
+            SELECT new com.ootcommon.category.response.CategoryStat(
+                c.category.name, count(c)
+            )
             FROM Clothes c
-            where c.user.id = :userId
-            group by c.category.id, c.category.name
-            order by count(c) desc, c.category.id
-            limit 10
+            WHERE c.user.id = :userId
+            GROUP BY c.category.id, c.category.name
+            ORDER BY count(c) DESC, c.category.id
             """)
     List<CategoryStat> countUserTopCategoryStats(@Param("userId") Long userId);
 

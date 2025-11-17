@@ -1,11 +1,11 @@
 package org.example.ootoutfitoftoday.domain.salepost.service.command;
 
+import com.ootcommon.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 
 import java.math.BigDecimal;
 import java.util.List;

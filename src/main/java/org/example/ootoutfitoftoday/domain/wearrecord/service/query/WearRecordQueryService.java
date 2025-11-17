@@ -1,6 +1,6 @@
 package org.example.ootoutfitoftoday.domain.wearrecord.service.query;
 
-import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.ClothesWearCount;
+import com.ootcommon.wearrecord.response.ClothesWearCount;
 import org.example.ootoutfitoftoday.domain.wearrecord.dto.response.WearRecordGetMyResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

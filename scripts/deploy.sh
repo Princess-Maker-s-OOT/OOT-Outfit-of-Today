@@ -9,7 +9,7 @@ set -euo pipefail
 : "${APP_PORT:?APP_PORT required}"
 : "${SPRING_PROFILE:?SPRING_PROFILE required}"
 
-MONITORING_EC2_PRIVATE_IP="10.0.1.82"
+MONITORING_EC2_PUBLIC_IP="54.180.9.231"
 
 # ===== ECR 경로 파싱 =====
 REG_URI="$(echo "${FULL_URI}" | cut -d/ -f1)"
@@ -28,40 +28,67 @@ echo "[INFO] REG_URI=${REG_URI}"
 echo "[INFO] EC2_INSTANCE_ID=${EC2_INSTANCE_ID}"
 echo "[INFO] COMMENT=${COMMENT}"
 
-# -----------------------------------------------------------------
-# ▼▼▼ [ 추가 ] Promtail 설정 파일 내용을 변수로 만듭니다 ▼▼▼
-# (EC2에서 이 내용으로 promtail-config.yml 파일을 생성합니다)
-PROMPTAIL_CONFIG_CONTENT=$(cat <<EOF
+# ======== PROMTAIL CONFIG (heredoc 제거 버전) ========
+PROMTAIL_CONFIG_ESCAPED=$(printf "%s" "
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
 positions:
   filename: /tmp/positions.yaml
 clients:
-  - url: http://${MONITORING_EC2_PRIVATE_IP}:3100/loki/api/v1/push
+  - url: http://${MONITORING_EC2_PUBLIC_IP}:3100/loki/api/v1/push
 scrape_configs:
-- job_name: stay-stylish-logs
+- job_name: oot-dev-logs
   static_configs:
   - targets:
       - localhost
     labels:
-      job: "stay-stylish"
-      __path__: /home/ssm-user/app-logs/*.log
-EOF
-)
-# -----------------------------------------------------------------
+      job: \"oot-dev\"
+      environment: \"dev\"
+      __path__: /app-logs/*.log
+")
 
-# ===== EC2에서 실행할 커맨드(배열로 안전하게 정의) =====
+# ===== SSM에서 실행할 명령어들 =====
 CMDS=(
   "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REG_URI}"
   "docker pull ${FULL_URI}"
+  "docker network create oot-network || true"
+  "echo '[INFO] Fetching Redis configuration from Parameter Store...'"
+  "export REDIS_HOST=\$(aws ssm get-parameter --name '/config/dev/redis.host' --query 'Parameter.Value' --output text --region ${AWS_REGION})"
+  "export REDIS_PORT=\$(aws ssm get-parameter --name '/config/dev/redis.port' --query 'Parameter.Value' --output text --region ${AWS_REGION})"
+  "export REDIS_PASSWORD=\$(aws ssm get-parameter --name '/config/dev/redis.password' --with-decryption --query 'Parameter.Value' --output text --region ${AWS_REGION})"
+  "echo \"[INFO] Redis configuration: host=\${REDIS_HOST}, port=\${REDIS_PORT}\""
+  "docker stop oot-redis || true"
+  "docker rm oot-redis || true"
+  "docker run -d --name oot-redis --network oot-network --restart=always -p \${REDIS_PORT}:6379 redis:7-alpine redis-server --requirepass \${REDIS_PASSWORD}"
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
-  "docker run -d --name ${CONTAINER_NAME} --restart=always -p ${APP_PORT}:${APP_PORT} -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} ${FULL_URI}"
+  "mkdir -p /home/ssm-user/app-logs"
+
+  # ===== heredoc 제거 → echo 사용 =====
+  "echo \"${PROMTAIL_CONFIG_ESCAPED}\" > /home/ssm-user/promtail-config.yml"
+
+  "docker run -d --name ${CONTAINER_NAME} --network oot-network --restart=always -p ${APP_PORT}:${APP_PORT} \
+      -v /home/ssm-user/app-logs:/app-logs \
+      -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} \
+      -e REDIS_HOST=\${REDIS_HOST} \
+      -e REDIS_PORT=\${REDIS_PORT} \
+      -e REDIS_PASSWORD=\${REDIS_PASSWORD} \
+      ${FULL_URI}"
+
+  "docker stop promtail || true"
+  "docker rm promtail || true"
+  "docker run -d --name promtail --restart=always \
+      -v /home/ssm-user/promtail-config.yml:/etc/promtail/config.yml \
+      -v /home/ssm-user/app-logs:/app-logs \
+      grafana/promtail:latest -config.file=/etc/promtail/config.yml"
 )
 
-# Bash 배열 → JSON 배열 변환 (jq 필수)
-COMMANDS_JSON=$(jq -Rn --argjson arr "$(printf '%s\n' "${CMDS[@]}" | jq -R . | jq -s .)" '$arr')
+# Bash 배열 → JSON 배열 변환
+COMMANDS_JSON=$(jq -Rn \
+  --argjson arr "$(printf '%s\n' "${CMDS[@]}" | jq -R . | jq -s .)" \
+  '$arr')
+
 echo "[DEBUG] COMMANDS_JSON=${COMMANDS_JSON}"
 
 # ===== SSM 명령 전송 =====
@@ -76,7 +103,7 @@ RESP=$(aws ssm send-command \
 CMD_ID=$(echo "${RESP}" | jq -r '.Command.CommandId')
 echo "[INFO] SSM CommandId: ${CMD_ID}"
 
-# ===== 완료 대기/성공 판정 =====
+# ===== SSM 완료 대기 =====
 for i in {1..30}; do
   STATUS=$(aws ssm get-command-invocation \
     --command-id "${CMD_ID}" \
@@ -89,7 +116,10 @@ for i in {1..30}; do
 
   case "${STATUS}" in
     Success) exit 0 ;;
-    Failed|Cancelled|TimedOut) echo "[ERROR] SSM failed: ${STATUS}"; exit 1 ;;
+    Failed|Cancelled|TimedOut)
+      echo "[ERROR] SSM failed: ${STATUS}"
+      exit 1
+      ;;
   esac
 
   sleep 5

@@ -26,7 +26,7 @@ public class RefreshTokenCleanupScheduler {
      * - expiresAt이 현재 시간보다 이전인 토큰 삭제
      */
     @Scheduled(cron = "0 0 3 * * *")
-    @Transactional
+    @Transactional    // 추가: @Modifying 쿼리는 트랜잭션 필수
     public void cleanupExpiredTokens() {
         log.info("만료된 Refresh Token 정리 작업 시작");
 

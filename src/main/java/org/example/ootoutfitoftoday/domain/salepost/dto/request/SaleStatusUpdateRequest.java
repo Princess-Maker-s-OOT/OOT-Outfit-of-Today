@@ -1,9 +1,9 @@
 package org.example.ootoutfitoftoday.domain.salepost.dto.request;
 
+import com.ootcommon.salepost.enums.SaleStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 
 @Getter
 @NoArgsConstructor

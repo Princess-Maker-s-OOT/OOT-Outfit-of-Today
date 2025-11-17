@@ -20,6 +20,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class AuthQueryServiceImpl implements AuthQueryService {
 
+    // MySQL 리포지토리로 원복
     private final RefreshTokenRepository refreshTokenRepository;
 
     // 유저의 모든 디바이스 목록 조회(최근 사용 순)
@@ -39,6 +40,7 @@ public class AuthQueryServiceImpl implements AuthQueryService {
         }
 
         if (!isValidDevice) {
+            log.warn("디바이스 목록 조회 실패 - 유효하지 않은 디바이스 ID - userId: {}, deviceId: {}", authUser.getUserId(), currentDeviceId);
             throw new AuthException(AuthErrorCode.INVALID_DEVICE);
         }
 

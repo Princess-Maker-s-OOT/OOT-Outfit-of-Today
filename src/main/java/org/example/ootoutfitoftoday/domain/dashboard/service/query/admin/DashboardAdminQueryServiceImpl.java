@@ -1,19 +1,20 @@
 package org.example.ootoutfitoftoday.domain.dashboard.service.query.admin;
 
+import com.ootcommon.category.response.CategoryStat;
+import com.ootcommon.clothes.response.ClothesColorCount;
+import com.ootcommon.clothes.response.ClothesSizeCount;
+import com.ootcommon.dashboard.constant.DashboardAdminCacheNames;
+import com.ootcommon.dashboard.response.AdminClothesStatisticsResponse;
+import com.ootcommon.dashboard.response.AdminSalePostStatisticsResponse;
+import com.ootcommon.dashboard.response.AdminTopCategoryStatisticsResponse;
+import com.ootcommon.dashboard.response.AdminUserStatisticsResponse;
+import com.ootcommon.salepost.enums.SaleStatus;
+import com.ootcommon.salepost.response.NewSalePost;
+import com.ootcommon.salepost.response.SaleStatusCount;
+import com.ootcommon.user.response.NewUsers;
 import lombok.RequiredArgsConstructor;
-import org.example.ootoutfitoftoday.domain.category.dto.response.CategoryStat;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesColorCount;
-import org.example.ootoutfitoftoday.domain.clothes.dto.response.ClothesSizeCount;
 import org.example.ootoutfitoftoday.domain.clothes.service.query.ClothesQueryService;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminClothesStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminSalePostStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminTopCategoryStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.dashboard.dto.response.AdminUserStatisticsResponse;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.NewSalePost;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.SaleStatusCount;
-import org.example.ootoutfitoftoday.domain.salepost.enums.SaleStatus;
 import org.example.ootoutfitoftoday.domain.salepost.service.query.SalePostQueryService;
-import org.example.ootoutfitoftoday.domain.user.dto.response.NewUsers;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
 
     @Override
     @Cacheable(
-            value = "dashboard:admin:user",
+            value = DashboardAdminCacheNames.USER,
             key = "#baseDate != null ? #baseDate.toString() : T(java.time.LocalDate).now().toString()",
             unless = "#result == null"
     )
@@ -71,7 +72,7 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
     }
 
     @Override
-    @Cacheable(value = "dashboard:admin:clothes", unless = "#result == null")
+    @Cacheable(value = DashboardAdminCacheNames.CLOTHES, key = "'default'", unless = "#result == null")
     public AdminClothesStatisticsResponse adminClothesStatistics() {
 
         long totalClothes = clothesQueryService.countClothesByIsDeletedFalse(); // 전체 옷 수량
@@ -92,7 +93,7 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
 
     @Override
     @Cacheable(
-            value = "dashboard:admin:salePost",
+            value = DashboardAdminCacheNames.SALE_POST,
             key = "#baseDate != null ? #baseDate.toString() : T(java.time.LocalDate).now().toString()",
             unless = "#result == null"
     )
@@ -143,7 +144,7 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
     }
 
     @Override
-    @Cacheable(value = "dashboard:admin:category", unless = "#result == null")
+    @Cacheable(value = DashboardAdminCacheNames.CATEGORY, key = "'default'", unless = "#result == null")
     public AdminTopCategoryStatisticsResponse adminTopCategoryStatistics() {
 
         return new AdminTopCategoryStatisticsResponse(clothesQueryService.findTopCategoryStats());
