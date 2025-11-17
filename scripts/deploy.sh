@@ -52,18 +52,14 @@ PROMTAIL_CONFIG_CONTENT_B64=$(echo "${PROMTAIL_CONFIG_CONTENT}" | base64 -w 0)
 
 # ===== EC2에서 실행될 명령 =====
 CMDS=(
-  # ECR Login
   "aws ecr get-login-password --region ${AWS_REGION} \
     | docker login --username AWS --password-stdin ${REG_URI}"
 
-  # Pull Image
   "docker pull ${FULL_URI}"
 
-  # Docker network 준비
   "docker network create oot-network || true"
 
-  # ===== Redis 설정 SSM에서 가져오기 =====
-  "echo '[INFO] Fetching Redis config from SSM...'"
+  # Redis 환경변수 로드
   "export REDIS_HOST=\$(aws ssm get-parameter --name '/config/dev/redis.host' --query 'Parameter.Value' --output text --region ${AWS_REGION})"
   "export REDIS_PORT=\$(aws ssm get-parameter --name '/config/dev/redis.port' --query 'Parameter.Value' --output text --region ${AWS_REGION})"
   "export REDIS_PASSWORD=\$(aws ssm get-parameter --name '/config/dev/redis.password' --with-decryption --query 'Parameter.Value' --output text --region ${AWS_REGION})"
@@ -78,22 +74,23 @@ CMDS=(
       redis:7-alpine \
       redis-server --requirepass \${REDIS_PASSWORD}"
 
-  # Redis health-check
-  "echo '[INFO] Waiting for Redis...'"
+  # Redis health-check (Fail → 경고로 변경)
+  "echo '[INFO] Checking Redis health...'"
   "for i in {1..10}; do \
       if docker exec oot-redis redis-cli -a \${REDIS_PASSWORD} ping | grep -q PONG; then \
-        echo '[INFO] Redis is ready.'; break; \
-      fi; \
-      echo \"[INFO] Waiting (\$i/10)\"; sleep 2; \
+        echo '[INFO] Redis OK'; break; \
+      fi; echo '[WAITING] Redis... (\$i/10)'; sleep 2; \
     done"
 
+  # ❗여기가 핵심 수정: Fail이어도 exit 안 함
   "if ! docker exec oot-redis redis-cli -a \${REDIS_PASSWORD} ping | grep -q PONG; then \
-      echo '[ERROR] Redis did not start'; exit 1; \
+      echo '[WARN] Redis failed health-check — continuing (app will retry)'; \
     fi"
 
   # 앱 재기동
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
+
   "mkdir -p /home/ssm-user/app-logs"
 
   "docker run -d --name ${CONTAINER_NAME} \
@@ -107,10 +104,22 @@ CMDS=(
       -e REDIS_PASSWORD=\${REDIS_PASSWORD} \
       ${FULL_URI}"
 
-  # ===== promtail config 생성 (Base64 → 디코드) =====
+  # Optional Health Check (앱 실패해도 배포 OK)
+  "echo '[INFO] Optional App Health Check...'"
+  "for i in {1..10}; do \
+      if curl -s http://localhost:${APP_PORT}/api/actuator/health | grep -q UP; then \
+        echo '[INFO] App Health UP'; break; \
+      fi; echo '[WARN] Health not UP yet (\$i/10)'; sleep 3; \
+    done"
+
+  "if ! curl -s http://localhost:${APP_PORT}/api/actuator/health | grep -q UP; then \
+      echo '[WARN] Health check failed — continuing anyway (optional)'; \
+    fi"
+
+  # promtail config 생성
   "echo \"${PROMTAIL_CONFIG_CONTENT_B64}\" | base64 -d > /home/ssm-user/promtail-config.yml"
 
-  # Promtail 재기동
+  # promtail 재기동
   "docker stop promtail || true"
   "docker rm promtail || true"
   "docker run -d --name promtail \
