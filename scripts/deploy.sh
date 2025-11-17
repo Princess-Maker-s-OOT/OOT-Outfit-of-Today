@@ -53,26 +53,54 @@ EOF
 
 # ===== 실제 EC2에서 실행될 명령 리스트 =====
 CMDS=(
-  "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REG_URI}"
+  # 1) ECR 로그인 & 이미지 pull
+  "aws ecr get-login-password --region ${AWS_REGION} \
+    | docker login --username AWS --password-stdin ${REG_URI}"
+
   "docker pull ${FULL_URI}"
+
+  # 2) Docker 네트워크 생성
   "docker network create oot-network || true"
 
+  # 3) Redis 설정 SSM에서 개별로 안전하게 조회
   "echo '[INFO] Fetching Redis config from Parameter Store...'"
-   "VALUES=(\$(aws ssm get-parameters --names '/config/dev/redis.host' '/config/dev/redis.port' '/config/dev/redis.password' --with-decryption --query 'Parameters[].Value' --output text --region ${AWS_REGION}));
-   export REDIS_HOST=\${VALUES[0]};
-   export REDIS_PORT=\${VALUES[1]};
-   export REDIS_PASSWORD=\${VALUES[2]}"
+  "export REDIS_HOST=\$(aws ssm get-parameter \
+    --name '/config/dev/redis.host' \
+    --query 'Parameter.Value' \
+    --output text \
+    --region ${AWS_REGION})"
+  "export REDIS_PORT=\$(aws ssm get-parameter \
+    --name '/config/dev/redis.port' \
+    --query 'Parameter.Value' \
+    --output text \
+    --region ${AWS_REGION})"
+  "export REDIS_PASSWORD=\$(aws ssm get-parameter \
+    --name '/config/dev/redis.password' \
+    --with-decryption \
+    --query 'Parameter.Value' \
+    --output text \
+    --region ${AWS_REGION})"
 
   "echo \"[INFO] Redis: host=\${REDIS_HOST}, port=\${REDIS_PORT}\""
+
+  # 4) Redis 컨테이너 재기동
   "docker stop oot-redis || true"
   "docker rm   oot-redis || true"
-  "docker run -d --name oot-redis --network oot-network --restart=always -p \${REDIS_PORT}:6379 redis:7-alpine redis-server --requirepass \${REDIS_PASSWORD}"
+  "docker run -d --name oot-redis \
+      --network oot-network \
+      --restart=always \
+      -p \${REDIS_PORT}:6379 \
+      redis:7-alpine \
+      redis-server --requirepass \${REDIS_PASSWORD}"
 
+  # Redis 먼저 뜨도록 살짝 대기
+  "sleep 3"
+
+  # 5) 앱 컨테이너 재기동
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
   "mkdir -p /home/ssm-user/app-logs"
 
-  # Spring Boot container run
   "docker run -d --name ${CONTAINER_NAME} \
       --network oot-network \
       --restart=always \
@@ -84,11 +112,12 @@ CMDS=(
       -e REDIS_PASSWORD=\${REDIS_PASSWORD} \
       ${FULL_URI}"
 
-  # Promtail config 생성
-  "cat > /home/ssm-user/promtail-config.yml <<'PROMTAIL_EOF'
-${PROMTAIL_CONFIG_CONTENT}
-PROMTAIL_EOF"
+  # 6) promtail 설정 파일 생성 (heredoc 3단계)
+  "cat > /home/ssm-user/promtail-config.yml <<'PROMTAIL_EOF'"
+  "${PROMTAIL_CONFIG_CONTENT}"
+  "PROMTAIL_EOF"
 
+  # 7) promtail 재기동
   "docker stop promtail || true"
   "docker rm   promtail || true"
   "docker run -d --name promtail \
@@ -130,13 +159,6 @@ for i in {1..30}; do
     Success) exit 0 ;;
     Failed|Cancelled|TimedOut)
       echo "[ERROR] SSM failed: ${STATUS}"
-      echo "[ERROR] Fetching error details..."
-      aws ssm get-command-invocation \
-        --command-id "${CMD_ID}" \
-        --instance-id "${EC2_INSTANCE_ID}" \
-        --region "${AWS_REGION}" \
-        --query '[StandardOutputContent,StandardErrorContent]' \
-        --output text
       exit 1
       ;;
   esac
@@ -145,11 +167,4 @@ for i in {1..30}; do
 done
 
 echo "[ERROR] SSM command did not complete in time"
-echo "[ERROR] Fetching current status..."
-aws ssm get-command-invocation \
-  --command-id "${CMD_ID}" \
-  --instance-id "${EC2_INSTANCE_ID}" \
-  --region "${AWS_REGION}" \
-  --query '[Status,StandardOutputContent,StandardErrorContent]' \
-  --output text
 exit 1
