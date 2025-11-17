@@ -130,6 +130,13 @@ for i in {1..30}; do
     Success) exit 0 ;;
     Failed|Cancelled|TimedOut)
       echo "[ERROR] SSM failed: ${STATUS}"
+      echo "[ERROR] Fetching error details..."
+      aws ssm get-command-invocation \
+        --command-id "${CMD_ID}" \
+        --instance-id "${EC2_INSTANCE_ID}" \
+        --region "${AWS_REGION}" \
+        --query '[StandardOutputContent,StandardErrorContent]' \
+        --output text
       exit 1
       ;;
   esac
@@ -138,4 +145,11 @@ for i in {1..30}; do
 done
 
 echo "[ERROR] SSM command did not complete in time"
+echo "[ERROR] Fetching current status..."
+aws ssm get-command-invocation \
+  --command-id "${CMD_ID}" \
+  --instance-id "${EC2_INSTANCE_ID}" \
+  --region "${AWS_REGION}" \
+  --query '[Status,StandardOutputContent,StandardErrorContent]' \
+  --output text
 exit 1
