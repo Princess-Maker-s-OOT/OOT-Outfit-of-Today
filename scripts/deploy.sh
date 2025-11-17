@@ -28,7 +28,8 @@ echo "[INFO] REG_URI=${REG_URI}"
 echo "[INFO] EC2_INSTANCE_ID=${EC2_INSTANCE_ID}"
 echo "[INFO] COMMENT=${COMMENT}"
 
-PROMTAIL_CONFIG_CONTENT=$(cat <<EOF
+# ======== PROMTAIL CONFIG (heredoc 제거 버전) ========
+PROMTAIL_CONFIG_ESCAPED=$(printf "%s" "
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
@@ -42,12 +43,12 @@ scrape_configs:
   - targets:
       - localhost
     labels:
-      job: "oot-dev"
-      environment: "dev"
+      job: \"oot-dev\"
+      environment: \"dev\"
       __path__: /app-logs/*.log
-EOF
-)
+")
 
+# ===== SSM에서 실행할 명령어들 =====
 CMDS=(
   "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REG_URI}"
   "docker pull ${FULL_URI}"
@@ -63,17 +64,31 @@ CMDS=(
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
   "mkdir -p /home/ssm-user/app-logs"
-  "docker run -d --name ${CONTAINER_NAME} --network oot-network --restart=always -p ${APP_PORT}:${APP_PORT} -v /home/ssm-user/app-logs:/app-logs -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} -e REDIS_HOST=\${REDIS_HOST} -e REDIS_PORT=\${REDIS_PORT} -e REDIS_PASSWORD=\${REDIS_PASSWORD} ${FULL_URI}"
-  "cat > /home/ssm-user/promtail-config.yml <<'PROMTAIL_EOF'
-${PROMTAIL_CONFIG_CONTENT}
-PROMTAIL_EOF"
+
+  # ===== heredoc 제거 → echo 사용 =====
+  "echo \"${PROMTAIL_CONFIG_ESCAPED}\" > /home/ssm-user/promtail-config.yml"
+
+  "docker run -d --name ${CONTAINER_NAME} --network oot-network --restart=always -p ${APP_PORT}:${APP_PORT} \
+      -v /home/ssm-user/app-logs:/app-logs \
+      -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} \
+      -e REDIS_HOST=\${REDIS_HOST} \
+      -e REDIS_PORT=\${REDIS_PORT} \
+      -e REDIS_PASSWORD=\${REDIS_PASSWORD} \
+      ${FULL_URI}"
+
   "docker stop promtail || true"
   "docker rm promtail || true"
-  "docker run -d --name promtail --restart=always -v /home/ssm-user/promtail-config.yml:/etc/promtail/config.yml -v /home/ssm-user/app-logs:/app-logs grafana/promtail:latest -config.file=/etc/promtail/config.yml"
+  "docker run -d --name promtail --restart=always \
+      -v /home/ssm-user/promtail-config.yml:/etc/promtail/config.yml \
+      -v /home/ssm-user/app-logs:/app-logs \
+      grafana/promtail:latest -config.file=/etc/promtail/config.yml"
 )
 
-# Bash 배열 → JSON 배열 변환 (jq 필수)
-COMMANDS_JSON=$(jq -Rn --argjson arr "$(printf '%s\n' "${CMDS[@]}" | jq -R . | jq -s .)" '$arr')
+# Bash 배열 → JSON 배열 변환
+COMMANDS_JSON=$(jq -Rn \
+  --argjson arr "$(printf '%s\n' "${CMDS[@]}" | jq -R . | jq -s .)" \
+  '$arr')
+
 echo "[DEBUG] COMMANDS_JSON=${COMMANDS_JSON}"
 
 # ===== SSM 명령 전송 =====
@@ -88,7 +103,7 @@ RESP=$(aws ssm send-command \
 CMD_ID=$(echo "${RESP}" | jq -r '.Command.CommandId')
 echo "[INFO] SSM CommandId: ${CMD_ID}"
 
-# ===== 완료 대기/성공 판정 =====
+# ===== SSM 완료 대기 =====
 for i in {1..30}; do
   STATUS=$(aws ssm get-command-invocation \
     --command-id "${CMD_ID}" \
@@ -101,7 +116,10 @@ for i in {1..30}; do
 
   case "${STATUS}" in
     Success) exit 0 ;;
-    Failed|Cancelled|TimedOut) echo "[ERROR] SSM failed: ${STATUS}"; exit 1 ;;
+    Failed|Cancelled|TimedOut)
+      echo "[ERROR] SSM failed: ${STATUS}"
+      exit 1
+      ;;
   esac
 
   sleep 5
