@@ -18,7 +18,7 @@ import org.example.ootoutfitoftoday.domain.payment.service.query.PaymentQuerySer
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
-import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
+import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCancelResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCompleteResponse;
@@ -53,10 +53,11 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
     private final PaymentCommandService paymentCommandService;
     private final PaymentQueryService paymentQueryService;
 
+    // 1. 거래 요청 (구매자)
     @Override
     public TransactionResponse requestTransaction(
             Long userId,
-            RequestTransactionRequest request
+            TransactionRequest request
     ) {
         // 1. 채팅방 조회
         Optional<Chatroom> chatroomOpt = chatroomQueryService
@@ -103,7 +104,12 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
                 TransactionStatus.APPROVED
         );
 
-        if (transactionRepository.findBySalePostIdAndStatusIn(lockedSalePost.getId(), activeStatuses).isPresent()) {
+        Optional<Transaction> existingTransaction = transactionRepository.findActiveBySalePostIdForUpdate(
+                lockedSalePost.getId(),
+                activeStatuses
+        );
+
+        if (existingTransaction.isPresent()) {
             throw new TransactionException(TransactionErrorCode.ALREADY_IN_TRANSACTION);
         }
 
@@ -147,7 +153,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
         return TransactionResponse.from(transaction);
     }
 
-
+    // 2. 결제 승인 (구매자)
     @Override
     @Transactional(noRollbackFor = PaymentException.class)
     public TransactionResponse confirmTransaction(
@@ -233,6 +239,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
         return TransactionResponse.from(transaction);
     }
 
+    // 3. 거래 수락 (판매자)
     @Override
     public TransactionAcceptResponse acceptTransaction(Long sellerId, Long transactionId) {
 
@@ -268,6 +275,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
         return TransactionAcceptResponse.from(transaction);
     }
 
+    // 4. 거래 확정 (구매자)
     @Override
     public TransactionCompleteResponse completeTransaction(Long buyerId, Long transactionId) {
 
@@ -306,6 +314,7 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
         return TransactionCompleteResponse.from(transaction);
     }
 
+    // 5. 구매자 거래 취소 (판매자 수락 전)
     @Override
     public TransactionCancelResponse cancelByBuyer(Long buyerId, Long transactionId) {
 

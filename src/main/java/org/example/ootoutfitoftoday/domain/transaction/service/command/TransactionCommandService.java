@@ -1,7 +1,7 @@
 package org.example.ootoutfitoftoday.domain.transaction.service.command;
 
 import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionConfirmRequest;
-import org.example.ootoutfitoftoday.domain.transaction.dto.request.RequestTransactionRequest;
+import org.example.ootoutfitoftoday.domain.transaction.dto.request.TransactionRequest;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionAcceptResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCancelResponse;
 import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionCompleteResponse;
@@ -13,7 +13,7 @@ public interface TransactionCommandService {
     /**
      * 거래 요청
      */
-    TransactionResponse requestTransaction(Long userId, RequestTransactionRequest request);
+    TransactionResponse requestTransaction(Long userId, TransactionRequest request);
 
     /**
      * 결제 승인

@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @Tag(name = "판매글 관리", description = "판매글 관련 API")
-// @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/v1/sale-posts")
 @RequiredArgsConstructor
@@ -46,13 +45,10 @@ public class SalePostController {
             description = "새로운 판매글을 등록합니다.",
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
-                    @ApiResponse(responseCode = "201", description = "판매글이 성공적으로 생성되었습니다."),
-                    @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없습니다."),
-                    @ApiResponse(responseCode = "404", description = "존재하지 않는 사용자입니다."),
-                    @ApiResponse(responseCode = "400", description = "가격은 0원 이상이어야 합니다."),
-                    @ApiResponse(responseCode = "400", description = "이미지를 최소 1개 이상 등록해주세요."),
-                    @ApiResponse(responseCode = "400", description = "일부 이미지가 제대로 업로드되지 않았습니다."),
-                    @ApiResponse(responseCode = "400", description = "중복된 이미지입니다.")
+                    @ApiResponse(responseCode = "201", description = "생성 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "요청 리소스를 찾을 수 없음")
             }
     )
     @PostMapping
@@ -72,9 +68,11 @@ public class SalePostController {
     @Operation(
             summary = "판매글 상세 조회",
             description = "판매글의 상세 정보를 조회합니다.",
+            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
-                    @ApiResponse(responseCode = "200", description = "판매글이 성공적으로 조회되었습니다."),
-                    @ApiResponse(responseCode = "404", description = "판매글을 찾을 수 없습니다.")
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "요청 리소스를 찾을 수 없음")
             }
     )
     @GetMapping("/{salePostId}")
@@ -90,7 +88,8 @@ public class SalePostController {
             description = "카테고리/상태/키워드로 필터링 된 전체 판매글을 조회합니다.",
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
-                    @ApiResponse(responseCode = "200", description = "판매글이 성공적으로 조회되었습니다."),
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패")
             }
     )
     @GetMapping
@@ -131,15 +130,11 @@ public class SalePostController {
             description = "기존 판매글을 수정합니다.",
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
-                    @ApiResponse(responseCode = "200", description = "판매글이 수정되었습니다."),
-                    @ApiResponse(responseCode = "404", description = "판매글을 찾을 수 없습니다."),
-                    @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없습니다."),
-                    @ApiResponse(responseCode = "403", description = "해당 판매글에 대한 권한이 없습니다."),
-                    @ApiResponse(responseCode = "400", description = "판매 중인 글만 수정할 수 있습니다."),
-                    @ApiResponse(responseCode = "400", description = "가격은 0원 이상이어야 합니다."),
-                    @ApiResponse(responseCode = "400", description = "이미지를 최소 1개 이상 등록해주세요."),
-                    @ApiResponse(responseCode = "400", description = "일부 이미지가 제대로 업로드되지 않았습니다."),
-                    @ApiResponse(responseCode = "400", description = "중복된 이미지입니다.")
+                    @ApiResponse(responseCode = "200", description = "수정 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "403", description = "권한 없음"),
+                    @ApiResponse(responseCode = "404", description = "요청 리소스를 찾을 수 없음")
             }
     )
     @PutMapping("/{salePostId}")
@@ -162,10 +157,11 @@ public class SalePostController {
             description = "판매글을 삭제합니다.",
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
-                    @ApiResponse(responseCode = "200", description = "판매글이 삭제되었습니다."),
-                    @ApiResponse(responseCode = "404", description = "판매글을 찾을 수 없습니다."),
-                    @ApiResponse(responseCode = "403", description = "해당 판매글에 대한 권한이 없습니다."),
-                    @ApiResponse(responseCode = "400", description = "예약 중인 판매글은 삭제할 수 없습니다.")
+                    @ApiResponse(responseCode = "200", description = "삭제 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "403", description = "권한 없음"),
+                    @ApiResponse(responseCode = "404", description = "요청 리소스를 찾을 수 없음")
             }
     )
     @DeleteMapping("/{salePostId}")
@@ -183,9 +179,10 @@ public class SalePostController {
             description = "판매글의 판매 상태를 변경합니다.",
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
-                    @ApiResponse(responseCode = "200", description = "판매글의 상태가 수정되었습니다."),
-                    @ApiResponse(responseCode = "404", description = "판매글을 찾을 수 없습니다."),
-                    @ApiResponse(responseCode = "403", description = "해당 판매글에 대한 권한이 없습니다."),
+                    @ApiResponse(responseCode = "200", description = "변경 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "403", description = "권한 없음"),
+                    @ApiResponse(responseCode = "404", description = "요청 리소스를 찾을 수 없음")
             }
     )
     @PatchMapping("/{salePostId}/status")
@@ -208,8 +205,9 @@ public class SalePostController {
             description = "내가 작성한 판매글들을 조회합니다.",
             security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
-                    @ApiResponse(responseCode = "200", description = "판매글이 성공적으로 조회되었습니다."),
-                    @ApiResponse(responseCode = "404", description = "존재하지 않는 사용자입니다.")
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "404", description = "요청 리소스를 찾을 수 없음")
             }
     )
     @GetMapping("/my")
@@ -239,7 +237,7 @@ public class SalePostController {
             summary = "비회원 판매글 전체 조회",
             description = "카테고리/상태/키워드로 필터링 된 전체 판매글을 조회합니다.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "판매글이 성공적으로 조회되었습니다."),
+                    @ApiResponse(responseCode = "200", description = "조회 성공")
             }
     )
     @GetMapping("/public")

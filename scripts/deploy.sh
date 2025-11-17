@@ -17,25 +17,28 @@ REPO_AND_TAG="$(echo "${FULL_URI}" | cut -d/ -f2- )"
 REPO="$(echo "${REPO_AND_TAG}" | rev | cut -d: -f2- | rev)"
 TAG="$(echo "${REPO_AND_TAG}"  | awk -F: '{print $NF}')"
 
-# SSM 코멘트(100자 제한 방어)
 COMMENT="Deploy ${REPO}:${TAG}"
 if [ ${#COMMENT} -gt 100 ]; then
   COMMENT="${COMMENT:0:100}"
 fi
 
+echo "[INFO] Deploy start"
 echo "[INFO] FULL_URI=${FULL_URI}"
 echo "[INFO] REG_URI=${REG_URI}"
 echo "[INFO] EC2_INSTANCE_ID=${EC2_INSTANCE_ID}"
-echo "[INFO] COMMENT=${COMMENT}"
 
+# ===== promtail config =====
 PROMTAIL_CONFIG_CONTENT=$(cat <<EOF
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
+
 positions:
   filename: /tmp/positions.yaml
+
 clients:
   - url: http://${MONITORING_EC2_PUBLIC_IP}:3100/loki/api/v1/push
+
 scrape_configs:
 - job_name: oot-dev-logs
   static_configs:
@@ -48,35 +51,86 @@ scrape_configs:
 EOF
 )
 
+# ===== EC2에서 실행될 명령 =====
 CMDS=(
-  "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REG_URI}"
+  # 1) ECR 로그인 & pull
+  "aws ecr get-login-password --region ${AWS_REGION} \
+    | docker login --username AWS --password-stdin ${REG_URI}"
+
   "docker pull ${FULL_URI}"
+
+  # 2) 네트워크 생성
   "docker network create oot-network || true"
-  "echo '[INFO] Fetching Redis configuration from Parameter Store...'"
+
+  # 3) Redis 설정
+  "echo '[INFO] Fetching Redis config from SSM...'"
   "export REDIS_HOST=\$(aws ssm get-parameter --name '/config/dev/redis.host' --query 'Parameter.Value' --output text --region ${AWS_REGION})"
   "export REDIS_PORT=\$(aws ssm get-parameter --name '/config/dev/redis.port' --query 'Parameter.Value' --output text --region ${AWS_REGION})"
   "export REDIS_PASSWORD=\$(aws ssm get-parameter --name '/config/dev/redis.password' --with-decryption --query 'Parameter.Value' --output text --region ${AWS_REGION})"
-  "echo \"[INFO] Redis configuration: host=\${REDIS_HOST}, port=\${REDIS_PORT}\""
+
+  "echo \"[INFO] Redis: host=\${REDIS_HOST}, port=\${REDIS_PORT}\""
+
+  # 4) Redis 재기동
   "docker stop oot-redis || true"
-  "docker rm oot-redis || true"
-  "docker run -d --name oot-redis --network oot-network --restart=always -p \${REDIS_PORT}:6379 redis:7-alpine redis-server --requirepass \${REDIS_PASSWORD}"
+  "docker rm   oot-redis || true"
+  "docker run -d --name oot-redis \
+      --network oot-network \
+      --restart=always \
+      -p \${REDIS_PORT}:6379 \
+      redis:7-alpine \
+      redis-server --requirepass \${REDIS_PASSWORD}"
+
+  # 5) Redis 헬스체크
+  "echo '[INFO] Waiting for Redis to be ready...'"
+  "for i in {1..10}; do \
+      if docker exec oot-redis redis-cli -a \${REDIS_PASSWORD} ping 2>/dev/null | grep -q PONG; then \
+        echo '[INFO] Redis is ready.'; break; \
+      fi; \
+      echo \"[INFO] Waiting for Redis... (\$i/10)\"; \
+      sleep 2; \
+    done"
+
+  "if ! docker exec oot-redis redis-cli -a \${REDIS_PASSWORD} ping 2>/dev/null | grep -q PONG; then \
+      echo '[ERROR] Redis failed to start in time.'; exit 1; \
+    fi"
+
+  # 6) 앱 컨테이너 재기동
   "docker stop ${CONTAINER_NAME} || true"
   "docker rm   ${CONTAINER_NAME} || true"
   "mkdir -p /home/ssm-user/app-logs"
-  "docker run -d --name ${CONTAINER_NAME} --network oot-network --restart=always -p ${APP_PORT}:${APP_PORT} -v /home/ssm-user/app-logs:/app-logs -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} -e REDIS_HOST=\${REDIS_HOST} -e REDIS_PORT=\${REDIS_PORT} -e REDIS_PASSWORD=\${REDIS_PASSWORD} ${FULL_URI}"
-  "cat > /home/ssm-user/promtail-config.yml <<'PROMTAIL_EOF'
-${PROMTAIL_CONFIG_CONTENT}
-PROMTAIL_EOF"
+
+  "docker run -d --name ${CONTAINER_NAME} \
+      --network oot-network \
+      --restart=always \
+      -p ${APP_PORT}:${APP_PORT} \
+      -v /home/ssm-user/app-logs:/app-logs \
+      -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} \
+      -e REDIS_HOST=\${REDIS_HOST} \
+      -e REDIS_PORT=\${REDIS_PORT} \
+      -e REDIS_PASSWORD=\${REDIS_PASSWORD} \
+      ${FULL_URI}"
+
+  # 7) promtail 설정파일 생성
+  "cat > /home/ssm-user/promtail-config.yml <<'PROMTAIL_EOF'"
+  "${PROMTAIL_CONFIG_CONTENT}"
+  "PROMTAIL_EOF"
+
+  # 8) promtail 재기동
   "docker stop promtail || true"
-  "docker rm promtail || true"
-  "docker run -d --name promtail --restart=always -v /home/ssm-user/promtail-config.yml:/etc/promtail/config.yml -v /home/ssm-user/app-logs:/app-logs grafana/promtail:latest -config.file=/etc/promtail/config.yml"
+  "docker rm   promtail || true"
+  "docker run -d --name promtail \
+      --restart=always \
+      -v /home/ssm-user/promtail-config.yml:/etc/promtail/config.yml \
+      -v /home/ssm-user/app-logs:/app-logs \
+      grafana/promtail:latest \
+      -config.file=/etc/promtail/config.yml"
 )
 
-# Bash 배열 → JSON 배열 변환 (jq 필수)
+# ==== JSON 변환 ====
 COMMANDS_JSON=$(jq -Rn --argjson arr "$(printf '%s\n' "${CMDS[@]}" | jq -R . | jq -s .)" '$arr')
-echo "[DEBUG] COMMANDS_JSON=${COMMANDS_JSON}"
+echo "[DEBUG] COMMANDS_JSON generated"
 
-# ===== SSM 명령 전송 =====
+# ==== SSM 실행 ====
 RESP=$(aws ssm send-command \
   --document-name "AWS-RunShellScript" \
   --comment "${COMMENT}" \
@@ -88,7 +142,7 @@ RESP=$(aws ssm send-command \
 CMD_ID=$(echo "${RESP}" | jq -r '.Command.CommandId')
 echo "[INFO] SSM CommandId: ${CMD_ID}"
 
-# ===== 완료 대기/성공 판정 =====
+# ==== 상태 대기 ====
 for i in {1..30}; do
   STATUS=$(aws ssm get-command-invocation \
     --command-id "${CMD_ID}" \
@@ -100,12 +154,35 @@ for i in {1..30}; do
   echo "[INFO] SSM Status: ${STATUS}"
 
   case "${STATUS}" in
-    Success) exit 0 ;;
-    Failed|Cancelled|TimedOut) echo "[ERROR] SSM failed: ${STATUS}"; exit 1 ;;
+    Success)
+      exit 0
+      ;;
+
+    Failed|Cancelled|TimedOut)
+      echo "[ERROR] SSM failed: ${STATUS}"
+      echo "[ERROR] Fetching error details..."
+      aws ssm get-command-invocation \
+        --command-id "${CMD_ID}" \
+        --instance-id "${EC2_INSTANCE_ID}" \
+        --region "${AWS_REGION}" \
+        --query '[Status,StandardOutputContent,StandardErrorContent]' \
+        --output text
+      exit 1
+      ;;
   esac
 
   sleep 5
 done
 
+# ==== 타임아웃 처리 ====
 echo "[ERROR] SSM command did not complete in time"
+echo "[ERROR] Fetching current status..."
+
+aws ssm get-command-invocation \
+  --command-id "${CMD_ID}" \
+  --instance-id "${EC2_INSTANCE_ID}" \
+  --region "${AWS_REGION}" \
+  --query '[Status,StandardOutputContent,StandardErrorContent]' \
+  --output text
+
 exit 1
