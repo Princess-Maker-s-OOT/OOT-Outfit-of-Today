@@ -20,14 +20,12 @@ public class UserImageCommandServiceImpl implements UserImageCommandService {
 
     @Override
     public void softDeleteUserImage(UserImage userImage) {
-
-        userImage.softDelete(); // BaseEntity의 softDelete() 메서드 호출
+        userImage.softDelete();
         userImageRepository.save(userImage);
     }
 
     @Override
     public UserImage createAndSave(Image image) {
-
         if (!userImageRepository.existsByImageId(image.getId())) {
             log.warn("이미지를 찾을 수 없음 - image: {}", image.getId());
             throw new UserImageException(UserImageErrorCode.USER_IMAGE_NOT_FOUND);
