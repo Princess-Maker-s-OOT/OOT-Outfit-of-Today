@@ -58,8 +58,7 @@ public class SalePostController {
     ) {
         SalePostCreateResponse response = salePostCommandService.createSalePost(
                 authUser.getUserId(),
-                request,
-                request.getImageUrls()
+                request
         );
 
         return Response.success(response, SalePostSuccessCode.SALE_POST_CREATED);
@@ -68,7 +67,6 @@ public class SalePostController {
     @Operation(
             summary = "판매글 상세 조회",
             description = "판매글의 상세 정보를 조회합니다.",
-            security = {@SecurityRequirement(name = "bearerAuth")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "조회 성공"),
                     @ApiResponse(responseCode = "401", description = "인증 실패"),

@@ -10,7 +10,6 @@ import org.example.ootoutfitoftoday.domain.salepost.dto.response.CachedSliceResp
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
 import org.example.ootoutfitoftoday.domain.salepost.util.NativeQuerySortUtil;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
-import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -61,7 +60,13 @@ public class SalePostCacheServiceImpl implements SalePostCacheService {
                     s.status,
                     s.trade_address,
                     ST_AsText(s.trade_location) AS trade_location,
-                    (SELECT spi.image_url FROM sale_post_images spi WHERE spi.sale_post_id = s.id ORDER BY spi.display_order ASC LIMIT 1) AS thumbnail_url,
+                    (SELECT i.url 
+                     FROM sale_post_images spi 
+                     JOIN images i ON spi.image_id = i.id 
+                     WHERE spi.sale_post_id = s.id 
+                     AND spi.is_main = TRUE
+                     AND spi.is_deleted = FALSE
+                     LIMIT 1) AS thumbnail_url,
                     u.nickname AS seller_nickname,
                     c.name AS category_name,
                     s.created_at
@@ -106,7 +111,8 @@ public class SalePostCacheServiceImpl implements SalePostCacheService {
 
         List<SalePostListResponse> responseContent = content.stream()
                 .map(row -> {
-                    org.example.ootoutfitoftoday.common.util.Location location = org.example.ootoutfitoftoday.common.util.PointFormatAndParse.parse((String) row[5]);
+                    org.example.ootoutfitoftoday.common.util.Location location =
+                            org.example.ootoutfitoftoday.common.util.PointFormatAndParse.parse((String) row[5]);
                     return new SalePostListResponse(
                             ((Number) row[0]).longValue(),
                             (String) row[1],

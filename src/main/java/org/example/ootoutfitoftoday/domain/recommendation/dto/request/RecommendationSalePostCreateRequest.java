@@ -39,7 +39,7 @@ public record RecommendationSalePostCreateRequest(
         BigDecimal tradeLongitude,
 
         @NotEmpty(message = "이미지는 최소 1개 이상 필요합니다.")
-        List<String> imageUrls
+        List<Long> imageIds
 ) {
     public static RecommendationSalePostCreateRequest of(
             String title,
@@ -49,7 +49,7 @@ public record RecommendationSalePostCreateRequest(
             String tradeAddress,
             BigDecimal tradeLatitude,
             BigDecimal tradeLongitude,
-            List<String> imageUrls
+            List<Long> imageIds
     ) {
 
         return RecommendationSalePostCreateRequest.builder()
@@ -60,7 +60,7 @@ public record RecommendationSalePostCreateRequest(
                 .tradeAddress(tradeAddress)
                 .tradeLatitude(tradeLatitude)
                 .tradeLongitude(tradeLongitude)
-                .imageUrls(imageUrls)
+                .imageIds(imageIds)
                 .build();
     }
 }

@@ -13,7 +13,7 @@ public enum SalePostErrorCode implements ErrorCode {
     INVALID_PRICE("INVALID_PRICE", HttpStatus.BAD_REQUEST, "가격은 0원 이상이어야 합니다."),
     EMPTY_IMAGES("EMPTY_IMAGES", HttpStatus.BAD_REQUEST, "이미지를 최소 1개 이상 등록해주세요."),
     EMPTY_IMAGE_URL("EMPTY_IMAGE_URL", HttpStatus.BAD_REQUEST, "일부 이미지가 제대로 업로드되지 않았습니다."),
-    DUPLICATE_IMAGE_URL("DUPLICATE_IMAGE_URL", HttpStatus.BAD_REQUEST, "중복된 이미지입니다."),
+    DUPLICATE_IMAGE("DUPLICATE_IMAGE", HttpStatus.BAD_REQUEST, "중복된 이미지입니다."),
 
     // === 비즈니스 검증 (서비스 레이어) ===
     SALE_POST_NOT_FOUND("SALE_POST_NOT_FOUND", HttpStatus.NOT_FOUND, "판매글을 찾을 수 없습니다."),

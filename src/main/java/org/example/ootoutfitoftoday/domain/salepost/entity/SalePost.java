@@ -8,14 +8,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
+import org.example.ootoutfitoftoday.domain.image.entity.Image;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Entity
@@ -57,6 +60,7 @@ public class SalePost extends BaseEntity {
     @OneToMany(mappedBy = "salePost", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
     @BatchSize(size = 100)
+    @Where(clause = "is_deleted = false")
     private List<SalePostImage> images = new ArrayList<>();
 
     /**
@@ -98,10 +102,10 @@ public class SalePost extends BaseEntity {
             BigDecimal price,
             String tradeAddress,
             String tradeLocation,
-            List<String> imageUrls
+            List<Image> images
     ) {
         validatePrice(price);
-        validateImages(imageUrls);
+        validateImages(images);
 
         SalePost salePost = SalePost.builder()
                 .user(user)
@@ -114,10 +118,14 @@ public class SalePost extends BaseEntity {
                 .tradeLocation(tradeLocation)
                 .build();
 
-        // 이미지 URL 리스트를 순서대로 SalePostImage 엔티티로 변환 (displayOrder: 1, 2, 3, ...)
-        for (int i = 0; i < imageUrls.size(); i++) {
-            SalePostImage image = SalePostImage.create(imageUrls.get(i), i + 1);
-            salePost.addImage(image);
+        for (int i = 0; i < images.size(); i++) {
+            boolean isMain = (i == 0);
+            SalePostImage salePostImage = SalePostImage.create(
+                    images.get(i),
+                    i + 1,
+                    isMain
+            );
+            salePost.addImage(salePostImage);
         }
 
         return salePost;
@@ -131,10 +139,10 @@ public class SalePost extends BaseEntity {
             BigDecimal price,
             String tradeAddress,
             String tradeLocation,
-            List<String> imageUrls
+            List<Image> images
     ) {
         validatePrice(price);
-        validateImages(imageUrls);
+        validateImages(images);
 
         SalePost salePost = SalePost.builder()
                 .user(recommendation.getUser())
@@ -148,10 +156,14 @@ public class SalePost extends BaseEntity {
                 .recommendation(recommendation)
                 .build();
 
-        // 이미지 URL 리스트를 순서대로 SalePostImage 엔티티로 변환 (displayOrder: 1, 2, 3, ...)
-        for (int i = 0; i < imageUrls.size(); i++) {
-            SalePostImage image = SalePostImage.create(imageUrls.get(i), i + 1);
-            salePost.addImage(image);
+        for (int i = 0; i < images.size(); i++) {
+            boolean isMain = (i == 0);
+            SalePostImage salePostImage = SalePostImage.create(
+                    images.get(i),
+                    i + 1,
+                    isMain
+            );
+            salePost.addImage(salePostImage);
         }
 
         return salePost;
@@ -163,14 +175,17 @@ public class SalePost extends BaseEntity {
         }
     }
 
-    private static void validateImages(List<String> imageUrls) {
-        if (imageUrls == null || imageUrls.isEmpty()) {
+    private static void validateImages(List<Image> images) {
+        if (images == null || images.isEmpty()) {
             throw new SalePostException(SalePostErrorCode.EMPTY_IMAGES);
         }
 
-        Set<String> uniqueUrls = new HashSet<>(imageUrls);
-        if (uniqueUrls.size() != imageUrls.size()) {
-            throw new SalePostException(SalePostErrorCode.DUPLICATE_IMAGE_URL);
+        Set<Long> uniqueIds = images.stream()
+                .map(Image::getId)
+                .collect(Collectors.toSet());
+
+        if (uniqueIds.size() != images.size()) {
+            throw new SalePostException(SalePostErrorCode.DUPLICATE_IMAGE);
         }
     }
 
@@ -186,10 +201,10 @@ public class SalePost extends BaseEntity {
             BigDecimal price,
             String tradeAddress,
             String tradeLocation,
-            List<String> imageUrls
+            List<Image> images
     ) {
         validatePrice(price);
-        validateImages(imageUrls);
+        validateImages(images);
 
         this.category = category;
         this.title = title;
@@ -198,16 +213,23 @@ public class SalePost extends BaseEntity {
         this.tradeAddress = tradeAddress;
         this.tradeLocation = tradeLocation;
 
-        updateImages(imageUrls);
+        updateImages(images);
     }
 
-    private void updateImages(List<String> imageUrls) {
+    public void updateImages(List<Image> images) {
+
+        validateImages(images);
 
         this.images.clear();
 
-        for (int i = 0; i < imageUrls.size(); i++) {
-            SalePostImage image = SalePostImage.create(imageUrls.get(i), i + 1);
-            this.addImage(image);
+        for (int i = 0; i < images.size(); i++) {
+            boolean isMain = (i == 0);
+            SalePostImage salePostImage = SalePostImage.create(
+                    images.get(i),
+                    i + 1,
+                    isMain
+            );
+            this.addImage(salePostImage);
         }
     }
 
