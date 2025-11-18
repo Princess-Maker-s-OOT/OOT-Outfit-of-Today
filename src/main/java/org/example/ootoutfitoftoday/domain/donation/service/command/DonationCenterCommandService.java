@@ -5,7 +5,6 @@ import org.locationtech.jts.geom.Point;
 
 public interface DonationCenterCommandService {
 
-    // 카카오맵 API 응답 데이터로부터 기부처 생성 또는 조회
     DonationCenter createOrGet(
             String kakaoPlaceId,
             String name,

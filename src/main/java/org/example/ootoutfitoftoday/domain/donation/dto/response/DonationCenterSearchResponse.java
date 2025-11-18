@@ -4,12 +4,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import org.example.ootoutfitoftoday.domain.donation.entity.DonationCenter;
 
-/**
- * 기부처 검색 응답 DTO
- */
 @Builder(access = AccessLevel.PRIVATE)
 public record DonationCenterSearchResponse(
-
         Long donationCenterId,
         String kakaoPlaceId,
         String name,
@@ -19,7 +15,7 @@ public record DonationCenterSearchResponse(
         Double latitude,
         Double longitude,
         String description,
-        Integer distance  // 사용자 위치로부터의 거리 (미터 단위)
+        Integer distance
 ) {
     public static DonationCenterSearchResponse from(DonationCenter center) {
 
@@ -33,7 +29,7 @@ public record DonationCenterSearchResponse(
                 .latitude(center.getLatitude())
                 .longitude(center.getLongitude())
                 .description(center.getDescription())
-                .distance(null)  // 기본적으로는 거리 정보 없음
+                .distance(null)
                 .build();
     }
 
