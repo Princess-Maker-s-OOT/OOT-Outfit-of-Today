@@ -13,10 +13,5 @@ public interface ChatroomQueryService {
 
     Chatroom getChatroomById(Long chatroomId);
 
-    /**
-     * 사용자와 판매글로 채팅방 조회
-     * (거래 시작 시 사용)
-     * @return Optional<Chatroom> - 없으면 Empty
-     */
     Optional<Chatroom> findByUserAndSalePost(Long userId, Long salePostId);
 }
