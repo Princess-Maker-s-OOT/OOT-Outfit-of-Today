@@ -30,15 +30,14 @@ import java.util.Map;
 @Component
 public class TossPaymentsClientImpl implements TossPaymentsClient {
 
+    private final RestTemplate restTemplate;
     @Value("${TOSS_SECRET_KEY}")
     private String secretKey;
-
     @Value("${toss.api.url.confirm}")
     private String confirmUrl;
 
-    private final RestTemplate restTemplate;
-
     public TossPaymentsClientImpl(@Qualifier("tossRestTemplate") RestTemplate restTemplate) {
+
         this.restTemplate = restTemplate;
     }
 
@@ -89,7 +88,7 @@ public class TossPaymentsClientImpl implements TossPaymentsClient {
             throw new PaymentException(PaymentErrorCode.TOSS_API_CLIENT_ERROR);
         } catch (HttpServerErrorException e) {
             // 예: 토스 서버 장애 (500 Internal Server Error)
-            log.error("토스 서버 에러: {}, body={}",e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("토스 서버 에러: {}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
             throw new PaymentException(PaymentErrorCode.TOSS_API_SERVER_ERROR);
         } catch (ResourceAccessException e) {
             // 예: 타임아웃 (10초 초과) 또는 네트워크 오류
