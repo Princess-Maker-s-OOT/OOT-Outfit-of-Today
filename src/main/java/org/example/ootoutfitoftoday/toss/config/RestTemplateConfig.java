@@ -1,4 +1,4 @@
-package org.example.ootoutfitoftoday.Toss.config;
+package org.example.ootoutfitoftoday.toss.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,8 +11,8 @@ public class RestTemplateConfig {
     @Bean(name = "tossRestTemplate")
     public RestTemplate restTemplate() {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-        factory.setConnectTimeout(3000); // 연결 타임아웃 (ms)
-        factory.setReadTimeout(5000);    // 읽기 타임아웃 (ms)
+        factory.setConnectTimeout(3000);
+        factory.setReadTimeout(5000);
 
         return new RestTemplate(factory);
     }

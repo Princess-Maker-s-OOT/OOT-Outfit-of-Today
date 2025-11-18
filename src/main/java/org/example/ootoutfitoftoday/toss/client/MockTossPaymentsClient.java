@@ -1,7 +1,7 @@
-package org.example.ootoutfitoftoday.Toss.client;
+package org.example.ootoutfitoftoday.toss.client;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.ootoutfitoftoday.Toss.dto.TossConfirmResult;
+import org.example.ootoutfitoftoday.toss.dto.TossConfirmResult;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;

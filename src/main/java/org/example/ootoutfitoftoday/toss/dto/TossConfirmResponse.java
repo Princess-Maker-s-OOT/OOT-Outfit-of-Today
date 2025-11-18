@@ -1,4 +1,4 @@
-package org.example.ootoutfitoftoday.Toss.dto;
+package org.example.ootoutfitoftoday.toss.dto;
 
 public record TossConfirmResponse(
         String paymentKey,
@@ -7,4 +7,5 @@ public record TossConfirmResponse(
         Integer totalAmount,
         String approvedAt,
         String receiptUrl
-) {}
+) {
+}
