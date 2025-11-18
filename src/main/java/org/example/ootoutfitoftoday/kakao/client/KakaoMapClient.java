@@ -19,9 +19,9 @@ import java.net.URI;
 @Component
 public class KakaoMapClient {
 
-    private static final String KEYWORD_SEARCH_PATH = "/v2/local/search/keyword.json"; // 카카오 키워드 장소 검색 API의 경로
+    private static final String KEYWORD_SEARCH_PATH = "/v2/local/search/keyword.json";
     private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String KAKAO_AK_PREFIX = "KakaoAK "; // 카카오 API 키 앞에 붙여야 하는 인증 타입 접두사(KakaoAK)
+    private static final String KAKAO_AK_PREFIX = "KakaoAK ";
 
     private final RestTemplate restTemplate;
     private final KakaoMapProperties kakaoMapProperties;
@@ -30,22 +30,10 @@ public class KakaoMapClient {
             @Qualifier("kakaoMapRestTemplate") RestTemplate restTemplate,
             KakaoMapProperties kakaoMapProperties
     ) {
-
         this.restTemplate = restTemplate;
         this.kakaoMapProperties = kakaoMapProperties;
     }
 
-    /**
-     * 키워드로 장소 검색
-     *
-     * @param keyword 검색 키워드
-     * @param x       중심 x좌표 (경도, longitude)
-     * @param y       중심 y좌표 (위도, latitude)
-     * @param radius  검색 반경 (미터)
-     * @param page    결과 페이지 번호 (1~45, 기본값 1)
-     * @param size    한 페이지에 보여질 문서 개수 (1~15, 기본값 15)
-     * @return KakaoPlaceResponse 검색 결과
-     */
     public KakaoPlaceResponse searchByKeyword(
             String keyword,
             String x,
@@ -54,7 +42,7 @@ public class KakaoMapClient {
             Integer page,
             Integer size
     ) {
-        validateKeyword(keyword); // 매개변수가 유효한지 검증
+        validateKeyword(keyword);
 
         URI uri = buildSearchUri(keyword, x, y, radius, page, size);
         HttpHeaders headers = createHeaders();
@@ -77,6 +65,7 @@ public class KakaoMapClient {
             }
 
             log.info("카카오맵 API 호출 성공: totalCount={}", body.meta().totalCount());
+
             return body;
 
         } catch (HttpClientErrorException e) {
@@ -94,13 +83,8 @@ public class KakaoMapClient {
         }
     }
 
-    /**
-     * 키워드로 장소 검색
-     *
-     * @param keyword 검색 키워드
-     * @return KakaoPlaceResponse 검색 결과
-     */
     public KakaoPlaceResponse searchByKeyword(String keyword) {
+
         return searchByKeyword(keyword, null, null, null, null, null);
     }
 
@@ -146,6 +130,7 @@ public class KakaoMapClient {
         HttpHeaders headers = new HttpHeaders();
         headers.set(AUTHORIZATION_HEADER, KAKAO_AK_PREFIX + kakaoMapProperties.getApiKey());
         headers.setContentType(MediaType.APPLICATION_JSON);
+
         return headers;
     }
 
@@ -157,7 +142,6 @@ public class KakaoMapClient {
         } else if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
             throw new KakaoMapException(KakaoMapErrorCode.INVALID_SEARCH_KEYWORD);
         }
-        // 그 외의 클라이언트 오류에 대해서도 기본 예외를 던짐
         throw new KakaoMapException(KakaoMapErrorCode.API_CALL_FAILED);
     }
 }

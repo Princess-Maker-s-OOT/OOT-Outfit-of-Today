@@ -6,9 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * 카카오맵 장소 검색 API 응답 DTO
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record KakaoPlaceResponse(
 
@@ -18,10 +15,6 @@ public record KakaoPlaceResponse(
         @JsonProperty("documents")
         List<Document> documents
 ) {
-
-    /**
-     * 검색 메타 정보
-     */
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Meta(
 
@@ -39,9 +32,6 @@ public record KakaoPlaceResponse(
     ) {
     }
 
-    /**
-     * 질의어의 지역 및 키워드 분석 정보
-     */
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record SameName(
 
@@ -56,9 +46,6 @@ public record KakaoPlaceResponse(
     ) {
     }
 
-    /**
-     * 장소 상세 정보
-     */
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Document(
 
@@ -98,13 +85,10 @@ public record KakaoPlaceResponse(
             @JsonProperty("distance")
             String distance
     ) {
-
-        // 위도를 BigDecimal로 반환
         public BigDecimal getLatitude() {
             return y != null ? new BigDecimal(y) : null;
         }
 
-        // 경도를 BigDecimal로 반환
         public BigDecimal getLongitude() {
             return x != null ? new BigDecimal(x) : null;
         }
