@@ -23,23 +23,19 @@ public class WearCustomRepositoryImpl implements WearCustomRepository {
     private final QWearRecord wearRecord = QWearRecord.wearRecord;
     private final QClothes clothes = QClothes.clothes;
 
-    // 이번 주 착용 빈도 높은 옷
     @Override
     public List<ClothesWearCount> wornThisWeek(Long userId, LocalDate baseDate) {
         log.debug("이번 주 착용 빈도 쿼리 실행 시작 - 사용자 ID: {}, 기준 날짜: {}", userId, baseDate);
 
-        // targetDate가 null이면 오늘 기준
         if (baseDate == null) {
             baseDate = LocalDate.now();
             log.debug("기준 날짜가 null이므로 오늘 날짜 사용: {}", baseDate);
         }
 
-        // 주차의 시작(월요일 0시 0분 0초)
         LocalDateTime startOfWeek = baseDate
                 .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                 .atStartOfDay();
 
-        // 주차의 끝(일요일 23:59:59.999999999)
         LocalDateTime endOfWeek = baseDate
                 .with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
                 .atTime(LocalTime.MAX);
@@ -64,10 +60,10 @@ public class WearCustomRepositoryImpl implements WearCustomRepository {
                 .fetch();
 
         log.debug("이번 주 착용 빈도 쿼리 완료 - 결과 수: {}", result.size());
+
         return result;
     }
 
-    // 자주 입은 옷 (전체 기간)
     @Override
     public List<ClothesWearCount> topWornClothes(Long userId) {
         log.debug("자주 입은 옷 쿼리 실행 시작 - 사용자 ID: {}", userId);
@@ -87,6 +83,7 @@ public class WearCustomRepositoryImpl implements WearCustomRepository {
                 .fetch();
 
         log.debug("자주 입은 옷 쿼리 완료 - 결과 수: {}", result.size());
+
         return result;
     }
 }

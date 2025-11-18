@@ -7,5 +7,4 @@ public class WearRecordException extends GlobalException {
     public WearRecordException(WearRecordErrorCode errorCode) {
         super(errorCode);
     }
-
 }

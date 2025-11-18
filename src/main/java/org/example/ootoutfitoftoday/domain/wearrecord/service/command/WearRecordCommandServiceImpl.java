@@ -49,7 +49,6 @@ public class WearRecordCommandServiceImpl implements WearRecordCommandService {
         WearRecord savedRecord = wearRecordRepository.save(wearRecord);
         log.info("착용 기록 저장 완료 - 착용 기록 ID: {}, 착용 시간: {}", savedRecord.getId(), wornAt);
 
-        // Clothes 마지막 착용 일시 업데이트 위임
         clothesCommandService.updateLastWornAt(
                 request.clothesId(),
                 wornAt
