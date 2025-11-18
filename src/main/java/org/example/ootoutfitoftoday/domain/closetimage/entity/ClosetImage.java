@@ -20,18 +20,15 @@ import org.example.ootoutfitoftoday.domain.image.entity.Image;
 @Table(name = "closet_images")
 public class ClosetImage extends BaseEntity {
 
-    @Id
-    private Long id;
-
     /**
      * [연관관계] Closet과의 1:1 단방향 관계 (연관관계의 주인)
      * - @JoinColumn(nullable = false) 설정으로, ClosetImage는 Closet에 필수적으로 연결되어야 함
-     *
-     * @MapsId가 이 필드(id)에 Closet의 ID 값을 매핑
+     * - @MapsId를 통해 Closet의 ID를 이 엔티티의 PK로 공유 (Shared Primary Key 패턴)
      */
+    @Id
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
-    @JoinColumn(name = "closet_id", nullable = false, unique = true) // <--- closet_id FK 매핑
+    @JoinColumn(name = "closet_id", nullable = false, unique = true)
     private Closet closet;
 
     /**
@@ -41,7 +38,6 @@ public class ClosetImage extends BaseEntity {
      * - nullable = false: 연결 시 Image 정보는 필수
      */
     @OneToOne(fetch = FetchType.LAZY)
-
     @JoinColumn(name = "image_id", nullable = false, unique = true)
     private Image image;
 
