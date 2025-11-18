@@ -852,9 +852,10 @@ src
     - `application.yml`에 환경정보 세팅
     - IDE로 실행
 2. **프론트엔드**
-    - Node.js LTS 설치
-    - 의존성 설치: `npm install`
-    - 개발 서버 실행: `npm run dev`
+    - Node.js 20 LTS 설치
+    - pnpm 설치: `corepack enable pnpm`
+    - 의존성 설치: `pnpm install`
+    - 개발 서버 실행: `pnpm run dev`
 3. **배포**
     - AWS EC2, GitHub Actions, Docker 기반 배포 스크립트 사용
     - RDS, S3 외부 연결(API Key 필요)
@@ -911,11 +912,12 @@ src
 
 **프론트엔드**
 
-1. GitHub Actions 트리거
-2. npm 빌드 및 테스트
-3. Docker 이미지 빌드 또는 정적 파일 생성
-4. S3/CloudFront 배포 또는 EC2 배포
-5. 배포 완료 알림
+1. GitHub Actions 트리거 (workflow_dispatch)
+2. AWS OIDC 인증 (임시 자격증명 발급)
+3. pnpm 빌드 및 Multi-stage Docker 이미지 빌드
+4. AWS ECR에 푸시
+5. SSM(Systems Manager)으로 EC2 배포
+6. Nginx 리버스 프록시 설정
 
 ---
 
