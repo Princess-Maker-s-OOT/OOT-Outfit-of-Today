@@ -21,7 +21,8 @@ import org.example.ootoutfitoftoday.domain.image.entity.Image;
 public class ClosetImage extends BaseEntity {
 
     /**
-     * [연관관계] Closet과의 1:1 단방향 관계 (연관관계의 주인)
+     * [연관관계] Closet과의 1:1 양방향 관계 (연관관계의 주인)
+     * - 양방향 관계: Closet 엔티티에서 mappedBy="closet"으로 역방향 참조
      * - @JoinColumn(nullable = false) 설정으로, ClosetImage는 Closet에 필수적으로 연결되어야 함
      * - @MapsId를 통해 Closet의 ID를 이 엔티티의 PK로 공유 (Shared Primary Key 패턴)
      */
