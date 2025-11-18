@@ -19,14 +19,6 @@ public record SliceResponse<T>(
         SliceData<T> data,
         LocalDateTime timestamp
 ) {
-
-    /**
-     * 성공적인 요청에 대한 페이징 응답을 반환하는 메서드
-     * 주어진 데이터를 포함하여 HTTP 상태 코드와 함께 응답을 반환
-     *
-     * @param sliceData 요청 성공 시 반환할 페이징 데이터
-     * @return HTTP 상태코드 성공 응답과 함께 ApiSliceResponse<T>
-     */
     public static <T> ResponseEntity<SliceResponse<T>> success(Slice<T> sliceData, SuccessCode successCode) {
 
         return ResponseEntity.status(successCode.getHttpStatus()).body(

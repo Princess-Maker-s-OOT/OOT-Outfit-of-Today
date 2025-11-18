@@ -2,7 +2,6 @@ package org.example.ootoutfitoftoday.common.constant;
 
 public class ValidationRegex {
 
-    // auth & user 관련 상수
     public static final String ID_REGEX = "^[a-zA-Z0-9_]+$";
 
     public static final String EMAIL_LOCAL_PART = "(?!\\.)[A-Za-z0-9._%+-]+(?<!\\.)";
@@ -18,7 +17,6 @@ public class ValidationRegex {
 
     public static final String PHONE_NUMBER_REGEX = "^01[016789]\\d{7,8}$";
 
-    // 인스턴스화 방지
     private ValidationRegex() {
     }
 }
