@@ -3,7 +3,6 @@ package org.example.ootoutfitoftoday.domain.closetclotheslink.dto.response;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
 
 public record ClosetClothesLinkResponse(
-
         Long linkId,
         Long closetId,
         Long clothesId

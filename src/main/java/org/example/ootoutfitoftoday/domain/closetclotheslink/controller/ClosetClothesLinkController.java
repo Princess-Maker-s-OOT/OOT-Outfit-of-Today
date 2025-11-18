@@ -31,14 +31,6 @@ public class ClosetClothesLinkController {
     private final ClosetClothesLinkCommandService closetClothesLinkCommandService;
     private final ClosetClothesLinkQueryService closetClothesLinkQueryService;
 
-    /**
-     * 특정 옷장에 옷 등록
-     *
-     * @param authUser                 인증된 사용자 정보
-     * @param closetId                 옷을 등록할 옷장 ID
-     * @param closetClothesLinkRequest 등록할 옷 ID
-     * @return ClosetClothesLinkResponse 연결 정보
-     */
     @Operation(
             summary = "옷장에 옷 등록",
             description = "선택한 옷장에 이미 등록된 옷을 추가합니다. 같은 옷을 중복으로 등록할 수 없습니다.",
@@ -56,7 +48,6 @@ public class ClosetClothesLinkController {
             @PathVariable Long closetId,
             @Valid @RequestBody ClosetClothesLinkRequest closetClothesLinkRequest
     ) {
-
         ClosetClothesLinkResponse closetClothesLinkResponse = closetClothesLinkCommandService.createClosetClothesLink(
                 authUser.getUserId(),
                 closetId,
@@ -66,17 +57,6 @@ public class ClosetClothesLinkController {
         return Response.success(closetClothesLinkResponse, ClosetClothesLinkSuccessCode.CLOSET_CLOTHES_LINKED);
     }
 
-    /**
-     * 특정 옷장에 등록된 옷 리스트 조회
-     *
-     * @param authUser  인증된 사용자 정보
-     * @param closetId  조회할 옷장 ID
-     * @param page      페이지 번호 (기본값: 0)
-     * @param size      페이지 크기 (기본값: 10)
-     * @param sort      정렬 기준 (기본값: createdAt)
-     * @param direction 정렬 방향 (기본값: DESC)
-     * @return PageResponse<ClosetClothesLinkGetResponse> 옷 목록
-     */
     @Operation(
             summary = "옷장에 등록된 옷 리스트 조회",
             description = "선택한 옷장에 등록된 모든 옷을 조회합니다. 최근 등록순으로 정렬됩니다.",
@@ -96,7 +76,6 @@ public class ClosetClothesLinkController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction
     ) {
-
         Page<ClosetClothesLinkGetResponse> closetClothesLinkGetResponses = closetClothesLinkQueryService.getClothesInCloset(
                 authUser.getUserId(),
                 closetId,
@@ -109,15 +88,6 @@ public class ClosetClothesLinkController {
         return PageResponse.success(closetClothesLinkGetResponses, ClosetClothesLinkSuccessCode.CLOSET_CLOTHES_LIST_OK);
     }
 
-
-    /**
-     * 옷장에서 옷 제거
-     *
-     * @param authUser  인증된 사용자 정보
-     * @param closetId  옷을 제거할 옷장 ID
-     * @param clothesId 제거할 옷 ID
-     * @return ClosetClothesLinkDeleteResponse 제거된 연결 정보
-     */
     @Operation(
             summary = "옷장에서 옷 제거",
             description = "선택한 옷장에 등록된 옷을 제거합니다. 실제 옷 데이터는 삭제되지 않고 연결만 해제됩니다.",
@@ -135,7 +105,6 @@ public class ClosetClothesLinkController {
             @PathVariable Long closetId,
             @PathVariable Long clothesId
     ) {
-
         ClosetClothesLinkDeleteResponse closetClothesLinkDeleteResponse = closetClothesLinkCommandService.deleteClosetClothesLink(
                 authUser.getUserId(),
                 closetId,
