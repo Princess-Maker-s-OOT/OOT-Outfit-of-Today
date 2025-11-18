@@ -9,35 +9,18 @@ import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
 import org.example.ootoutfitoftoday.domain.image.entity.Image;
 
-/**
- * [연결 엔티티] ClosetImage: 옷장(Closet)과 이미지(Image)의 1:1 관계를 표현
- * - 목적: 이미지 정보를 별도 엔티티로 분리하여 SRP를 준수하고, 향후 다른 도메인(Clothes 등)과의 일관성을 유지
- * - 제약: 하나의 Closet은 하나의 ClosetImage만 참조하며, 이 엔티티는 하나의 Image만 참조
- */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "closet_images")
 public class ClosetImage extends BaseEntity {
 
-    /**
-     * [연관관계] Closet과의 1:1 양방향 관계 (연관관계의 주인)
-     * - 양방향 관계: Closet 엔티티에서 mappedBy="closet"으로 역방향 참조
-     * - @JoinColumn(nullable = false) 설정으로, ClosetImage는 Closet에 필수적으로 연결되어야 함
-     * - @MapsId를 통해 Closet의 ID를 이 엔티티의 PK로 공유 (Shared Primary Key 패턴)
-     */
     @Id
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "closet_id", nullable = false, unique = true)
     private Closet closet;
 
-    /**
-     * [연관관계] Image와의 1:1 단방향 관계
-     * - 이 연결 엔티티는 Image 도메인의 상세 정보 (S3 경로 등)를 참조
-     * - @OneToOne: 하나의 ClosetImage는 하나의 Image
-     * - nullable = false: 연결 시 Image 정보는 필수
-     */
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id", nullable = false, unique = true)
     private Image image;
