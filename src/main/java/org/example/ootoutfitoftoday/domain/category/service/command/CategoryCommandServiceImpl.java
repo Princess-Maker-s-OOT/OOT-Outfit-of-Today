@@ -30,7 +30,8 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
         Category parent = null;
 
         if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
-            parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId()).orElseThrow(() -> {
+            parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId()).orElseThrow(
+                    () -> {
                         log.warn("createCategory - 상위 카테고리 존재하지 않음. parentId={}", categoryRequest.getParentId());
 
                         return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
@@ -46,7 +47,8 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
 
     @Override
     public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest) {
-        Category category = categoryRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
+        Category category = categoryRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> {
                     log.warn("updateCategory - 수정할 카테고리 존재하지 않음. categoryId={}", id);
 
                     return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
@@ -72,7 +74,8 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
             throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
         }
 
-        Category parent = categoryRepository.findByIdAndIsDeletedFalse(parentId).orElseThrow(() -> {
+        Category parent = categoryRepository.findByIdAndIsDeletedFalse(parentId).orElseThrow(
+                () -> {
                     log.warn("validateCategory - 상위 카테고리 존재하지 않음. parentId={}", parentId);
 
                     return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
