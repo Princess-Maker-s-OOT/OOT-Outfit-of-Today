@@ -7,7 +7,6 @@ import lombok.Builder;
 import java.math.BigDecimal;
 import java.util.List;
 
-// 추천으로부터 판매글 생성 요청 DTO
 @Builder(access = AccessLevel.PRIVATE)
 public record RecommendationSalePostCreateRequest(
 

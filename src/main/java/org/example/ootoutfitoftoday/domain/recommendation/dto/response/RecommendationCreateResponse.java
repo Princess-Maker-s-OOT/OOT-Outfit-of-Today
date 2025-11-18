@@ -8,12 +8,8 @@ import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 
 import java.time.LocalDateTime;
 
-/**
- * 추천 기록 생성 응답 DTO
- */
 @Builder(access = AccessLevel.PRIVATE)
 public record RecommendationCreateResponse(
-
         Long recommendationId,
         Long userId,
         Long clothesId,

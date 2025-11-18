@@ -7,12 +7,8 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-/**
- * 배치 실행 이력 응답 DTO
- */
 @Builder(access = AccessLevel.PRIVATE)
 public record RecommendationBatchHistoryResponse(
-
         Long id,
         LocalDateTime startTime,
         LocalDateTime endTime,
