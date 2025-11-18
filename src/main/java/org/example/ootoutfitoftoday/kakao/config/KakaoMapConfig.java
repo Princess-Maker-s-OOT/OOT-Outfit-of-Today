@@ -14,6 +14,7 @@ public class KakaoMapConfig {
 
     @Bean(name = "kakaoMapRestTemplate")
     public RestTemplate kakaoMapRestTemplate(RestTemplateBuilder builder) {
+        
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(CONNECT_TIMEOUT);
         factory.setReadTimeout(READ_TIMEOUT);
