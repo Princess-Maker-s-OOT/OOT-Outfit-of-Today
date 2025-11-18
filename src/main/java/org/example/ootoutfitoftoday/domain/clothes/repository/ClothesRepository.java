@@ -24,7 +24,6 @@ public interface ClothesRepository extends JpaRepository<Clothes, Long>, Clothes
             """)
     Optional<Clothes> findByIdAndIsDeletedFalse(@Param("id") Long id);
 
-    // 카테고리가 소프트 딜리트 처리될 때 연관된 옷의 카테고리 아이디 값을 null 처리
     @Modifying
     @Query("""
             UPDATE Clothes c
@@ -33,7 +32,6 @@ public interface ClothesRepository extends JpaRepository<Clothes, Long>, Clothes
             """)
     void clearCategoryFromClothes(@Param("categoryIds") List<Long> categoryIds);
 
-    // 삭제되지 않은 옷 카운터
     int countAllClothesByIsDeletedFalse();
 
     int countAllClothesByUserIdAndIsDeletedFalse(Long userId);
@@ -49,7 +47,6 @@ public interface ClothesRepository extends JpaRepository<Clothes, Long>, Clothes
             """)
     List<CategoryStat> countUserTopCategoryStats(@Param("userId") Long userId);
 
-    // 사용자의 모든 옷 조회
     @Query("""
             SELECT c
             FROM Clothes c

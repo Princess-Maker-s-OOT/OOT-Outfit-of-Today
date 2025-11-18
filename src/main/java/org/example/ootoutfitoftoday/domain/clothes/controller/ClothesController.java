@@ -1,4 +1,3 @@
-
 package org.example.ootoutfitoftoday.domain.clothes.controller;
 
 import com.ootcommon.clothes.enums.ClothesColor;
@@ -48,7 +47,6 @@ public class ClothesController {
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody ClothesRequest clothesRequest
     ) {
-
         ClothesResponse clothesResponse = clothesCommandService.createClothes(authUser.getUserId(), clothesRequest);
 
         return Response.success(clothesResponse, ClothesSuccessCode.CLOTHES_CREATED);
@@ -70,7 +68,6 @@ public class ClothesController {
             @Parameter(description = "마지막 조회 옷 아이디") @RequestParam(required = false) Long lastClothesId,
             @Parameter(description = "페이지당 개수") @RequestParam(defaultValue = "10") int size
     ) {
-
         Slice<ClothesResponse> clothes = clothesQueryService.getClothes(
                 authUser.getUserId(),
                 categoryId,
@@ -96,7 +93,6 @@ public class ClothesController {
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long clothesId
     ) {
-
         ClothesResponse clothesResponse = clothesQueryService.getClothesById(authUser.getUserId(), clothesId);
 
         return Response.success(clothesResponse, ClothesSuccessCode.CLOTHES_OK);
@@ -117,7 +113,6 @@ public class ClothesController {
             @PathVariable Long clothesId,
             @Valid @RequestBody ClothesRequest clothesRequest
     ) {
-
         ClothesResponse clothesResponse = clothesCommandService.updateClothes(authUser.getUserId(), clothesId, clothesRequest);
 
         return Response.success(clothesResponse, ClothesSuccessCode.CLOTHES_UPDATE);
@@ -136,7 +131,6 @@ public class ClothesController {
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long clothesId
     ) {
-
         clothesCommandService.deleteClothes(authUser.getUserId(), clothesId);
 
         return Response.success(null, ClothesSuccessCode.CLOTHES_DELETE);
@@ -154,7 +148,6 @@ public class ClothesController {
             @PathVariable Long clothesId,
             @RequestBody ClothesImageUnlinkRequest clothesImageUnlinkRequest
     ) {
-
         clothesCommandService.removeClothesImages(
                 authUser.getUserId(),
                 clothesId,
