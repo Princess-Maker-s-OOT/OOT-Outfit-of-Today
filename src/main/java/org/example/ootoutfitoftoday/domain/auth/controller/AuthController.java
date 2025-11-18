@@ -30,7 +30,6 @@ public class AuthController {
     private final AuthCommandService authCommandService;
     private final AuthQueryService authQueryService;
 
-    // 회원가입
     @Operation(
             summary = "회원 생성",
             description = "새로운 회원을 등록합니다.",
@@ -48,7 +47,6 @@ public class AuthController {
         return Response.success(null, AuthSuccessCode.USER_SIGNUP);
     }
 
-    // 로그인
     @Operation(
             summary = "회원 로그인",
             description = "아이디와 비밀번호를 사용하여 로그인합니다.\n\n" +
@@ -62,14 +60,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Response<AuthLoginResponse>> login(
             @Valid @RequestBody AuthLoginRequest request,
-            HttpServletRequest httpRequest    // IP, User-Agent 추출용
+            HttpServletRequest httpRequest
     ) {
         AuthLoginResponse response = authCommandService.login(request, httpRequest);
 
         return Response.success(response, AuthSuccessCode.USER_LOGIN);
     }
 
-    // 내 디바이스 목록 조회
     @Operation(
             summary = "내 디바이스 목록",
             description = "현재 로그인된 모든 디바이스 목록을 조회합니다.\n\n" +
@@ -90,7 +87,6 @@ public class AuthController {
         return Response.success(devices, AuthSuccessCode.DEVICE_LIST_RETRIEVED);
     }
 
-    // 토큰 재발급
     @Operation(
             summary = "토큰 재발급",
             description = "리프레시 토큰을 사용하여 새로운 액세스 토큰과 리프레시 토큰을 발급합니다.(RTR)\n\n" +
@@ -105,15 +101,11 @@ public class AuthController {
             @Valid @RequestBody RefreshTokenRequest request,
             HttpServletRequest httpRequest
     ) {
-        // deviceId 전달
         AuthLoginResponse response = authCommandService.refresh(request.getRefreshToken(), request.getDeviceId(), httpRequest);
 
         return Response.success(response, AuthSuccessCode.TOKEN_REFRESH);
     }
 
-    // OAuth2 임시 코드를 JWT 토큰으로 교환
-    // OAuth2 로그인 후 프론트엔드가 받은 임시 코드를 실제 토큰으로 교환
-    // 임시 코드는 3분간 유효하며 1회용
     @Operation(
             summary = "OAuth2 임시 코드 교환",
             description = "OAuth2 로그인 후 발급된 임시 코드를 JWT 토큰으로 교환합니다.\n\n" +
@@ -135,8 +127,6 @@ public class AuthController {
         return Response.success(response, AuthSuccessCode.TOKEN_EXCHANGE);
     }
 
-    // 로그아웃
-    // deviceId 쿼리 파라미터 추가
     @Operation(
             summary = "로그아웃",
             description = "특정 디바이스에서 로그아웃하고 리프레시 토큰을 무효화합니다.\n\n" +
@@ -157,7 +147,6 @@ public class AuthController {
         return Response.success(null, AuthSuccessCode.USER_LOGOUT);
     }
 
-    // 모든 디바이스에서 로그아웃
     @Operation(
             summary = "전체 로그아웃",
             description = "모든 디바이스에서 로그아웃합니다.\n\n" +
@@ -177,7 +166,6 @@ public class AuthController {
         return Response.success(null, AuthSuccessCode.USER_LOGOUT);
     }
 
-    // 특정 디바이스 강제 로그아웃
     @Operation(
             summary = "디바이스 제거",
             description = "다른 디바이스를 원격으로 로그아웃합니다.\n\n" +
@@ -202,7 +190,6 @@ public class AuthController {
         return Response.success(null, AuthSuccessCode.DEVICE_REMOVED);
     }
 
-    // 회원탈퇴
     @Operation(
             summary = "회원 삭제",
             description = "특정 회원을 삭제합니다.\n\n" +
