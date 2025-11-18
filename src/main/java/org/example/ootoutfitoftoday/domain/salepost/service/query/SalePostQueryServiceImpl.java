@@ -204,9 +204,8 @@ public class SalePostQueryServiceImpl implements SalePostQueryService {
                     s.status,
                     s.trade_address,
                     ST_AsText(s.trade_location) AS trade_location,
-                    (SELECT i.url
+                    (SELECT spi.image_url
                      FROM sale_post_images spi
-                     JOIN images i ON spi.image_id = i.id
                      WHERE spi.sale_post_id = s.id
                      AND spi.is_main = TRUE
                      AND spi.is_deleted = FALSE
