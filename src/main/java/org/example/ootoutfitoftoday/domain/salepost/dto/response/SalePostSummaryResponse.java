@@ -45,6 +45,6 @@ public class SalePostSummaryResponse {
             return null;
         }
 
-        return salePost.getImages().get(0).getImage().getUrl();
+        return salePost.getImages().get(0).getImageUrl();
     }
 }
