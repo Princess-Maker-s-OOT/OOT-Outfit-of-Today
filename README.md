@@ -79,8 +79,12 @@ OOT는 **의류 기반 중고 거래 플랫폼**과 **디지털 옷장 관리 �
 ## 3. 아키텍처/ERD
 
 - **전체 구조**: SRP(Single Responsibility Principle) 단일 책임 원칙 구조, React 프론트엔드, AWS EC2 배포
-- **API 명세·와이어프레임**: Swagger 문서, Figma/ERDCloud로 설계
-- **API 명세서**
+
+## 와이어프레임
+
+## ERD ![img_1.png](img_1.png)
+
+## API 명세서
 
 ### Auth
 
@@ -231,9 +235,6 @@ OOT는 **의류 기반 중고 거래 플랫폼**과 **디지털 옷장 관리 �
 | POST   | `/api/v1/transactions/{transactionId}/complete` | 거래 확정       | Authorization: Bearer {access_token}<br>Content-Type: application/json | -             | -                                                                                                                              | HTTP/1.1 응답코드<br>Content-Type: application/json | <pre>{<br>  "httpStatus": HttpStatus,<br>  "statusValue": int,<br>  "success": boolean,<br>  "code": String,<br>  "message": String,<br>  "data": {<br>    "transactionId": Long,<br>    "status": TransactionStatus,<br>    "confirmedAt": LocalDateTime<br>  },<br>  "timestamp": LocalDateTime<br>}</pre>                                                                                                                                                                     | 200 OK | 400 BAD REQUEST, <br> 401 UNAUTHORIZED, <br> 403 FORBIDDEN, <br> 404 NOT FOUND, <br> 500 INTERNAL SERVER ERROR                           |
 | POST   | `/api/v1/transactions/{transactionId}/cancel`   | 거래 취소 (구매자) | Authorization: Bearer {access_token}<br>Content-Type: application/json | -             | -                                                                                                                              | HTTP/1.1 응답코드<br>Content-Type: application/json | <pre>{<br>  "httpStatus": HttpStatus,<br>  "statusValue": int,<br>  "success": boolean,<br>  "code": String,<br>  "message": String,<br>  "data": {<br>    "transactionId": Long,<br>    "status": TransactionStatus,<br>    "cancelRequestedAt": LocalDateTime,<br>    "paymentStatus": PaymentStatus,<br>    "salePostStatus": SalePostStatus<br>  },<br>  "timestamp": LocalDateTime<br>}</pre>                                                                               | 200 OK | 400 BAD REQUEST, <br> 401 UNAUTHORIZED, <br> 403 FORBIDDEN, <br> 404 NOT FOUND, <br> 500 INTERNAL SERVER ERROR                           |
 
-- **와이어프레임**
--
-- **ERD** ![img_1.png](img_1.png)
 - **주요 엔티티**: User, Closet, Clothes, WearRecord, SalePost, Category, Chat, DonationCenter(의류 기부처) 등
 - **DB**: MySQL(관계 및 GIS 포인트 저장), Redis(캐시 및 통계 집계)
 - **배치 작업**: Spring Batch, 매일 새벽 2시 미착용 옷 자동 감지 및 추천 생성, 매일 자정(00시 00분) 사용자 대시보드 최신화
