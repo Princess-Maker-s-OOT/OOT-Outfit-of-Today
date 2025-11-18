@@ -25,42 +25,34 @@ public class Transaction extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // === 거래 기본 정보 ===
-
     @Column(nullable = false, precision = 12, scale = 0)
-    private BigDecimal price;  // 거래 금액
+    private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private TransactionStatus status;  // 거래 상태
+    private TransactionStatus status;
 
-    // === 거래 진행 정보 ===
-
-    private LocalDateTime approvedAt;  // 판매자 수락 시각
-    private LocalDateTime confirmedAt;  // 구매 확정 시각
-    private LocalDateTime cancelRequestedAt;  // 구매자 취소 시각
-
-    // === 취소/환불 사유 ===
+    private LocalDateTime approvedAt;
+    private LocalDateTime confirmedAt;
+    private LocalDateTime cancelRequestedAt;
 
     @Column(length = 500)
-    private String cancelReason;  // 취소 사유
-
-    // === 연관 관계 ===
+    private String cancelReason;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "buyer_id", nullable = false)
-    private User buyer;  // 구매자
+    private User buyer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_post_id", nullable = false)
-    private SalePost salePost;  // 판매글
+    private SalePost salePost;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_room_id", nullable = false)
-    private Chatroom chatRoom;  // 채팅방
+    private Chatroom chatRoom;
 
     @OneToOne(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Payment payment;  // 결제 정보
+    private Payment payment;
 
     @Builder(access = AccessLevel.PRIVATE)
     private Transaction(
@@ -94,6 +86,7 @@ public class Transaction extends BaseEntity {
     }
 
     public User getSeller() {
+
         return salePost.getSeller();
     }
 

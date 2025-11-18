@@ -13,8 +13,8 @@ import java.math.BigDecimal;
 @Builder
 public class TransactionResponse {
 
-    private Long transactionId;  // 다음 API 호출용
-    private String tossOrderId;  // 토스 결제창용
+    private Long transactionId;
+    private String tossOrderId;
     private BigDecimal price;
     private TransactionStatus status;
 
