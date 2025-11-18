@@ -25,13 +25,10 @@ public interface UserRepository extends JpaRepository<User, Long>, UserCustomRep
 
     Optional<User> findByIdAndIsDeletedFalse(Long id);
 
-    // 이메일로 조회
     Optional<User> findByEmailAndIsDeletedFalse(String email);
 
-    // 소셜 로그인용: 제공자 + 소셜ID로 조회
     Optional<User> findBySocialProviderAndSocialId(SocialProvider provider, String socialId);
 
-    // 전체 유저 수
     @Query("""
             SELECT count(u)
             FROM User u
@@ -39,7 +36,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserCustomRep
             """)
     int countAllUsers();
 
-    // 활성 or 비활성 유저 수
     @Query("""
             SELECT count(u)
             FROM User u
@@ -48,7 +44,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserCustomRep
             """)
     int countByIsDeleted(Boolean isDeleted);
 
-    // 신규 가입자 수 (기간별 집계)
     @Query("""
             SELECT count(u)
             FROM User u
@@ -58,7 +53,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserCustomRep
             """)
     int countUsersRegisteredSince(LocalDateTime start, LocalDateTime end);
 
-    // 활성 사용자 ID 목록 조회 (페이징)
     @Query("""
             SELECT u.id
             FROM User u

@@ -33,8 +33,6 @@ public class UserQueryServiceImpl implements UserQueryService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 회원가입 시 중복 체크 쿼리 캐싱
-    // TTL 1분: 짧은 시간만 캐시하여 실시간성 보장
     @Override
     @Cacheable(value = "userExistsCache", key = "'loginId:' + #loginId", unless = "#result == true")
     public boolean existsByLoginId(String loginId) {
@@ -42,9 +40,6 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.existsByLoginId(loginId);
     }
 
-    // 이메일 중복 체크 캐싱
-    // unless = "#result == true": 이미 존재하는 경우(true)는 캐시하지 않음
-    // 회원가입이 완료되면 새로운 이메일이므로 캐시 미스 발생 -> 의도된 동작
     @Override
     @Cacheable(value = "userExistsCache", key = "'email:' + #email", unless = "#result == true")
     public boolean existsByEmail(String email) {
@@ -52,7 +47,6 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.existsByEmail(email);
     }
 
-    // 닉네임 중복 체크 캐싱
     @Override
     @Cacheable(value = "userExistsCache", key = "'nickname:' + #nickname", unless = "#result == true")
     public boolean existsByNickname(String nickname) {
@@ -60,7 +54,6 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.existsByNickname(nickname);
     }
 
-    // 전화번호 중복 체크 캐싱
     @Override
     @Cacheable(value = "userExistsCache", key = "'phoneNumber:' + #phoneNumber", unless = "#result == true")
     public boolean existsByPhoneNumber(String phoneNumber) {
@@ -68,7 +61,6 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.existsByPhoneNumber(phoneNumber);
     }
 
-    // 캐싱 없는 Entity 조회 메서드들(영속성 컨텍스트 필요한 경우 사용)
     @Override
     public User findByLoginIdAndIsDeletedFalse(String loginId) {
 
@@ -99,8 +91,6 @@ public class UserQueryServiceImpl implements UserQueryService {
         });
     }
 
-    // 소셜 로그인 사용자 조회는 캐싱하지 않음
-    // 소셜 로그인은 상대적으로 빈도가 낮고, 실시간 정보가 중요
     @Override
     public Optional<User> findBySocialProviderAndSocialId(SocialProvider provider, String socialId) {
 
@@ -109,7 +99,6 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public UserGetMyInfoResponse getMyInfo(Long id) {
-
         User user = userRepository.findByIdAsNativeQuery(id);
 
         return UserGetMyInfoResponse.from(user);
@@ -117,23 +106,18 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public void verifyPassword(UserPasswordVerificationRequest request, AuthUser authUser) {
-
         User user = findByIdAndIsDeletedFalse(authUser.getUserId());
 
-        // 소셜 로그인 사용자는 비밀번호 검증 스킵(성공)
         if (user.getLoginType() == LoginType.SOCIAL) {
 
             return;
         }
 
-        // 일반 유저는 비밀번호 필수
-        // 비민감 작업이므로 명확한 에러 메시지
         if (request.getPassword() == null || request.getPassword().isBlank()) {
             log.warn("비밀번호 검증 실패 - 비밀번호 누락 - userId: {}", authUser.getUserId());
             throw new AuthException(AuthErrorCode.VALIDATION_FAILED);
         }
 
-        // 일반 회원만 비밀번호 검증 진행
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             log.warn("비밀번호 검증 실패 - 비밀번호 불일치 - userId: {}", authUser.getUserId());
             throw new AuthException(AuthErrorCode.INVALID_PASSWORD);
@@ -170,14 +154,9 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userRepository.findAllActiveUserIds(pageable);
     }
 
-    // 로그인 시 사용자 조회 캐싱 (DTO 반환)
-    // 로그인은 빈번하게 발생하는 작업이므로 캐싱 효과 큼
-    // TTL 10분: 사용자 정보가 변경되더라도 최대 10분 내 반영
-    // Entity 대신 DTO를 캐싱하여 Lazy Loading, 순환참조 문제 해결
     @Override
     @Cacheable(value = "userCache", key = "'loginId:' + #loginId", unless = "#result == null")
     public UserCacheDto findCachedByLoginId(String loginId) {
-
         User user = userRepository.findByLoginIdAndIsDeletedFalse(loginId).orElseThrow(() -> {
             log.warn("캐시된 사용자 조회 실패 - loginId: {}", loginId);
 
@@ -187,13 +166,9 @@ public class UserQueryServiceImpl implements UserQueryService {
         return UserCacheDto.from(user);
     }
 
-    // ID로 사용자 조회 캐싱 (DTO 반환)
-    // JWT 검증 후 사용자 정보 조회 시 캐시 활용
-    // 토큰 갱신, API 호출 등에서 반복 조회되므로 성능 향상 효과 큼
     @Override
     @Cacheable(value = "userCache", key = "'id:' + #id", unless = "#result == null")
     public UserCacheDto findCachedById(Long id) {
-
         User user = userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
             log.warn("캐시된 사용자 조회 실패 - userId: {}", id);
 
@@ -203,12 +178,9 @@ public class UserQueryServiceImpl implements UserQueryService {
         return UserCacheDto.from(user);
     }
 
-    // 이메일로 사용자 조회 캐싱 (DTO 반환)
-    // OAuth2 로그인 시 이메일로 기존 계정 확인하는 작업 최적화
     @Override
     @Cacheable(value = "userCache", key = "'email:' + #email", unless = "#result == null")
     public UserCacheDto findCachedByEmail(String email) {
-
         User user = userRepository.findByEmailAndIsDeletedFalse(email).orElseThrow(() -> {
             log.warn("캐시된 사용자 조회 실패 - email: {}", email);
 
