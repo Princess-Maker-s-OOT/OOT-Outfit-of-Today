@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -165,8 +166,9 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         for (SalePostImage image : salePost.getImages()) {
             image.setSalePost(savedSalePostForImages);
-            salePostImageRepository.save(image);
         }
+
+        salePostImageRepository.saveAll(salePost.getImages());
 
         SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
@@ -235,6 +237,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
+        List<SalePostImage> newImages = new ArrayList<>();
         for (int i = 0; i < orderedImages.size(); i++) {
             boolean isMain = (i == 0);
             SalePostImage newImage = SalePostImage.create(
@@ -243,8 +246,10 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                     isMain
             );
             newImage.setSalePost(savedSalePost);
-            salePostImageRepository.save(newImage);
+            newImages.add(newImage);
         }
+
+        salePostImageRepository.saveAll(newImages);
 
         entityManager.clear();
 
