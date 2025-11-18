@@ -25,13 +25,12 @@ public class CategoryQueryServiceImpl implements CategoryQueryService {
     @Override
     public Category findById(long id) {
 
-        return categoryRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> {
-                            log.warn("카테고리를 찾을 수 없음. - id: {}", id);
+        return categoryRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
+                    log.warn("카테고리를 찾을 수 없음. - id: {}", id);
 
-                            return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
-                        }
-                );
+                    return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+                }
+        );
     }
 
     @Override
@@ -41,13 +40,12 @@ public class CategoryQueryServiceImpl implements CategoryQueryService {
             String sort,
             String direction
     ) {
-
         Pageable pageable = PageRequest.of(
                 page,
                 size,
                 Sort.by(
-                        Sort.Direction.fromString(direction), // asc or desc
-                        sort // 정렬 기준 필드명
+                        Sort.Direction.fromString(direction),
+                        sort
                 )
         );
 
