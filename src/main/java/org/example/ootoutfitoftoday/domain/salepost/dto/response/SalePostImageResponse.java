@@ -14,8 +14,8 @@ public class SalePostImageResponse {
 
     public static SalePostImageResponse from(SalePostImage salePostImage) {
         return SalePostImageResponse.builder()
-                .imageId(salePostImage.getImage().getId())
-                .imageUrl(salePostImage.getImage().getUrl())
+                .imageId(salePostImage.getId())
+                .imageUrl(salePostImage.getImageUrl())
                 .displayOrder(salePostImage.getDisplayOrder())
                 .isMain(salePostImage.getIsMain())
                 .build();
