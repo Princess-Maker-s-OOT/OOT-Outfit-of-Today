@@ -15,10 +15,6 @@ import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRe
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SaleStatusUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.*;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostListResponse;
-import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostSummaryResponse;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostSuccessCode;
 import org.example.ootoutfitoftoday.domain.salepost.service.command.SalePostCommandService;
 import org.example.ootoutfitoftoday.domain.salepost.service.query.SalePostQueryService;

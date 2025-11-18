@@ -12,7 +12,6 @@ import org.example.ootoutfitoftoday.domain.image.entity.Image;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user_images")
-// TODO: 베이스 엔티티 상속 고민
 public class UserImage extends BaseEntity {
 
     @Id
@@ -25,7 +24,6 @@ public class UserImage extends BaseEntity {
 
     @Builder(access = AccessLevel.PRIVATE)
     private UserImage(Image image) {
-
         this.image = image;
     }
 
@@ -37,7 +35,6 @@ public class UserImage extends BaseEntity {
     }
 
     public void updateImage(Image image) {
-
         this.image = image;
     }
 }

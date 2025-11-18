@@ -50,10 +50,8 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
             Pageable pageable
     );
 
-    // 삭제되지 않은 총 판매글 조회
     long countByIsDeletedFalse();
 
-    // 상태별 판매글 조회
     @Query("""
             SELECT new com.ootcommon.salepost.response.SaleStatusCount(sp.status, COUNT(sp))
             FROM SalePost sp
@@ -62,7 +60,6 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
             """)
     List<SaleStatusCount> saleStatusCounts();
 
-    // 신규 판매글 (기간별 집계)
     @Query("""
             SELECT count(sp)
             FROM SalePost sp
@@ -132,7 +129,6 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
             String tradeLocation
     );
 
-    // 판매글 단건 조회 쿼리
     @Query(value = """
                         SELECT
                             s.id,
@@ -159,21 +155,19 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
             """, nativeQuery = true)
     Optional<SalePost> findByIdAsNativeQuery(Long salePostId);
 
-    // 판매글을 비관적 락으로 조회 (결제 시 동시성 제어)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-       SELECT sp FROM SalePost sp
-       WHERE sp.id = :id
-         AND sp.isDeleted = false
-         AND sp.status = 'AVAILABLE'
-    """)
+               SELECT sp FROM SalePost sp
+               WHERE sp.id = :id
+                 AND sp.isDeleted = false
+                 AND sp.status = 'AVAILABLE'
+            """)
     Optional<SalePost> findAvailableByIdForUpdate(@Param("id") Long id);
 
-    // 추천 ID로 판매글 조회 (중복 방지용)
     @Query("""
-        SELECT sp FROM SalePost sp
-        WHERE sp.recommendation.id = :recommendationId
-        AND sp.isDeleted = false
-        """)
+            SELECT sp FROM SalePost sp
+            WHERE sp.recommendation.id = :recommendationId
+            AND sp.isDeleted = false
+            """)
     Optional<SalePost> findByRecommendationIdAndIsDeletedFalse(@Param("recommendationId") Long recommendationId);
 }

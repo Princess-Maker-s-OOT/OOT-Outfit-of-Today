@@ -39,10 +39,9 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
             Long categoryId,
             ClothesColor clothesColor,
             ClothesSize clothesSize,
-            Long lastClothesId, // 커서 기준 (무한스크롤용)
+            Long lastClothesId,
             int size
     ) {
-
         Slice<Clothes> clothesSlice = clothesRepository.findAllByIsDeletedFalse(
                 userId,
                 categoryId,
@@ -65,14 +64,13 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
 
     @Override
     public ClothesResponse getClothesById(Long userId, Long id) {
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> {
+                    log.warn("getClothesById - 옷 없음. id={}", id);
 
-        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> {
-                            log.warn("getClothesById - 옷 없음. id={}", id);
-
-                            return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
-                        }
-                );
+                    return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
+                }
+        );
 
         if (!Objects.equals(userId, clothes.getUser().getId())) {
             log.warn("getClothesById - 권한 없는 접근! userId={}, clothesOwnerId={}, clothesId={}",
@@ -89,13 +87,13 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
     @Override
     public Clothes findClothesById(Long id) {
 
-        return clothesRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> {
-                            log.warn("findClothesById - 옷 없음. id={}", id);
+        return clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> {
+                    log.warn("findClothesById - 옷 없음. id={}", id);
 
-                            return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
-                        }
-                );
+                    return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
+                }
+        );
     }
 
     @Override
@@ -152,10 +150,8 @@ public class ClothesQueryServiceImpl implements ClothesQueryService {
         return clothesRepository.leastWornClothes(userId);
     }
 
-    // Todo: notWornOverPeriod 메소드에서 lastWornAt이 null인 경우(한 번도 입지 않은 옷) daysNotWorn을 0L로 설정하고 있습니다. 이는 '0일 전에 입었다'는 의미로 해석될 수 있어 사용자에게 혼란을 줄 수 있습니다. 한 번도 입지 않은 경우, daysNotWorn을 null로 두거나, 아주 큰 값을 설정하거나, 혹은 UI에서 별도로 "착용 기록 없음" 등으로 표시하는 것이 더 명확할 것 같습니다.
     @Override
     public List<NotWornOverPeriod> notWornOverPeriod(Long userId) {
-
         List<NotWornOverPeriod> result = clothesRepository.notWornOverPeriod(userId)
                 .stream()
                 .map(dto -> NotWornOverPeriod.builder()

@@ -17,7 +17,10 @@ import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
@@ -63,10 +66,6 @@ public class SalePost extends BaseEntity {
     @Where(clause = "is_deleted = false")
     private List<SalePostImage> images = new ArrayList<>();
 
-    /**
-     * [연관관계] Recommendation과의 N:1 단방향 관계
-     * - nullable: 추천 없이 직접 작성된 판매글도 존재 가능
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recommendation_id")
     private Recommendation recommendation;

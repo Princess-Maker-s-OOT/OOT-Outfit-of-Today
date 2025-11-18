@@ -41,7 +41,6 @@ public class CategoryController {
     public ResponseEntity<Response<CategoryResponse>> create(
             @Valid @RequestBody CategoryRequest categoryRequest
     ) {
-
         CategoryResponse response = categoryCommandService.createCategory(categoryRequest);
 
         return Response.success(response, CategorySuccessCode.CATEGORY_CREATED);
@@ -61,7 +60,6 @@ public class CategoryController {
             @Parameter(description = "정렬 기준 컬럼") @RequestParam(defaultValue = "createdAt") String sort,
             @Parameter(description = "정렬 방향") @RequestParam(defaultValue = "DESC") String direction
     ) {
-
         Page<CategoryResponse> categories = categoryQueryService.getCategories(
                 page,
                 size,
@@ -88,7 +86,6 @@ public class CategoryController {
             @Parameter(description = "수정할 카테고리 ID") @PathVariable Long categoryId,
             @Valid @RequestBody CategoryRequest categoryRequest
     ) {
-
         CategoryResponse categoryResponse = categoryCommandService.updateCategory(categoryId, categoryRequest);
 
         return Response.success(categoryResponse, CategorySuccessCode.CATEGORY_UPDATE);
@@ -108,7 +105,6 @@ public class CategoryController {
     public ResponseEntity<Response<Void>> deleteCategory(
             @Parameter(description = "삭제할 카테고리 ID") @PathVariable Long categoryId
     ) {
-
         categoryCommandService.deleteCategory(categoryId);
 
         return Response.success(null, CategorySuccessCode.CATEGORY_DELETE);

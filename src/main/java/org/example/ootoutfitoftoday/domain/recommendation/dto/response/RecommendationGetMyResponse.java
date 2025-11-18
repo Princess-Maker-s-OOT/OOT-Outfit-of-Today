@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 
 @Builder(access = AccessLevel.PRIVATE)
 public record RecommendationGetMyResponse(
-
         Long recommendationId,
         Long userId,
         Long clothesId,

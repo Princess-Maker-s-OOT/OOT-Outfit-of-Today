@@ -8,10 +8,7 @@ public class SalePostException extends GlobalException {
         super(errorCode);
     }
 
-    public SalePostException(
-            SalePostErrorCode errorCode,
-            SalePostSuccessCode successCode
-    ) {
+    public SalePostException(SalePostErrorCode errorCode, SalePostSuccessCode successCode) {
         super(errorCode, successCode);
     }
 }

@@ -9,20 +9,8 @@ import org.example.ootoutfitoftoday.common.constant.ValidationRegex;
 @Getter
 public class UserUpdateInfoRequest {
 
-    /**
-     * 부분 수정 허용을 위해 @NotBlank 제거 -> null 값 허용
-     **/
-
-    /**
-     * TODO: 현재 제한 조건 부재(예: Blank 허용)
-     *       -> 이미지 업로드 구현 후 제한 조건 추가
-     **/
     private String imageUrl;
 
-    /**
-     * @NotBlank 제거
-     * 입력하지 않으면 기존값 유지할 수 있도록
-     **/
     @Email(message = "이메일 형식이 올바르지 않습니다.")
     @Size(max = 50, message = "이메일은 최대 50자까지 가능합니다.")
     @Pattern(regexp = ValidationRegex.EMAIL_REGEX, message = "이메일 형식이 올바르지 않습니다.")

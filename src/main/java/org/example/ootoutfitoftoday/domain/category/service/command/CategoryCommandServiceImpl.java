@@ -27,23 +27,16 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
 
     @Override
     public CategoryResponse createCategory(CategoryRequest categoryRequest) {
-
         Category parent = null;
 
-        /**
-         *  상위 카테고리를 입력했다면 존재 여부를 검증
-         *  - null 뿐만 아니라 0도 조건으로 건 이유는 아이디의 값이 1부터 시작하기 때문이다.
-         *  - 추가로 사용자가 아이디의 값을 0 이하로 입력시 아이디의 값이 null로 처리되어 최상위 카테고리로 인식한다.
-         */
         if (categoryRequest.getParentId() != null && categoryRequest.getParentId() > 0) {
+            parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId()).orElseThrow(
+                    () -> {
+                        log.warn("createCategory - 상위 카테고리 존재하지 않음. parentId={}", categoryRequest.getParentId());
 
-            parent = categoryRepository.findByIdAndIsDeletedFalse(categoryRequest.getParentId())
-                    .orElseThrow(() -> {
-                                log.warn("createCategory - 상위 카테고리 존재하지 않음. parentId={}", categoryRequest.getParentId());
-
-                                return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
-                            }
-                    );
+                        return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+                    }
+            );
         }
 
         Category category = Category.create(categoryRequest.getName(), parent);
@@ -54,65 +47,51 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
 
     @Override
     public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest) {
+        Category category = categoryRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> {
+                    log.warn("updateCategory - 수정할 카테고리 존재하지 않음. categoryId={}", id);
 
-        // 수정할 카테고리가 존재하는 지 검증
-        Category category = categoryRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> {
-                            log.warn("updateCategory - 수정할 카테고리 존재하지 않음. categoryId={}", id);
+                    return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+                }
+        );
 
-                            return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
-                        }
-                );
-
-        // 새로 설정할 부모 카테고리를 검증하고 조회
         Category parent = validateCategory(id, categoryRequest.getParentId());
 
-        // 카테고리명과 새로 설정할 상위 카테고리로 데이터 수정
         category.update(categoryRequest.getName(), parent);
 
         return CategoryResponse.from(category);
     }
 
-    // 부모 카테고리 검증 로직
     private Category validateCategory(Long categoryId, Long parentId) {
 
-        // 상위 카테고리가 null 이거나 0 이하면 최상위 카테고리
         if (parentId == null || parentId <= 0) {
 
             return null;
         }
 
-        // 자기 자신을 부모로 설정할 경우
         if (Objects.equals(categoryId, parentId)) {
             log.warn("validateCategory - 카테고리 자기 자신을 parent로 지정 시도. categoryId={}", categoryId);
             throw new CategoryException(CategoryErrorCode.CANNOT_SET_SELF_AS_PARENT);
         }
 
-        // 부모 카테고리 조회 (설정하려고 하는 상위 카테고리가 존재하는 지 검증)
-        Category parent = categoryRepository.findByIdAndIsDeletedFalse(parentId)
-                .orElseThrow(() -> {
-                            log.warn("validateCategory - 상위 카테고리 존재하지 않음. parentId={}", parentId);
+        Category parent = categoryRepository.findByIdAndIsDeletedFalse(parentId).orElseThrow(
+                () -> {
+                    log.warn("validateCategory - 상위 카테고리 존재하지 않음. parentId={}", parentId);
 
-                            return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
-                        }
-                );
+                    return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+                }
+        );
 
-        // 순환 참조 검증
         validateCircularReference(categoryId, parent);
 
         return parent;
     }
 
-    // 순환 참조 검증 로직 (categoryId: 수정하려고 하는 카테고리 아이디, parent: 새로 지정하려는 상위 카테고리 객체)
     private void validateCircularReference(Long categoryId, Category parent) {
 
-        // 이미 위에서 수정할 카테고리 아이디와 상위의 아이디 값이 같은 지 검증했음. 그래서 parent의 상위부터 탐색 시작
         Category current = parent.getParent();
 
-        // 최상위 카테고리까지 반복 (상향 탐색 방식)
         while (current != null) {
-
-            // current의 상위들 중에 자신이 있다면 예외
             if (Objects.equals(current.getId(), categoryId)) {
                 log.warn("validateCircularReference - 순환 참조 발생. (검증대상 categoryId={}, 순환탐색 중 currentId={}, 최초 parentId={})",
                         categoryId,
@@ -121,21 +100,18 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
                 );
                 throw new CategoryException(CategoryErrorCode.CATEGORY_CIRCULAR_REFERENCE);
             }
-
             current = current.getParent();
         }
     }
 
     @Override
     public void deleteCategory(Long id) {
+        categoryRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
+                    log.warn("deleteCategory - 삭제할 카테고리 존재하지 않음. categoryId={}", id);
 
-        categoryRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> {
-                            log.warn("deleteCategory - 삭제할 카테고리 존재하지 않음. categoryId={}", id);
-
-                            return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
-                        }
-                );
+                    return new CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+                }
+        );
 
         List<Long> result = new ArrayList<>();
         result.add(id);
@@ -153,7 +129,6 @@ public class CategoryCommandServiceImpl implements CategoryCommandService {
             currentCategory = childCategory;
         }
 
-        // 삭제 대상 카테고리가 누락된 경우 대비
         if (!result.contains(id)) {
             result.add(id);
         }

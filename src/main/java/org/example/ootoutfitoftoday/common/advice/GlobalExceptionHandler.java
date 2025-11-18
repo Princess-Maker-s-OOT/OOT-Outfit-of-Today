@@ -16,7 +16,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Response<Void>> handleException(Exception ex) {
-        log.error("알 수 없는 서버 오류 발생 ", ex);
+        log.error("알 수 없는 서버 오류 발생", ex);
+
         return ResponseEntity
                 .status(CommonErrorCode.UNEXPECTED_SERVER_ERROR.getHttpStatus())
                 .body(Response.error(null, CommonErrorCode.UNEXPECTED_SERVER_ERROR));
@@ -24,20 +25,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(GlobalException.class)
     public ResponseEntity<Response<Void>> handleGlobalException(GlobalException ex) {
-        log.error("비즈니스 오류 발생 ", ex);
+        log.error("비즈니스 오류 발생", ex);
+
         return handleExceptionInternal(ex.getErrorCode());
     }
 
     private ResponseEntity<Response<Void>> handleExceptionInternal(ErrorCode errorCode) {
+
         return ResponseEntity
                 .status(errorCode.getHttpStatus())
                 .body(Response.error(null, errorCode));
     }
 
-    // Validation Exception은 BAD_REQUEST로 통일
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Response<String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        // 첫 번째 에러 메시지 가져오기
+
         String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
 
         return ResponseEntity

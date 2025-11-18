@@ -8,10 +8,7 @@ public class TransactionException extends GlobalException {
         super(errorCode);
     }
 
-    public TransactionException(
-            TransactionErrorCode errorCode,
-            TransactionSuccessCode successCode
-    ) {
+    public TransactionException(TransactionErrorCode errorCode, TransactionSuccessCode successCode) {
         super(errorCode, successCode);
     }
 }

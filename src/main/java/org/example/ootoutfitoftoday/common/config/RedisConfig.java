@@ -27,14 +27,8 @@ import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 
-/**
- * Redis 설정 클래스
- * - Redis 연결 설정
- * - RedisTemplate 설정(데이터 직접 저장/조회용)
- * - CacheManager 설정(@Cacheable 등 캐시 어노테이션용)
- */
 @Configuration
-@EnableCaching    // @Cacheable, @CacheEvict 등 캐시 애노테이션 활성화
+@EnableCaching
 public class RedisConfig {
 
     @Value("${spring.data.redis.host}")
@@ -46,19 +40,12 @@ public class RedisConfig {
     @Value("${spring.data.redis.password:}")
     private String password;
 
-    /**
-     * Redis 연결 팩토리
-     * - Lettuce 클라이언트 사용(Spring Boot 기본)
-     * - 비동기/논블로킹 방식으로 성능 우수
-     */
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         config.setHostName(host);
         config.setPort(port);
 
-        // 비밀번호가 있는 경우에만 설정(CI 환경 대응)
         if (StringUtils.hasText(password)) {
             config.setPassword(password);
         }
@@ -66,32 +53,20 @@ public class RedisConfig {
         return new LettuceConnectionFactory(config);
     }
 
-    // 1. "글로벌" @Primary ObjectMapper (타입 정보 비활성화) - 아무 데코 없음!
     @Bean
     @Primary
     public ObjectMapper globalObjectMapper() {
-
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        // activateDefaultTyping 미적용!
+
         return mapper;
     }
 
-    /**
-     * ObjectMapper 설정
-     * - Java 객체 ↔ JSON 변환용
-     * - LocalDateTime 등 Java 8 시간 타입 지원
-     */
     private ObjectMapper redisObjectMapper() {
-
         ObjectMapper mapper = new ObjectMapper();
-        // LocalDateTime, LocalDate 등 지원
         mapper.registerModule(new JavaTimeModule());
-        // ISO-8601 형식으로 날짜 직렬화
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        // Jackson 2.10 이상 권장 타입 정보 활성화 설정
         mapper.activateDefaultTyping(
                 LaissezFaireSubTypeValidator.instance,
                 ObjectMapper.DefaultTyping.NON_FINAL,
@@ -101,22 +76,14 @@ public class RedisConfig {
         return mapper;
     }
 
-    /**
-     * RedisTemplate 설정
-     * - Redis에 데이터 직접 저장/조회할 때 사용
-     * - 예: redisTemplate.opsForValue().set("key", value)
-     */
     @Bean
     public RedisTemplate<String, Object> redisTemplate() {
-
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory());
 
-        // 직렬화 설정
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
         GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(redisObjectMapper());
 
-        // Key는 String으로, Value는 JSON으로 직렬화
         template.setKeySerializer(stringSerializer);
         template.setValueSerializer(jsonSerializer);
         template.setHashKeySerializer(stringSerializer);
@@ -127,68 +94,39 @@ public class RedisConfig {
         return template;
     }
 
-    /**
-     * StringRedisTemplate 설정 추가
-     * - String 전용 RedisTemplate
-     * - OAuth2 임시 코드 저장 및 리프레시 토큰 저장에 사용
-     */
     @Bean
     public StringRedisTemplate stringRedisTemplate() {
-
         StringRedisTemplate template = new StringRedisTemplate();
         template.setConnectionFactory(redisConnectionFactory());
 
         return template;
     }
 
-    /**
-     * CacheManager 설정
-     * - @Cacheable, @CachePut, @CacheEvict 어노테이션 사용 시 동작
-     * - 캐시별로 다른 TTL 설정 가능
-     */
     @Bean
     public CacheManager cacheManager() {
-        // 기본 캐시 설정
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(1))
-                .disableCachingNullValues()  // ← 추가: null 값 캐싱 방지
-                .computePrefixWith(cacheName -> cacheName + "::")  // ← 추가: prefix 명시
+                .disableCachingNullValues()
+                .computePrefixWith(cacheName -> cacheName + "::")
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())
                 )
                 .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(
-                                new GenericJackson2JsonRedisSerializer(redisObjectMapper())
+                        RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(redisObjectMapper())
                         )
                 );
 
         return RedisCacheManager.builder(redisConnectionFactory())
                 .cacheDefaults(defaultConfig)
-                .withCacheConfiguration("clothesCache",
-                        defaultConfig.entryTtl(Duration.ofMinutes(30))
-                )
-
-                // 사용자 정보 캐시: 10분
-                // 로그인, 토큰 갱신 등에서 사용자 조회 빈도가 높음
-                // 정보 변경 시 @CacheEvict로 즉시 무효화
                 .withCacheConfiguration("userCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(10))
                 )
-
-                // 중복 체크 캐시: 1분(짧은 TTL)
-                // 회원가입 또는 정보수정 시 임시로 사용
-                // 실시간성이 중요하므로 짧은 TTL 설정
-                // 회원가입 완료 시 자동으로 무효화됨
                 .withCacheConfiguration("userExistsCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(1))
                 )
-
-                // 판매글 리스트는 10분 캐싱
                 .withCacheConfiguration("salePostListCache",
                         defaultConfig.entryTtl(Duration.ofMinutes(10))
                 )
-
-                // 관리자 대시보드
                 .withCacheConfiguration(DashboardAdminCacheNames.USER,
                         defaultConfig.entryTtl(Duration.ofMinutes(3))
                 )
@@ -201,8 +139,6 @@ public class RedisConfig {
                 .withCacheConfiguration(DashboardAdminCacheNames.CATEGORY,
                         defaultConfig.entryTtl(Duration.ofMinutes(3))
                 )
-
-                // 사용자 대시보드: 24시간 배치 주기 → TTL 25시간
                 .withCacheConfiguration(DashboardUserCacheNames.SUMMARY,
                         defaultConfig.entryTtl(Duration.ofHours(25))
                 )

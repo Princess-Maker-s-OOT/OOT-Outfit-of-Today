@@ -25,15 +25,11 @@ import java.util.UUID;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users", indexes = {
-        // 로그인용
         @Index(name = "idx_login_id", columnList = "loginId"),
-        // 회원가입 중복 체크용
         @Index(name = "idx_email", columnList = "email"),
         @Index(name = "idx_nickname", columnList = "nickname"),
         @Index(name = "idx_phone_number", columnList = "phoneNumber"),
-        // 소셜 로그인용(복합 인덱스)
         @Index(name = "idx_social_provider_id", columnList = "socialProvider, socialId"),
-        // isDeleted 필터링용
         @Index(name = "idx_is_deleted", columnList = "isDeleted")
 })
 public class User extends BaseEntity {
@@ -56,12 +52,9 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 60)
     private String username;
 
-    // 소셜 로그인을 위해 nullable = true
     @Column(nullable = true, length = 255)
     private String password;
 
-    // 소셜 로그인을 위해 nullable = true
-    // UNIQUE + nullable = true 조합 가능
     @Column(nullable = true, unique = true, length = 30)
     private String phoneNumber;
 
@@ -72,38 +65,30 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 50)
     private String tradeAddress;
 
-    // TODO
     @Column(nullable = true, columnDefinition = "POINT SRID 4326", updatable = false, insertable = false)
     private String tradeLocation;
 
-    // 현재 프로필 이미지 URL(소셜 로그인 또는 직접 업로드)
     @Column(nullable = true, length = 500)
     private String imageUrl;
 
-    // 사용자가 직접 업로드한 이미지
-    @OneToOne(fetch = FetchType.LAZY)    // cascade = CascadeType.ALL, orphanRemoval = true)    // 생명 주기를 함께 함
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_image_id")
     private UserImage userImage;
 
-    // 로그인 타입 추가(LOGIN_ID, SOCIAL 구분)
     @Column(nullable = false, length = 10)
     @Enumerated(EnumType.STRING)
     private LoginType loginType;
 
-    // 소셜 로그인 제공자: GOOGLE, KAKAO, NAVER 등
     @Column(nullable = true, length = 10)
     @Enumerated(EnumType.STRING)
     private SocialProvider socialProvider;
 
-    // 소셜 ID(소셜 로그인 시 고유 식별자 - Google의 sub)
     @Column(nullable = true, unique = true, length = 100)
     private String socialId;
 
-    // 옷장 연관관계
     @OneToMany(mappedBy = "user")
     private List<Closet> closets = new ArrayList<>();
 
-    // 중간테이블
     @OneToMany(mappedBy = "user")
     private List<ChatParticipatingUser> chatParticipatingUsers = new ArrayList<>();
 
@@ -138,7 +123,6 @@ public class User extends BaseEntity {
         this.socialId = socialId;
     }
 
-    // 기존의 일반 회원가입용
     public static User create(
             String loginId,
             String email,
@@ -189,7 +173,6 @@ public class User extends BaseEntity {
                 .build();
     }
 
-    // 소셜 회원가입용
     public static User createFromSocial(
             String email,
             String nickname,
@@ -215,7 +198,6 @@ public class User extends BaseEntity {
                 .build();
     }
 
-    // 소셜 계정 연동용 메서드
     public void linkSocialAccount(
             SocialProvider socialProvider,
             String socialId,
@@ -223,18 +205,14 @@ public class User extends BaseEntity {
     ) {
         this.socialProvider = socialProvider;
         this.socialId = socialId;
-        // 로그인 타입 소셜로 변경
         this.loginType = LoginType.SOCIAL;
 
-        // 소셜 이미지 URL이 있고, 기존 이미지 URL이 null인 경우에만 업데이트
         if (imageUrl != null && this.imageUrl == null) {
             this.imageUrl = imageUrl;
         }
     }
 
-    // 헬퍼 메서드
     public void addChatParticipatingUser(Chatroom chatroom) {
-        // 사용자가 이미 채팅방에 참여하고 있는지 확인하여 중복 추가를 방지합니다.
         boolean alreadyExists = this.chatParticipatingUsers.stream()
                 .anyMatch(p -> p.getChatroom().getId().equals(chatroom.getId()));
         if (alreadyExists) {
@@ -255,7 +233,6 @@ public class User extends BaseEntity {
         chatroom.getChatParticipatingUsers().add(chatParticipatingUser);
     }
 
-    // 회원정보 업데이트 관련 메서드
     public void updateImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
@@ -285,23 +262,17 @@ public class User extends BaseEntity {
         this.tradeLocation = tradeLocation;
     }
 
-    // 이미지가 있으면, 기존 UserImage의 이미지만 교체
     public void changeProfileImage(Image newImage) {
-
         this.userImage.updateImage(newImage);
         this.imageUrl = newImage.getUrl();
     }
 
-    // 이미지가 없으면, 새로 등록
     public void assignProfileImage(UserImage userImage) {
-
         this.userImage = userImage;
         this.imageUrl = userImage.getImage().getUrl();
     }
 
-    // 프로필 이미지 삭제
     public void removeProfileImage() {
-
         this.userImage = null;
         this.imageUrl = null;
     }

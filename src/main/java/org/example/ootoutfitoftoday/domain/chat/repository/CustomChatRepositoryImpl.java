@@ -16,7 +16,6 @@ public class CustomChatRepositoryImpl implements CustomChatRepository {
 
     @Override
     public void bulkSoftDeleteChatData(Long chatroomId, LocalDateTime deletedAt) {
-
         QChat chat = QChat.chat;
         QChatroom chatroom = QChatroom.chatroom;
 

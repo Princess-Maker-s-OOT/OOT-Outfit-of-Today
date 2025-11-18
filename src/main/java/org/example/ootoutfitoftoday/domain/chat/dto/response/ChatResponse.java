@@ -40,7 +40,6 @@ public class ChatResponse {
             String content,
             LocalDateTime createdAt
     ) {
-
         return ChatResponse.builder()
                 .chatroomId(chatroomId)
                 .userId(userId)

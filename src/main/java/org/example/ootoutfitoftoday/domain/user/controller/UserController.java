@@ -32,12 +32,6 @@ public class UserController {
     private final UserQueryService userQueryService;
     private final UserCommandService userCommandService;
 
-    /**
-     * 회원정보 조회
-     *
-     * @param authUser 토큰 정보
-     * @return 회원정보 반환
-     */
     @Operation(
             summary = "내 정보 조회",
             description = "토큰을 기반으로 회원 자신의 상세 정보를 조회합니다.",
@@ -52,13 +46,6 @@ public class UserController {
         return Response.success(response, UserSuccessCode.GET_MY_INFO);
     }
 
-    /**
-     * 회원정보 수정 전 비밀번호 검증
-     *
-     * @param request  유저 비밀번호
-     * @param authUser 토큰 정보
-     * @return 공통 응답
-     */
     @Operation(
             summary = "회원정보 수정 전 비밀번호 검증",
             description = "회원정보 수정 전 비밀번호를 검증합니다.\n\n" +
@@ -80,13 +67,6 @@ public class UserController {
         return Response.success(null, UserSuccessCode.PASSWORD_VERIFIED);
     }
 
-    /**
-     * 회원정보 수정
-     *
-     * @param request  유저 수정 정보
-     * @param authUser 토큰 정보
-     * @return 업데이트 된 유저 정보
-     */
     @Operation(
             summary = "회원 정보 수정",
             description = "기존 회원의 정보를 업데이트합니다.",
@@ -142,13 +122,6 @@ public class UserController {
         return Response.success(null, UserSuccessCode.DELETE_PROFILE_IMAGE);
     }
 
-    /**
-     * 회원 거래 위치 수정
-     *
-     * @param request  거래 위치 주소, 좌표
-     * @param authUser 토큰 정보
-     * @return 공통 응답
-     */
     @PatchMapping("/locations")
     public ResponseEntity<Response<Void>> updateUserTradeLocation(
             @RequestBody UserUpdateTradeLocationRequest request,

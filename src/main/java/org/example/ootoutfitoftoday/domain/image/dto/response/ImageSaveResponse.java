@@ -4,7 +4,6 @@ import org.example.ootoutfitoftoday.domain.image.entity.Image;
 
 import java.time.LocalDateTime;
 
-// 이미지 메타데이터 저장 응답 DTO
 public record ImageSaveResponse(
         Long id,
         String fileName,

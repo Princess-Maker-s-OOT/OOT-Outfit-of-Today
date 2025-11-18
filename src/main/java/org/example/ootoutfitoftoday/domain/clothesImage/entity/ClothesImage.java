@@ -19,7 +19,6 @@ public class ClothesImage extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 옷 연관관계
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clothes_id", nullable = false)
     private Clothes clothes;

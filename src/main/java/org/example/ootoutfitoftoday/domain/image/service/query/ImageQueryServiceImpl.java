@@ -22,7 +22,6 @@ public class ImageQueryServiceImpl implements ImageQueryService {
 
     private final ImageRepository imageRepository;
 
-    // 지정된 ID에 해당하는 이미지를 조회
     @Override
     public Image findImageById(Long imageId) {
 
@@ -36,8 +35,6 @@ public class ImageQueryServiceImpl implements ImageQueryService {
 
     @Override
     public List<Image> findAllByIdInAndIsDeletedFalse(List<Long> imageIds) {
-
-        // 중복 제거 + 입력 순서 유지
         Set<Long> uniqueIds = new LinkedHashSet<>(imageIds);
 
         List<Image> images = imageRepository.findAllByIdInAndIsDeletedFalse(new ArrayList<>(uniqueIds));
@@ -50,10 +47,8 @@ public class ImageQueryServiceImpl implements ImageQueryService {
         return images;
     }
 
-    // 소프트 딜리트된 파일 필터링 조회
     @Override
     public Image findByIdAndIsDeletedFalse(Long imageId) {
-
         Image image = imageRepository.findByIdAndIsDeletedFalse(imageId)
                 .orElseThrow(() -> {
                     log.warn("findByIdAndIsDeletedFalse - 이미지 없음 또는 삭제됨. imageId={}", imageId);

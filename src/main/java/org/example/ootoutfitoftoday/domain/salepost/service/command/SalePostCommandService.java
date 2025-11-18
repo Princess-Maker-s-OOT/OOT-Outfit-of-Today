@@ -12,10 +12,7 @@ import java.util.List;
 
 public interface SalePostCommandService {
 
-    SalePostCreateResponse createSalePost(
-            Long userId,
-            SalePostCreateRequest request
-    );
+    SalePostCreateResponse createSalePost(Long userId, SalePostCreateRequest request);
 
     SalePostCreateResponse createSalePostFromRecommendation(
             Recommendation recommendation,

@@ -22,12 +22,8 @@ public class WearRecordQueryServiceImpl implements WearRecordQueryService {
 
     private final WearRecordRepository wearRecordRepository;
 
-    // 내 착용 기록 리스트 조회
     @Override
-    public Page<WearRecordGetMyResponse> getMyWearRecords(
-            Long userId,
-            Pageable pageable
-    ) {
+    public Page<WearRecordGetMyResponse> getMyWearRecords(Long userId, Pageable pageable) {
         log.debug("내 착용 기록 조회 시작 - 사용자 ID: {}, 페이지 정보: {}", userId, pageable);
 
         Page<WearRecord> wearRecords =
@@ -38,6 +34,7 @@ public class WearRecordQueryServiceImpl implements WearRecordQueryService {
 
         log.debug("내 착용 기록 조회 완료 - 조회된 기록 수: {}, 전체 기록 수: {}",
                 wearRecords.getNumberOfElements(), wearRecords.getTotalElements());
+
         return wearRecords.map(WearRecordGetMyResponse::from);
     }
 
@@ -48,6 +45,7 @@ public class WearRecordQueryServiceImpl implements WearRecordQueryService {
         List<ClothesWearCount> result = wearRecordRepository.wornThisWeek(userId, baseDate);
 
         log.debug("이번 주 착용 빈도 조회 완료 - 조회된 옷 수: {}", result.size());
+
         return result;
     }
 
@@ -58,6 +56,7 @@ public class WearRecordQueryServiceImpl implements WearRecordQueryService {
         List<ClothesWearCount> result = wearRecordRepository.topWornClothes(userId);
 
         log.debug("자주 입은 옷 조회 완료 - 조회된 옷 수: {}", result.size());
+
         return result;
     }
 }

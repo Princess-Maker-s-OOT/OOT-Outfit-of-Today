@@ -34,10 +34,8 @@ public class ImageCommandServiceImpl implements ImageCommandService {
     private final AwsS3Properties awsS3Properties;
     private final ImageRepository imageRepository;
 
-    // Presigned URL 생성
     @Override
     public PresignedUrlResponse generatePresignedUrl(Long userId, PresignedUrlRequest request) {
-
         validateFileName(request.fileName());
 
         ImageType imageType = ImageType.fromString(request.type());
@@ -56,20 +54,15 @@ public class ImageCommandServiceImpl implements ImageCommandService {
         );
     }
 
-    // 이미지 메타데이터 저장
     @Override
     public ImageSaveResponse saveImage(ImageSaveRequest request) {
-
-        // S3 Key 중복 체크
         imageRepository.findByS3KeyAndIsDeletedFalse(request.s3Key())
                 .ifPresent(image -> {
                     throw new ImageException(ImageErrorCode.IMAGE_ALREADY_EXISTS);
                 });
 
-        // ImageType 변환
         ImageType imageType = ImageType.fromString(request.type());
 
-        // Image 엔티티 생성 및 저장
         Image image = Image.create(
                 request.url(),
                 request.fileName(),
@@ -84,7 +77,6 @@ public class ImageCommandServiceImpl implements ImageCommandService {
         return ImageSaveResponse.from(savedImage);
     }
 
-    // 파일명 검증
     private void validateFileName(String fileName) {
         if (fileName == null || fileName.isBlank()) {
             throw new ImageException(ImageErrorCode.INVALID_FILE_NAME);
@@ -97,16 +89,15 @@ public class ImageCommandServiceImpl implements ImageCommandService {
         }
     }
 
-    // 파일 확장자 추출
     private String getFileExtension(String fileName) {
         int lastDotIndex = fileName.lastIndexOf(".");
         if (lastDotIndex == -1 || lastDotIndex == fileName.length() - 1) {
             throw new ImageException(ImageErrorCode.INVALID_FILE_NAME);
         }
+
         return fileName.substring(lastDotIndex + 1);
     }
 
-    // S3 키 생성 (userId 제거)
     private String generateS3Key(ImageType imageType, String originalFileName) {
         String extension = getFileExtension(originalFileName);
         String uniqueFileName = UUID.randomUUID().toString() + "." + extension;
@@ -116,7 +107,6 @@ public class ImageCommandServiceImpl implements ImageCommandService {
                 uniqueFileName);
     }
 
-    // Presigned URL 생성
     private String createPresignedUrl(String s3Key) {
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -138,7 +128,6 @@ public class ImageCommandServiceImpl implements ImageCommandService {
         }
     }
 
-    // 파일 최종 URL 생성
     private String generateFileUrl(String s3Key) {
         String region = awsS3Properties.getRegion().getStaticRegion();
         String bucket = awsS3Properties.getS3().getBucket();

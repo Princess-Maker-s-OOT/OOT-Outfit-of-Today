@@ -103,6 +103,7 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
                 .toList();
 
         log.info("배치 추천 생성 완료 (미저장) - 생성 건수: {}, 사용자: {}", recommendations.size(), userId);
+
         return recommendations;
     }
 
@@ -127,7 +128,6 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
         return isUnworn;
     }
 
-    // 추천으로부터 판매글 생성
     @Override
     public SalePostCreateResponse createSalePostFromRecommendation(
             Long recommendationId,

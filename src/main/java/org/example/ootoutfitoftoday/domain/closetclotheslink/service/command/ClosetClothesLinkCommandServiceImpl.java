@@ -26,14 +26,12 @@ public class ClosetClothesLinkCommandServiceImpl implements ClosetClothesLinkCom
     private final ClothesQueryService clothesQueryService;
     private final ClosetClothesLinkRepository closetClothesLinkRepository;
 
-    // 특정 옷장에 옷 등록
     @Override
     public ClosetClothesLinkResponse createClosetClothesLink(
             Long userId,
             Long closetId,
             ClosetClothesLinkRequest request
     ) {
-
         Closet closet = closetQueryService.findClosetById(closetId);
 
         if (!Objects.equals(closet.getUserId(), userId)) {
@@ -42,33 +40,28 @@ public class ClosetClothesLinkCommandServiceImpl implements ClosetClothesLinkCom
 
         Clothes clothes = clothesQueryService.findClothesById(request.clothesId());
 
-        // 중복 연결 체크
         if (closetClothesLinkRepository.existsByClosetIdAndClothesId(closetId, request.clothesId())) {
             throw new ClosetClothesLinkException(ClosetClothesLinkErrorCode.CLOSET_CLOTHES_ALREADY_LINKED);
         }
 
-        // 연결 생성
         ClosetClothesLink link = ClosetClothesLink.create(closet, clothes);
         ClosetClothesLink savedLink = closetClothesLinkRepository.save(link);
 
         return ClosetClothesLinkResponse.from(savedLink);
     }
 
-    // 특정 옷장의 옷 삭제
     @Override
     public ClosetClothesLinkDeleteResponse deleteClosetClothesLink(
             Long userId,
             Long closetId,
             Long clothesId
     ) {
-
         Closet closet = closetQueryService.findClosetById(closetId);
 
         if (!Objects.equals(closet.getUserId(), userId)) {
             throw new ClosetClothesLinkException(ClosetClothesLinkErrorCode.CLOSET_CLOTHES_FORBIDDEN);
         }
 
-        // 연결 조회 (삭제되지 않은 것만)
         ClosetClothesLink link = closetClothesLinkRepository
                 .findByClosetIdAndClothesIdAndIsDeletedFalse(closetId, clothesId)
                 .orElseThrow(() -> new ClosetClothesLinkException(ClosetClothesLinkErrorCode.CLOTHES_NOT_LINKED));

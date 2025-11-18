@@ -36,7 +36,6 @@ public class ChatroomQueryServiceImpl implements ChatroomQueryService {
     private final UserQueryService userQueryService;
     private final ChatReferenceToChatroomQueryService chatReferenceToChatroomQueryService;
 
-    // 채팅방 조회
     @Override
     public Slice<ChatroomResponse> getChatrooms(Long userId, Pageable pageable) {
         log.info("ChatroomService.getChatrooms : userId={} 채팅방 조회", userId);

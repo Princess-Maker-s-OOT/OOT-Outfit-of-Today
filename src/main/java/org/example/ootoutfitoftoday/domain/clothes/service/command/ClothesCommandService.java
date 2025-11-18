@@ -23,5 +23,8 @@ public interface ClothesCommandService {
 
     void updateLastWornAt(Long clothesId, LocalDateTime wornAt);
 
-    void removeClothesImages(Long userId, Long clothesId, ClothesImageUnlinkRequest clothesImageUnlinkRequest);
+    void removeClothesImages(
+            Long userId,
+            Long clothesId,
+            ClothesImageUnlinkRequest clothesImageUnlinkRequest);
 }

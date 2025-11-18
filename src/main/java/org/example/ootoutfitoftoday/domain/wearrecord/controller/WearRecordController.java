@@ -34,13 +34,6 @@ public class WearRecordController {
     private final WearRecordCommandService wearRecordCommandService;
     private final WearRecordQueryService wearRecordQueryService;
 
-    /**
-     * 착용 기록 등록
-     *
-     * @param authUser: 인증된 사용자 정보
-     * @param request:  착용 기록 등록 요청 객체 (clothesId 포함)
-     * @return WearRecordCreateResponse: 등록된 기록 ID와 성공 응답 코드
-     */
     @Operation(
             summary = "착용 기록 등록",
             description = "사용자가 특정 옷을 착용했음을 기록하고, 해당 옷의 마지막 착용 일시를 업데이트합니다.",
@@ -66,19 +59,10 @@ public class WearRecordController {
         );
 
         log.info("착용 기록 등록 완료 - 착용 기록 ID: {}", response.wearRecordId());
+
         return Response.success(response, WearRecordSuccessCode.WEAR_RECORD_CREATED);
     }
 
-    /**
-     * 내 착용 기록 리스트 조회
-     *
-     * @param authUser:  인증된 사용자 정보
-     * @param page:      페이지 번호 (0부터 시작)
-     * @param size:      페이지 크기
-     * @param sort:      정렬 기준 필드 (기본값: wornAt)
-     * @param direction: 정렬 방향 (기본값: DESC)
-     * @return Page<WearRecordGetMyResponse>: 내 착용 기록 리스트
-     */
     @Operation(
             summary = "내 착용 기록 리스트 조회",
             description = "로그인한 사용자의 전체 착용 기록을 최신순(wornAt DESC)으로 페이징하여 조회합니다.",
@@ -114,6 +98,7 @@ public class WearRecordController {
 
         log.info("내 착용 기록 리스트 조회 완료 - 총 {}건 중 {}건 반환",
                 responsePage.getTotalElements(), responsePage.getNumberOfElements());
+
         return PageResponse.success(responsePage, WearRecordSuccessCode.WEAR_RECORDS_GET_OK);
     }
 }

@@ -10,32 +10,17 @@ import org.example.ootoutfitoftoday.domain.transaction.dto.response.TransactionR
 
 public interface TransactionCommandService {
 
-    /**
-     * 거래 요청
-     */
     TransactionResponse requestTransaction(Long userId, TransactionRequest request);
 
-    /**
-     * 결제 승인
-     */
     TransactionResponse confirmTransaction(
             Long userId,
             Long transactionId,
             TransactionConfirmRequest request
     );
 
-    /**
-     * 거래 수락 (판매자)
-     */
     TransactionAcceptResponse acceptTransaction(Long sellerId, Long transactionId);
 
-    /**
-     * 거래 확정 (구매자)
-     */
     TransactionCompleteResponse completeTransaction(Long buyerId, Long transactionId);
 
-    /**
-     * 구매자 거래 취소 (판매자 수락 이전)
-     */
     TransactionCancelResponse cancelByBuyer(Long buyerId, Long transactionId);
 }

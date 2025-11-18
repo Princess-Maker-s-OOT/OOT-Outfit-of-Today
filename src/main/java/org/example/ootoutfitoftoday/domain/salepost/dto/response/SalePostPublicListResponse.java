@@ -27,7 +27,6 @@ public class SalePostPublicListResponse {
     private final LocalDateTime createdAt;
 
     public static SalePostPublicListResponse from(SalePost salePost) {
-
         Location location = PointFormatAndParse.parse(salePost.getTradeLocation());
 
         return SalePostPublicListResponse.builder()

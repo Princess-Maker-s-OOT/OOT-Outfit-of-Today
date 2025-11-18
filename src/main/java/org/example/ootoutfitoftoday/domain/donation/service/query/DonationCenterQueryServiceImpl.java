@@ -25,10 +25,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DonationCenterQueryServiceImpl implements DonationCenterQueryService {
 
-    // SRID 4326: WGS84 좌표계
     private static final int SRID = 4326;
     private static final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), SRID);
-    // 기본 검색 키워드들
     private static final List<String> DEFAULT_KEYWORDS = List.of(
             "의류기부",
             "헌옷수거함",
@@ -38,17 +36,8 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
     private final KakaoMapClient kakaoMapClient;
     private final DonationCenterCommandService donationCenterCommandService;
 
-    /**
-     * 주변 기부처 검색
-     *
-     * @param latitude  사용자 위치의 위도
-     * @param longitude 사용자 위치의 경도
-     * @param radius    검색 반경 (미터, 기본값: 5000)
-     * @param keyword   검색 키워드 (선택사항, 없으면 기본 키워드로 검색)
-     * @return 거리순으로 정렬된 기부처 목록
-     */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<DonationCenterSearchResponse> searchNearbyDonationCenters(
             Double latitude,
             Double longitude,
@@ -58,29 +47,25 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
         long methodStartTime = System.currentTimeMillis();
         log.debug("searchNearbyDonationCenters 메서드 시작");
 
-        // 좌표 유효성 검증
         validateCoordinates(latitude, longitude);
         log.debug("좌표 유효성 검증 통과 - 위도: {}, 경도: {}", latitude, longitude);
 
-        // 기본값 설정
-        final Integer searchRadius = (radius == null || radius <= 0) ? 5000 : radius;  // 기본 5km
+        final Integer searchRadius = (radius == null || radius <= 0) ? 5000 : radius;
         log.debug("검색 반경 설정 - 입력값: {}, 적용값: {}m", radius, searchRadius);
 
         log.info("기부처 검색 시작 - 위도: {}, 경도: {}, 반경: {}m, 키워드: {}",
                 latitude, longitude, searchRadius, keyword);
 
-        // 키워드가 지정된 경우 해당 키워드로만 검색, 아니면 기본 키워드들로 검색
         List<String> searchKeywords = (keyword != null && !keyword.isBlank())
                 ? List.of(keyword)
                 : DEFAULT_KEYWORDS;
 
         log.debug("검색 키워드 목록: {} (총 {}개)", searchKeywords, searchKeywords.size());
 
-        // 각 키워드로 검색하여 결과를 합침 (중복 제거)
         long searchStartTime = System.currentTimeMillis();
         List<DonationCenterSearchResponse> allResults = searchKeywords.stream()
                 .flatMap(kw -> searchByKeyword(kw, latitude, longitude, searchRadius).stream())
-                .distinct()  // 중복 제거 (kakaoPlaceId 기준으로 중복이 발생할 수 있음)
+                .distinct()
                 .sorted(Comparator.comparing(
                         DonationCenterSearchResponse::distance,
                         Comparator.nullsLast(Comparator.naturalOrder())
@@ -100,7 +85,6 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
         return allResults;
     }
 
-    //특정 키워드로 기부처 검색
     private List<DonationCenterSearchResponse> searchByKeyword(
             String keyword,
             Double latitude,
@@ -111,14 +95,13 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
         log.debug("카카오맵 API 호출 시작 - 키워드: {}, 위도: {}, 경도: {}, 반경: {}m",
                 keyword, latitude, longitude, radius);
 
-        // 카카오맵 API 호출
         KakaoPlaceResponse response = kakaoMapClient.searchByKeyword(
                 keyword,
-                String.valueOf(longitude),  // 카카오맵 API는 x에 경도
-                String.valueOf(latitude),   // y에 위도
+                String.valueOf(longitude),
+                String.valueOf(latitude),
                 radius,
-                null,  // page
-                15     // size: 최대 15개
+                null,
+                15
         );
 
         long apiTime = System.currentTimeMillis() - apiStartTime;
@@ -133,7 +116,6 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
                 keyword, response.documents().size(),
                 response.meta() != null ? response.meta().totalCount() : "N/A");
 
-        // 응답받은 각 장소를 처리하고 DB에 저장
         long processingStartTime = System.currentTimeMillis();
         List<DonationCenterSearchResponse> results = response.documents().stream()
                 .map(this::processDonationCenter)
@@ -149,26 +131,22 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
     private DonationCenterSearchResponse processDonationCenter(KakaoPlaceResponse.Document document) {
         log.trace("기부처 처리 시작 - 장소명: {}, 카카오ID: {}", document.placeName(), document.id());
 
-        // Point 객체 생성
         double longitude = Double.parseDouble(document.x());
         double latitude = Double.parseDouble(document.y());
         log.trace("좌표 파싱 - 카카오ID: {}, 경도: {}, 위도: {}", document.id(), longitude, latitude);
 
         Point location = createPoint(longitude, latitude);
 
-        // 주소 결정 (도로명 주소 우선)
         String address = document.roadAddressName() != null && !document.roadAddressName().isBlank()
                 ? document.roadAddressName()
                 : document.addressName();
         log.trace("주소 결정 - 카카오ID: {}, 도로명: {}, 지번: {}, 선택: {}",
                 document.id(), document.roadAddressName(), document.addressName(), address);
 
-        // 전화번호 처리
         String phoneNumber = document.phone() != null && !document.phone().isBlank()
                 ? document.phone()
                 : null;
 
-        // CommandService를 통해 기부처 생성 또는 조회 (Command 책임 분리)
         DonationCenter center = donationCenterCommandService.createOrGet(
                 document.id(),
                 document.placeName(),
@@ -178,7 +156,6 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
                 document.categoryName()
         );
 
-        // 거리 정보 포함하여 응답 DTO 생성
         Integer distance = document.distance() != null && !document.distance().isBlank()
                 ? Integer.parseInt(document.distance())
                 : null;
@@ -189,7 +166,6 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
         return DonationCenterSearchResponse.fromWithDistance(center, distance);
     }
 
-    // 좌표 유효성 검증
     private void validateCoordinates(Double latitude, Double longitude) {
         log.trace("좌표 유효성 검증 시작 - 위도: {}, 경도: {}", latitude, longitude);
 
@@ -198,14 +174,12 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
             throw new DonationException(DonationErrorCode.INVALID_COORDINATES);
         }
 
-        // 위도는 -90 ~ 90, 경도는 -180 ~ 180
         if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
             log.warn("잘못된 좌표 범위 - 위도: {} (유효범위: -90~90), 경도: {} (유효범위: -180~180)",
                     latitude, longitude);
             throw new DonationException(DonationErrorCode.INVALID_COORDINATES);
         }
 
-        // 대한민국 좌표 범위 체크 (경고만 출력)
         boolean isInKorea = latitude >= 33.0 && latitude <= 43.0
                 && longitude >= 124.0 && longitude <= 132.0;
         if (!isInKorea) {
@@ -216,7 +190,6 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
         log.trace("좌표 유효성 검증 완료");
     }
 
-    // Point 객체 생성
     private Point createPoint(double longitude, double latitude) {
         log.trace("Point 객체 생성 - 경도: {}, 위도: {}, SRID: {}", longitude, latitude, SRID);
 
@@ -224,6 +197,7 @@ public class DonationCenterQueryServiceImpl implements DonationCenterQueryServic
         point.setSRID(SRID);
 
         log.trace("Point 객체 생성 완료 - WKT: {}", point.toText());
+
         return point;
     }
 }
