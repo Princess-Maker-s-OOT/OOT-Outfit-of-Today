@@ -13,16 +13,9 @@ public enum ImageType {
     SALEPOST("saleposts", "판매글 이미지"),
     USER("users", "회원정보 이미지");
 
-    private final String folder;  // S3 폴더명
+    private final String folder;
     private final String description;
 
-    /**
-     * 문자열을 ImageType으로 변환
-     *
-     * @param type 이미지 타입 문자열
-     * @return ImageType
-     * @throws IllegalArgumentException 유효하지 않은 타입인 경우
-     */
     public static ImageType fromString(String type) {
         try {
             return ImageType.valueOf(type.toUpperCase());

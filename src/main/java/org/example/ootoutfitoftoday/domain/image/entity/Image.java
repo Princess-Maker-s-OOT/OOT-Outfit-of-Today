@@ -53,7 +53,6 @@ public class Image extends BaseEntity {
         this.type = type;
     }
 
-    // 정적 팩토리 메서드
     public static Image create(
             String url,
             String fileName,

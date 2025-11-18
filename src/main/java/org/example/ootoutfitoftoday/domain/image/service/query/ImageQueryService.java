@@ -10,6 +10,5 @@ public interface ImageQueryService {
 
     List<Image> findAllByIdInAndIsDeletedFalse(List<Long> imageIds);
 
-    // 소프트 딜리트된 이미지 필터링 조회
     Image findByIdAndIsDeletedFalse(Long imageId);
 }
