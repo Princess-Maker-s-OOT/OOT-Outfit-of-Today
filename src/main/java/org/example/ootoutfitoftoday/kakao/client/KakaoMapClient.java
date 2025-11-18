@@ -30,6 +30,7 @@ public class KakaoMapClient {
             @Qualifier("kakaoMapRestTemplate") RestTemplate restTemplate,
             KakaoMapProperties kakaoMapProperties
     ) {
+
         this.restTemplate = restTemplate;
         this.kakaoMapProperties = kakaoMapProperties;
     }
