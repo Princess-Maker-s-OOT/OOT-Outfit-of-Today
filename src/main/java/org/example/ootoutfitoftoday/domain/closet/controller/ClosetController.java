@@ -31,12 +31,6 @@ public class ClosetController {
     private final ClosetCommandService closetCommandService;
     private final ClosetQueryService closetQueryService;
 
-    /**
-     * 옷장 등록
-     *
-     * @param closetCreateRequest: 옷장 등록 요청 객체 (이름, 설명 등 포함)
-     * @return ClosetSaveResponse: 등록된 옷장 정보와 성공 응답 코드
-     */
     @Operation(
             summary = "옷장 등록",
             description = "회원이 자신의 옷장을 등록합니다.",
@@ -67,15 +61,6 @@ public class ClosetController {
         return Response.success(closetCreateResponse, ClosetSuccessCode.CLOSET_CREATED);
     }
 
-    /**
-     * 공개 옷장 리스트 조회
-     *
-     * @param page:      페이지 번호
-     * @param size:      페이지 크기
-     * @param sort:      정렬 기준
-     * @param direction: 정렬 방향
-     * @return Page<ClosetGetPublicResponse>: 공개 옷장 리스트
-     */
     @Operation(
             summary = "공개 옷장 전체 조회",
             description = "공개 옷장 전체를 조회합니다.",
@@ -107,13 +92,6 @@ public class ClosetController {
         return PageResponse.success(closetGetPublicResponses, ClosetSuccessCode.CLOSETS_GET_PUBLIC_OK);
     }
 
-    /**
-     * 옷장 상세 조회
-     *
-     * @param closetId: 조회할 옷장의 ID
-     * @return ClosetGetResponse: 옷장 상세 정보 DTO
-     * @throws ClosetException: 옷장이 존재하지 않거나 삭제된 경우 (CLOSET_NOT_FOUND)
-     */
     @Operation(
             summary = "옷장 상세 조회",
             description = "회원이 옷장의 상세 정보를 조회합니다.",
@@ -138,16 +116,6 @@ public class ClosetController {
         return Response.success(closetGetResponse, ClosetSuccessCode.CLOSET_GET_OK);
     }
 
-    /**
-     * 내 옷장 리스트 조회
-     *
-     * @param authUser:  인증된 사용자 정보
-     * @param page:      페이지 번호
-     * @param size:      페이지 크기
-     * @param sort:      정렬 기준
-     * @param direction: 정렬 방향
-     * @return Page<ClosetGetMyResponse>: 내 옷장 리스트
-     */
     @Operation(
             summary = "내 옷장 전체 조회",
             description = "회원이 자신의 전체 옷장을 조회합니다.",
@@ -183,14 +151,6 @@ public class ClosetController {
         return PageResponse.success(closetGetMyResponses, ClosetSuccessCode.CLOSETS_GET_MY_OK);
     }
 
-    /**
-     * 옷장 정보 수정
-     *
-     * @param authUser:            인증된 사용자 정보
-     * @param closetId:            조회할 옷장의 ID
-     * @param closetUpdateRequest: 옷장 수정 요청 객체 (이름, 설명 등 포함)
-     * @return closetUpdateResponse: 수정된 옷장 정보와 성공 응답 코드
-     */
     @Operation(
             summary = "내 옷장 정보 수정",
             description = "회원이 자신의 옷장 정보를 수정합니다.",
@@ -224,13 +184,6 @@ public class ClosetController {
         return Response.success(closetUpdateResponse, ClosetSuccessCode.CLOSET_UPDATE_OK);
     }
 
-    /**
-     * 옷장 삭제
-     *
-     * @param authUser: 인증된 사용자 정보
-     * @param closetId: 삭제할 옷장의 ID
-     * @return ClosetDeleteResponse 삭제된 옷장 ID와 삭제 시간
-     */
     @Operation(
             summary = "내 옷장 삭제",
             description = "회원이 자신의 옷장을 삭제합니다.",

@@ -8,22 +8,13 @@ import org.example.ootoutfitoftoday.domain.closet.dto.response.ClosetUpdateRespo
 
 public interface ClosetCommandService {
 
-    // 옷장 등록
-    ClosetCreateResponse createCloset(
-            Long userId,
-            ClosetCreateRequest request
-    );
+    ClosetCreateResponse createCloset(Long userId, ClosetCreateRequest request);
 
-    // 옷장 수정
     ClosetUpdateResponse updateCloset(
             Long userId,
             Long closetId,
             ClosetUpdateRequest request
     );
 
-    // 옷장 삭제
-    ClosetDeleteResponse deleteCloset(
-            Long userId,
-            Long closetId
-    );
+    ClosetDeleteResponse deleteCloset(Long userId, Long closetId);
 }

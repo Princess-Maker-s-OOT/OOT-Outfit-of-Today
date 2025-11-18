@@ -24,7 +24,6 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
 
     private final ClosetRepository closetRepository;
 
-    // 공개 옷장 리스트 조회
     @Override
     public Page<ClosetGetPublicResponse> getPublicClosets(
             int page,
@@ -70,7 +69,6 @@ public class ClosetQueryServiceImpl implements ClosetQueryService {
         return ClosetGetResponse.from(closet);
     }
 
-    // 내 옷장 리스트 조회
     @Override
     public Page<ClosetGetMyResponse> getMyClosets(
             Long userId,

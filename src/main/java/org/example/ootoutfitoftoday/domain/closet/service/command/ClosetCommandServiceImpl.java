@@ -58,7 +58,6 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
         return ClosetCreateResponse.from(savedCloset);
     }
 
-    // 옷장 정보 수정
     @Override
     public ClosetUpdateResponse updateCloset(
             Long userId,
@@ -99,12 +98,8 @@ public class ClosetCommandServiceImpl implements ClosetCommandService {
         return ClosetUpdateResponse.from(updatedCloset);
     }
 
-    // 옷장 삭제
     @Override
-    public ClosetDeleteResponse deleteCloset(
-            Long userId,
-            Long closetId
-    ) {
+    public ClosetDeleteResponse deleteCloset(Long userId, Long closetId) {
         log.info("옷장 삭제 시작 - 옷장ID: {}, 사용자: {}", closetId, userId);
 
         Closet closet = closetRepository.findById(closetId)

@@ -6,12 +6,8 @@ import org.example.ootoutfitoftoday.domain.closet.entity.Closet;
 
 import java.time.LocalDateTime;
 
-/**
- * 옷장 상세 조회 응답 DTO
- */
 @Builder(access = AccessLevel.PRIVATE)
 public record ClosetGetMyResponse(
-
         Long closetId,
         String name,
         String description,
@@ -21,7 +17,6 @@ public record ClosetGetMyResponse(
         LocalDateTime updatedAt
 ) {
     public static ClosetGetMyResponse from(Closet closet) {
-
         String imageUrl = closet.getImageUrl();
 
         return ClosetGetMyResponse.builder()

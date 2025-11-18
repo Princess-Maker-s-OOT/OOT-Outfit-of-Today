@@ -6,10 +6,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 
-/**
- * 옷장 정보 수정을 위한 요청 DTO
- * - 이미지는 1장만 수정 가능하며, 선택 사항(nullable)
- */
 @Builder(access = AccessLevel.PRIVATE)
 public record ClosetUpdateRequest(
 
