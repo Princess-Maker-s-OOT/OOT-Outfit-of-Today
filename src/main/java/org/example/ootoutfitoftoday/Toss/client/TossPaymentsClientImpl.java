@@ -1,6 +1,5 @@
 package org.example.ootoutfitoftoday.Toss.client;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.Toss.dto.TossConfirmResponse;
 import org.example.ootoutfitoftoday.Toss.dto.TossConfirmResult;
@@ -29,7 +28,6 @@ import java.util.Map;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class TossPaymentsClientImpl implements TossPaymentsClient {
 
     @Value("${TOSS_SECRET_KEY}")
@@ -38,7 +36,11 @@ public class TossPaymentsClientImpl implements TossPaymentsClient {
     @Value("${toss.api.url.confirm}")
     private String confirmUrl;
 
-    private final @Qualifier("tossRestTemplate") RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
+
+    public TossPaymentsClientImpl(@Qualifier("tossRestTemplate") RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @Override
     public TossConfirmResult confirmPayment(
