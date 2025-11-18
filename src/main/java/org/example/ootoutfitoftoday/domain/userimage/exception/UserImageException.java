@@ -7,8 +7,4 @@ public class UserImageException extends GlobalException {
     public UserImageException(UserImageErrorCode userImageErrorCode) {
         super(userImageErrorCode);
     }
-
-    public UserImageException(UserImageErrorCode userImageErrorCode, UserImageSuccessCode userImageSuccessCode) {
-        super(userImageErrorCode, userImageSuccessCode);
-    }
 }
