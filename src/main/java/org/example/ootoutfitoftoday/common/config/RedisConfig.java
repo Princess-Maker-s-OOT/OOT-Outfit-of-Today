@@ -164,10 +164,6 @@ public class RedisConfig {
 
         return RedisCacheManager.builder(redisConnectionFactory())
                 .cacheDefaults(defaultConfig)
-                .withCacheConfiguration("clothesCache",
-                        defaultConfig.entryTtl(Duration.ofMinutes(30))
-                )
-
                 // 사용자 정보 캐시: 10분
                 // 로그인, 토큰 갱신 등에서 사용자 조회 빈도가 높음
                 // 정보 변경 시 @CacheEvict로 즉시 무효화
