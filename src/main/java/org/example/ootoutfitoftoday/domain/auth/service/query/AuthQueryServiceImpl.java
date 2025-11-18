@@ -20,17 +20,12 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class AuthQueryServiceImpl implements AuthQueryService {
 
-    // MySQL 리포지토리로 원복
     private final RefreshTokenRepository refreshTokenRepository;
 
-    // 유저의 모든 디바이스 목록 조회(최근 사용 순)
     @Override
     public List<DeviceInfoResponse> getDeviceList(AuthUser authUser, String currentDeviceId) {
-
-        // 최근 사용 순으로 모든 디바이스 토큰 조회
         List<RefreshToken> tokens = refreshTokenRepository.findAllByUserIdOrderByLastUsedAtDesc(authUser.getUserId());
 
-        // currentDeviceId가 실제로 이 유저의 디바이스인지 검증
         boolean isValidDevice = false;
         for (RefreshToken token : tokens) {
             if (token.getDeviceId().equals(currentDeviceId)) {
@@ -44,10 +39,8 @@ public class AuthQueryServiceImpl implements AuthQueryService {
             throw new AuthException(AuthErrorCode.INVALID_DEVICE);
         }
 
-        // 조회 결과 리스트 생성
         List<DeviceInfoResponse> deviceList = new ArrayList<>();
 
-        // RefreshToken -> DeviceInfoResponse 변환
         for (RefreshToken token : tokens) {
             DeviceInfoResponse response = DeviceInfoResponse.builder()
                     .deviceId(token.getDeviceId())
@@ -61,7 +54,6 @@ public class AuthQueryServiceImpl implements AuthQueryService {
             deviceList.add(response);
         }
 
-        // 변환된 리스트 반환
         return deviceList;
     }
 }

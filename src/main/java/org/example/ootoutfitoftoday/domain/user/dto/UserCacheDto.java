@@ -11,12 +11,6 @@ import org.example.ootoutfitoftoday.domain.user.enums.UserRole;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * User 엔티티 캐싱용 DTO
- * - Redis에 저장할 때 Entity 대신 DTO 사용
- * - Lazy Loading 문제 해결
- * - 필요한 필드만 선택적으로 캐싱
- */
 @Getter
 public class UserCacheDto implements Serializable {
 
@@ -73,8 +67,8 @@ public class UserCacheDto implements Serializable {
         this.deletedAt = deletedAt;
     }
 
-    // User 엔티티를 DTO로 변환
     public static UserCacheDto from(User user) {
+
         return new UserCacheDto(
                 user.getId(),
                 user.getLoginId(),
@@ -94,7 +88,6 @@ public class UserCacheDto implements Serializable {
         );
     }
 
-    // 삭제된 사용자인지 확인
     public boolean isDeleted() {
 
         return isDeleted || deletedAt != null;

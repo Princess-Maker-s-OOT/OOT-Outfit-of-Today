@@ -24,7 +24,7 @@ public class TransactionRequest {
     @NotNull(message = "결제 수단은 필수입니다.")
     private PaymentMethod method;
 
-    private EasyPayProvider easyPayProvider;  // 간편결제일 때만
+    private EasyPayProvider easyPayProvider;
 
     @NotBlank(message = "토스 주문 ID는 필수입니다.")
     private String tossOrderId;

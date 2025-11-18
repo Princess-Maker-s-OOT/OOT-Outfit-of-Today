@@ -6,10 +6,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 
-/**
- * 옷장 생성을 위한 요청 DTO (Record + Builder + Static Factory Method)
- * - 이미지는 1장만 등록 가능하며, 선택 사항(nullable)
- */
 @Builder(access = AccessLevel.PRIVATE)
 public record ClosetCreateRequest(
 

@@ -1,7 +1,7 @@
 package org.example.ootoutfitoftoday.domain.clothes.repository;
 
-import com.ootcommon.category.response.QCategoryStat;
 import com.ootcommon.category.response.CategoryStat;
+import com.ootcommon.category.response.QCategoryStat;
 import com.ootcommon.clothes.enums.ClothesColor;
 import com.ootcommon.clothes.enums.ClothesSize;
 import com.ootcommon.clothes.response.ClothesColorCount;
@@ -36,54 +36,36 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
     private final QCategory category = QCategory.category;
     private final QWearRecord wearRecord = QWearRecord.wearRecord;
 
-    /**
-     * 아래와 같이 동적 조건 메서드로 구현했을 때의 장점
-     * 1. null-safe
-     * - 각 메서드가 null을 반환하면 조건에서 제외한다.
-     * <p>
-     * 2. 가독성과 유지보수가 좋다 (코드가 길어지면 길어질 수록 더욱 효과가 좋다.)
-     */
-    // 항상 삭제되지 않은 데이터만 조회하도록 구현
     private BooleanExpression isDeletedFalse() {
 
         return clothes.isDeleted.eq(false);
     }
 
-    // 유저가 null 이면 조건에서 제외
     private BooleanExpression logInUser(Long userId) {
 
         return userId != null ? clothes.user.id.eq(userId) : null;
     }
 
-    // 카테고리 값이 null 이면 조건에서 제외
     private BooleanExpression equalsCategory(Long categoryId) {
 
         return categoryId != null ? clothes.category.id.eq(categoryId) : null;
     }
 
-    // 색상 값이 null 이면 조건에서 제외
     private BooleanExpression equalsColor(ClothesColor clothesColor) {
 
         return clothesColor != null ? clothes.clothesColor.eq(clothesColor) : null;
     }
 
-    // 사이즈 값이 null 이면 조건에서 제외
     private BooleanExpression equalsSize(ClothesSize clothesSize) {
 
         return clothesSize != null ? clothes.clothesSize.eq(clothesSize) : null;
     }
 
-    // 마지막 아이디가 null 이면 첫페이지 조회
     private BooleanExpression lessThanLastId(Long lastId) {
 
         return lastId != null ? clothes.id.lt(lastId) : null;
     }
 
-    /**
-     * 사용자의 옷 목록 조회 (필터링 + 무한 스크롤)
-     * - 카테고리, 색상, 사이즈로 필터링 가능
-     * - 커서 기반 페이징 (무한 스크롤)
-     */
     @Override
     public Slice<Clothes> findAllByIsDeletedFalse(
             Long userId,
@@ -93,17 +75,15 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
             Long lastClothesId,
             int size
     ) {
-
         QClothesImage clothesImage = QClothesImage.clothesImage;
         QImage image = QImage.image;
 
-        // 1단계: 조건에 맞는 Clothes ID만 조회 (페이징 적용)
         List<Long> clothesIds = jpaQueryFactory
                 .select(clothes.id)
                 .from(clothes)
                 .where(
                         isDeletedFalse(),
-                        logInUser(userId), // 필수 조건
+                        logInUser(userId),
                         equalsCategory(categoryId),
                         equalsColor(clothesColor),
                         equalsSize(clothesSize),
@@ -113,18 +93,15 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .limit(size + 1)
                 .fetch();
 
-        // 데이터가 없으면 빈 Slice 반환
         if (clothesIds.isEmpty()) {
             return new SliceImpl<>(Collections.emptyList(), PageRequest.of(0, size), false);
         }
 
-        // 다음 페이지 존재 여부 확인
         boolean hasNext = clothesIds.size() > size;
         if (hasNext) {
-            clothesIds.remove(clothesIds.size() - 1); // 초과분 제거
+            clothesIds.remove(clothesIds.size() - 1);
         }
 
-        // 2단계: Fetch Join으로 연관 데이터 한번에 조회
         List<Clothes> result = jpaQueryFactory
                 .selectFrom(clothes)
                 .distinct()
@@ -142,7 +119,6 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
 
     @Override
     public List<CategoryStat> countTopCategoryStats() {
-
         QCategory parent = new QCategory("parent");
         QCategory grandParent = new QCategory("grandParent");
 
@@ -161,7 +137,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .leftJoin(parent.parent, grandParent)
                 .where(isDeletedFalse())
                 .groupBy(rootName)
-                .orderBy(clothes.count().desc(), rootName.asc()) // 2순위 PK 대신 그룹 컬럼을 기준으로 정렬
+                .orderBy(clothes.count().desc(), rootName.asc())
                 .fetch();
     }
 
@@ -176,7 +152,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .from(clothes)
                 .where(isDeletedFalse())
                 .groupBy(clothes.clothesColor)
-                .orderBy(clothes.count().desc(), clothes.clothesColor.asc()) // 2순위 PK 대신 그룹 컬럼을 기준으로 정렬
+                .orderBy(clothes.count().desc(), clothes.clothesColor.asc())
                 .fetch();
     }
 
@@ -191,7 +167,7 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .from(clothes)
                 .where(isDeletedFalse())
                 .groupBy(clothes.clothesSize)
-                .orderBy(clothes.count().desc(), clothes.clothesSize.asc()) // 2순위 PK 대신 그룹 컬럼을 기준으로 정렬
+                .orderBy(clothes.count().desc(), clothes.clothesSize.asc())
                 .fetch();
     }
 
@@ -207,12 +183,11 @@ public class ClothesCustomRepositoryImpl implements ClothesCustomRepository {
                 .join(clothes.category, category)
                 .where(isDeletedFalse())
                 .groupBy(category.id, category.name)
-                .orderBy(clothes.count().desc(), category.id.asc()) // 2순위 PK 대신 그룹 컬럼을 기준으로 정렬
+                .orderBy(clothes.count().desc(), category.id.asc())
                 .limit(10)
                 .fetch();
     }
 
-    // Todo: leastWornClothes와 notWornOverPeriod 메소드에서 삭제되지 않은 옷(isDeleted = false)을 조회하는 조건이 누락되었습니다. isDeletedFalse() 조건을 where 절에 추가하여 논리적으로 삭제된 옷이 통계에 포함되지 않도록 해야 합니다.
     @Override
     public List<ClothesWearCount> leastWornClothes(Long userId) {
 

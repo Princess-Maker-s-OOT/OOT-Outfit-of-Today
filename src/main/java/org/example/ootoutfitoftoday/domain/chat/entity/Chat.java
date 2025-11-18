@@ -44,7 +44,6 @@ public class Chat extends BaseEntity {
             Chatroom chatroom,
             User user
     ) {
-
         return Chat.builder()
                 .content(content)
                 .chatroom(chatroom)

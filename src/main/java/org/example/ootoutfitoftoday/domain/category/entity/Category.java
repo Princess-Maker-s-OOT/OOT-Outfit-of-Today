@@ -38,13 +38,11 @@ public class Category extends BaseEntity {
     }
 
     public static Category create(String name, Category parent) {
-
         Category category = Category.builder()
                 .name(name)
                 .parent(parent)
                 .build();
 
-        // 양방향 연관관계 시, 양쪽 모두 값을 설정해줘야 영속성 컨텍스트에서 관계가 제대로 인식된다.
         if (parent != null) {
             parent.getChildren().add(category);
         }
@@ -55,15 +53,12 @@ public class Category extends BaseEntity {
     public void update(String name, Category newParent) {
         this.name = name;
 
-        // 부모가 실제로 변경되는 경우에만 양방향 연관관계 동기화
         if (!Objects.equals(this.parent, newParent)) {
 
-            // 기존 부모의 children에서 제거
             if (this.parent != null) {
                 this.parent.getChildren().remove(this);
             }
 
-            // 새 부모의 children에 추가 (중복 방지)
             if (newParent != null && !newParent.getChildren().contains(this)) {
                 newParent.getChildren().add(this);
             }

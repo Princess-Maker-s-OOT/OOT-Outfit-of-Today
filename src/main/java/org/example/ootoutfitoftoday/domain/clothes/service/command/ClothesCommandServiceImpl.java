@@ -35,14 +35,11 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
 
     @Override
     public ClothesResponse createClothes(Long userId, ClothesRequest clothesRequest) {
-
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
         Category category = null;
 
-        // 사용자가 categoryId를 입력한 경우에만 DB에서 조회
         if (clothesRequest.getCategoryId() != null) {
-
             category = categoryQueryService.findById(clothesRequest.getCategoryId());
         }
 
@@ -57,7 +54,6 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
 
         Clothes savedClothes = clothesRepository.save(clothes);
 
-        // 이미지를 저장할 경우 이미지 저장 로직을 ClothesImageCommandService로 위임
         if (clothesRequest.getImages() != null && !clothesRequest.getImages().isEmpty()) {
 
             clothesImageCommandService.saveClothesImages(savedClothes, clothesRequest.getImages());
@@ -72,12 +68,12 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
             Long id,
             ClothesRequest clothesRequest
     ) {
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> {
+                    log.warn("updateClothes - 옷 없음. clothesId={}", id);
 
-        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
-            log.warn("updateClothes - 옷 없음. clothesId={}", id);
-
-            return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
-        });
+                    return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
+                });
 
         if (!Objects.equals(userId, clothes.getUser().getId())) {
             log.warn("updateClothes - 다른 유저의 의류 접근 시도. userId={}, clothesOwnerId={}, clothesId={}",
@@ -108,12 +104,12 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
 
     @Override
     public void deleteClothes(Long userId, Long id) {
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+                () -> {
+                    log.warn("deleteClothes - 옷 없음. clothesId={}", id);
 
-        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(id).orElseThrow(() -> {
-            log.warn("deleteClothes - 옷 없음. clothesId={}", id);
-
-            return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
-        });
+                    return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
+                });
 
         if (!Objects.equals(userId, clothes.getUser().getId())) {
             log.warn("deleteClothes - 다른 유저의 의류 삭제 시도. userId={}, clothesOwnerId={}, clothesId={}",
@@ -137,9 +133,8 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
 
     @Override
     public void updateLastWornAt(Long clothesId, LocalDateTime wornAt) {
-
-        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(clothesId)
-                .orElseThrow(() -> {
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(clothesId).orElseThrow(
+                () -> {
                     log.warn("updateLastWornAt - 옷 없음. clothesId={}", clothesId);
 
                     return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
@@ -148,12 +143,14 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
         clothes.updateLastWornAt(wornAt);
     }
 
-    // 해당 옷의 이미지 연관관계 끊기 (사용자가 이미지만 제거하고 싶어할 수도 있기 때문)
     @Override
-    public void removeClothesImages(Long userId, Long clothesId, ClothesImageUnlinkRequest clothesImageUnlinkRequest) {
-
-        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(clothesId)
-                .orElseThrow(() -> {
+    public void removeClothesImages(
+            Long userId,
+            Long clothesId,
+            ClothesImageUnlinkRequest clothesImageUnlinkRequest
+    ) {
+        Clothes clothes = clothesRepository.findByIdAndIsDeletedFalse(clothesId).orElseThrow(
+                () -> {
                     log.warn("removeClothesImages - 옷 없음. clothesId={}", clothesId);
 
                     return new ClothesException(ClothesErrorCode.CLOTHES_NOT_FOUND);
@@ -168,7 +165,6 @@ public class ClothesCommandServiceImpl implements ClothesCommandService {
             throw new ClothesException(ClothesErrorCode.CLOTHES_FORBIDDEN);
         }
 
-        // 연관관계를 끊을 리스트 추출
         clothesImageCommandService.removeClothesImages(clothesId, clothesImageUnlinkRequest.getImageIds());
     }
 }

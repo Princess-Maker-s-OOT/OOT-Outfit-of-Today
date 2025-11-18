@@ -109,15 +109,12 @@ public class Clothes extends BaseEntity {
 
     public void addImages(List<ClothesImage> images) {
 
-        // 1. 기존 이미지들의 관계를 먼저 끊음
         for (ClothesImage existingImage : this.images) {
             existingImage.addClothes(null);  // 관계 해제
         }
 
-        // 2. 컬렉션 비우기
         this.images.clear();
 
-        // 3. 새 이미지 추가
         for (ClothesImage image : images) {
             image.addClothes(this);
         }
@@ -125,8 +122,8 @@ public class Clothes extends BaseEntity {
         this.images.addAll(images);
     }
 
-    // 마지막 착용 일시 갱신 메서드
     public void updateLastWornAt(LocalDateTime wornAt) {
+
         this.lastWornAt = wornAt;
     }
 }

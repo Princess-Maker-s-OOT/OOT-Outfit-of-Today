@@ -31,7 +31,6 @@ public class ChatroomCommandServiceImpl implements ChatroomCommandService {
     private final ChatParticipatingUserCommandService chatParticipatingUserCommandService;
     private final ChatParticipatingUserQueryService chatParticipatingUserQueryService;
 
-    // 채팅방 생성
     @Override
     public void createChatroom(ChatroomRequest chatroomRequest, Long userId) {
         log.info("ChatroomService.createChatroom : userId={} 채팅방 생성", userId);
@@ -57,7 +56,6 @@ public class ChatroomCommandServiceImpl implements ChatroomCommandService {
         chatParticipatingUserCommandService.saveKeys(saveChatroom, salePost, user);
     }
 
-    // 채팅방 삭제
     @Override
     public void deleteChatroom(Long chatroomId, Long userId) {
         log.info("ChatroomService.deleteChatroom : userId={} 채팅방 삭제", userId);

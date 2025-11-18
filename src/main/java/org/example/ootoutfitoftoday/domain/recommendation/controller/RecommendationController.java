@@ -38,9 +38,6 @@ public class RecommendationController {
     private final RecommendationCommandService recommendationCommandService;
     private final RecommendationQueryService recommendationQueryService;
 
-    /**
-     * 로그인한 사용자의 추천 목록 조회
-     */
     @Operation(
             summary = "추천 기록 목록 조회",
             description = """
@@ -84,9 +81,6 @@ public class RecommendationController {
         return PageResponse.success(responsePage, RecommendationSuccessCode.RECOMMENDATION_GET_OK);
     }
 
-    /**
-     * 추천으로부터 판매글 생성
-     */
     @Operation(
             summary = "추천 → 판매글 생성",
             description = """
@@ -123,9 +117,6 @@ public class RecommendationController {
         return Response.success(response, RecommendationSuccessCode.SALE_POST_FROM_RECOMMENDATION_CREATED);
     }
 
-    /**
-     * 기부 추천에서 주변 기부처 검색
-     */
     @Operation(
             summary = "기부 추천 → 주변 기부처 검색",
             description = """

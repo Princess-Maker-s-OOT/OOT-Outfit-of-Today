@@ -32,7 +32,6 @@ public class ChatCommandServiceImpl implements ChatCommandService {
 
     @Override
     public ChatResponse createChat(ChatRequest chatRequest, Long chatroomId, Long userId) {
-
         log.info("ChatService.createChat : chatroomId={}, userId={} 채팅 생성", chatroomId, userId);
 
         Chatroom chatroom = chatroomQueryService.getChatroomById(chatroomId);
@@ -53,7 +52,6 @@ public class ChatCommandServiceImpl implements ChatCommandService {
                     !chatParticipatingUser.getUser().isDeleted() &&
                     chatParticipatingUser.isDeleted()
             ) {
-
                 chatParticipatingUser.restore();
             }
         });

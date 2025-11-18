@@ -34,7 +34,6 @@ public class ClosetClothesLinkQueryServiceImpl implements ClosetClothesLinkQuery
             String sort,
             String direction
     ) {
-
         Closet closet = closetQueryService.findClosetById(closetId);
 
         if (!Objects.equals(closet.getUserId(), userId)) {

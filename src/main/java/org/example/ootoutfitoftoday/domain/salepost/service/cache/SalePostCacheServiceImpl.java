@@ -17,11 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * 판매글 캐시 전용 서비스
- * - 캐시 로직과 비즈니스 로직 분리
- * - 순환 참조 방지
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,11 +25,6 @@ public class SalePostCacheServiceImpl implements SalePostCacheService {
 
     private final EntityManager entityManager;
 
-    /**
-     * 판매글 리스트 조회 (캐시 적용)
-     * - Cache-Aside 패턴
-     * - Redis에 캐시 저장/조회
-     */
     @Override
     @Cacheable(
             value = "salePostListCache",
@@ -112,6 +102,7 @@ public class SalePostCacheServiceImpl implements SalePostCacheService {
                 .map(row -> {
                     org.example.ootoutfitoftoday.common.util.Location location =
                             org.example.ootoutfitoftoday.common.util.PointFormatAndParse.parse((String) row[5]);
+
                     return new SalePostListResponse(
                             ((Number) row[0]).longValue(),
                             (String) row[1],

@@ -1,6 +1,6 @@
-package org.example.ootoutfitoftoday.Toss.client;
+package org.example.ootoutfitoftoday.toss.client;
 
-import org.example.ootoutfitoftoday.Toss.dto.TossConfirmResult;
+import org.example.ootoutfitoftoday.toss.dto.TossConfirmResult;
 
 import java.math.BigDecimal;
 

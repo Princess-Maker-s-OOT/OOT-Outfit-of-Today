@@ -20,12 +20,6 @@ public class ChatMessageController {
 
     private final ChatCommandService chatCommandService;
 
-    /**
-     * @param chatRequest 채팅 요청 데이터
-     * @param chatroomId  채팅방 Id
-     * @param userDetails 토큰 정보
-     * @return 채팅 응답 데이터
-     */
     @MessageMapping("/chat/message/{chatroomNo}")
     @SendTo("/topic/chat/{chatroomNo}")
     public ChatResponse sendAndSaveMessage(

@@ -23,7 +23,6 @@ public class ChatQueryServiceImpl implements ChatQueryService {
 
     @Override
     public Slice<ChatResponse> getChats(Long chatroomId, Pageable pageable) {
-
         log.info("[GET] /v1/chatrooms/{}/chats : Service 작동", chatroomId);
 
         Chatroom chatroom = chatroomQueryService.getChatroomById(chatroomId);

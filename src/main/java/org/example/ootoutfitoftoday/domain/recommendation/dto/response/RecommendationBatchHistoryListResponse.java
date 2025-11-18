@@ -6,12 +6,8 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-/**
- * 배치 실행 이력 목록 응답 DTO
- */
 @Builder(access = AccessLevel.PRIVATE)
 public record RecommendationBatchHistoryListResponse(
-
         List<RecommendationBatchHistoryResponse> histories,
         int currentPage,
         int totalPages,

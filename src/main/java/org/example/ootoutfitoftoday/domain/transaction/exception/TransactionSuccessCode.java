@@ -9,29 +9,10 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum TransactionSuccessCode implements SuccessCode {
 
-    TRANSACTION_REQUESTED(
-            "TRANSACTION_REQUESTED",
-            HttpStatus.CREATED,
-            "거래가 요청되었습니다."
-    ),
-
-    TRANSACTION_ACCEPTED(
-            "TRANSACTION_ACCEPTED",
-            HttpStatus.OK,
-            "거래가 수락되었습니다."
-    ),
-
-    TRANSACTION_COMPLETED(
-            "TRANSACTION_COMPLETED",
-            HttpStatus.OK,
-            "거래가 확정되었습니다."
-    ),
-
-    TRANSACTION_CANCELLED(
-            "TRANSACTION_CANCELLED",
-            HttpStatus.OK,
-            "거래가 취소되었습니다."
-    );
+    TRANSACTION_REQUESTED("TRANSACTION_REQUESTED", HttpStatus.CREATED, "거래가 요청되었습니다."),
+    TRANSACTION_ACCEPTED("TRANSACTION_ACCEPTED", HttpStatus.OK, "거래가 수락되었습니다."),
+    TRANSACTION_COMPLETED("TRANSACTION_COMPLETED", HttpStatus.OK, "거래가 확정되었습니다."),
+    TRANSACTION_CANCELLED("TRANSACTION_CANCELLED", HttpStatus.OK, "거래가 취소되었습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;

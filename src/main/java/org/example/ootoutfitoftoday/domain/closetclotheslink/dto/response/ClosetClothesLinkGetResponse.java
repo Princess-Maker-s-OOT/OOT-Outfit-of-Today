@@ -5,7 +5,6 @@ import com.ootcommon.clothes.enums.ClothesSize;
 import org.example.ootoutfitoftoday.domain.closetclotheslink.entity.ClosetClothesLink;
 
 public record ClosetClothesLinkGetResponse(
-
         Long linkId,
         Long clothesId,
         Long categoryId,

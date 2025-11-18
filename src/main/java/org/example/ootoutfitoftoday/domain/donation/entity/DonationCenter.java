@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 import org.example.ootoutfitoftoday.common.entity.BaseEntity;
 import org.locationtech.jts.geom.Point;
 
-
-// 카카오맵 API로부터 가져온 기부처 정보를 저장
 @Entity
 @Table(name = "donation_centers")
 @Getter
@@ -20,7 +18,6 @@ public class DonationCenter extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 중복 방지를 위한 unique 제약조건
     @Column(nullable = false, unique = true, length = 50)
     private String kakaoPlaceId;
 
@@ -33,14 +30,9 @@ public class DonationCenter extends BaseEntity {
     @Column(nullable = true, length = 20)
     private String phoneNumber;
 
-    // 운영시간 (예: "월-금 09:00-18:00")
     @Column(nullable = true, length = 100)
     private String operatingHours;
 
-    /**
-     * 위치 정보 (위도/경도)
-     * POINT 타입, SRID 4326 (WGS84 좌표계)
-     */
     @Column(nullable = false, columnDefinition = "POINT SRID 4326")
     private Point location;
 
@@ -85,14 +77,14 @@ public class DonationCenter extends BaseEntity {
                 .description(description)
                 .build();
     }
-    
-    // 위도 조회 편의 메서드
+
     public double getLatitude() {
+
         return location.getY();
     }
 
-    // 경도 조회 편의 메서드
     public double getLongitude() {
+
         return location.getX();
     }
 }

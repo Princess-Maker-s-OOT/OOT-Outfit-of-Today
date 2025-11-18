@@ -8,10 +8,7 @@ public class PaymentException extends GlobalException {
         super(errorCode);
     }
 
-    public PaymentException(
-            PaymentErrorCode errorCode,
-            PaymentSuccessCode successCode
-    ) {
+    public PaymentException(PaymentErrorCode errorCode, PaymentSuccessCode successCode) {
         super(errorCode, successCode);
     }
 }

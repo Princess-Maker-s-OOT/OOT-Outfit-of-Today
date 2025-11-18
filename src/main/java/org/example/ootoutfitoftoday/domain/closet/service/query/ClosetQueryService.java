@@ -8,7 +8,6 @@ import org.springframework.data.domain.Page;
 
 public interface ClosetQueryService {
 
-    // 공개 옷장 리스트 조회
     Page<ClosetGetPublicResponse> getPublicClosets(
             int page,
             int size,
@@ -16,10 +15,8 @@ public interface ClosetQueryService {
             String direction
     );
 
-    // 옷장 상세 조회
     ClosetGetResponse getCloset(Long closetId);
 
-    // 내 옷장 리스트 조회
     Page<ClosetGetMyResponse> getMyClosets(
             Long userId,
             int page,

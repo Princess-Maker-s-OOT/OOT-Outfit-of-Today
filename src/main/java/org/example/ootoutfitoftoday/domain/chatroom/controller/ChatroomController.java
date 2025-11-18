@@ -32,13 +32,6 @@ public class ChatroomController {
     private final ChatroomCommandService chatroomCommandService;
     private final ChatroomQueryService chatroomQueryService;
 
-    /**
-     * 채팅방 생성 API
-     *
-     * @param chatroomRequest 게시물의 id 정보
-     * @param authUser        토큰 정보
-     * @return 공통 응답만 반환
-     */
     @Operation(
             summary = "채팅방 생성",
             description = "회원이 채팅방을 생성합니다.",
@@ -63,14 +56,6 @@ public class ChatroomController {
         return Response.success(null, ChatroomSuccessCode.CREATED_CHATROOM);
     }
 
-    /**
-     * 채팅방 조회 API
-     *
-     * @param authUser 토근 정보
-     * @param page     페이지
-     * @param size     크기
-     * @return 채팅방 리스트
-     */
     @Operation(
             summary = "채팅방 조회",
             description = "회원이 채팅방을 조회합니다.",
@@ -97,13 +82,6 @@ public class ChatroomController {
         return SliceResponse.success(chatroomResponses, ChatroomSuccessCode.RETRIEVED_CHATROOMS);
     }
 
-    /**
-     * 채팅방 삭제 API
-     *
-     * @param authUser   토큰 정보
-     * @param chatroomId 채팅방 아이디
-     * @return 공통 응답만 반환
-     */
     @Operation(
             summary = "채팅방 삭제",
             description = "회원이 채팅방을 삭제합니다.",

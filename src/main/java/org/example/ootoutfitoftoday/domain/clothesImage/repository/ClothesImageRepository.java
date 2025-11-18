@@ -10,7 +10,6 @@ import java.util.List;
 
 public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long> {
 
-    // 추후에 로그도 찍을 것을 고려하여 반환 타입 int로 구현
     @Modifying(clearAutomatically = false, flushAutomatically = true)
     @Query("""
             UPDATE ClothesImage ci
@@ -41,7 +40,6 @@ public interface ClothesImageRepository extends JpaRepository<ClothesImage, Long
             """)
     boolean existsLinkedImages(@Param("clothesId") Long clothesId, @Param("imageIds") List<Long> imageIds);
 
-    // 옷-이미지 연결되어 있지만 softDelete 처리된 데이터들
     @Query("""
             SELECT ci
             FROM ClothesImage ci

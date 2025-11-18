@@ -20,9 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/**
- * 기부처 검색 컨트롤러 (Public API - 인증 불필요)
- */
 @Slf4j
 @Tag(name = "기부처 검색", description = "주변 기부처 검색 관련 API (비회원 접근 가능)")
 @RestController
@@ -32,15 +29,6 @@ public class DonationCenterController {
 
     private final DonationCenterQueryService donationCenterQueryService;
 
-    /**
-     * 주변 기부처 검색
-     *
-     * @param latitude  사용자 위치의 위도 (필수)
-     * @param longitude 사용자 위치의 경도 (필수)
-     * @param radius    검색 반경 (미터, 기본값: 5000m = 5km)
-     * @param keyword   검색 키워드 (선택사항, 없으면 기본 키워드로 검색: 의류기부, 헌옷수거함, 아름다운가게, 의류수거함)
-     * @return 거리순으로 정렬된 기부처 목록
-     */
     @Operation(
             summary = "주변 기부처 검색",
             description = "사용자 위치 기반으로 주변 기부처를 검색합니다. " +

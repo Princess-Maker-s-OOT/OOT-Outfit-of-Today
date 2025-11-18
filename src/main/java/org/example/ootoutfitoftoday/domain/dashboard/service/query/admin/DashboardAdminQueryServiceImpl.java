@@ -43,25 +43,19 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
             unless = "#result == null"
     )
     public AdminUserStatisticsResponse adminUserStatistics(LocalDate baseDate) {
-
         if (baseDate == null) {
             baseDate = LocalDate.now();
         }
 
-        int totalUsers = userQueryService.countAllUsers(); // 전체 유저 수
-        int activeUsers = userQueryService.countByIsDeleted(false); // 활성 유저 수
-        int deletedUsers = userQueryService.countByIsDeleted(true); // 비활성 유저 수
+        int totalUsers = userQueryService.countAllUsers();
+        int activeUsers = userQueryService.countByIsDeleted(false);
+        int deletedUsers = userQueryService.countByIsDeleted(true);
 
-        LocalDateTime startOfDay = baseDate.atStartOfDay(); // 기준이 되는 날 00시 00분 00초
-        LocalDateTime endOfDay = baseDate.plusDays(1).atStartOfDay(); // 기준일 기준 다음 날 00시 00분 00초
-        LocalDateTime startOfWeek = baseDate.with(DayOfWeek.MONDAY).atStartOfDay(); // 기준일 기준 월요일 00시 00분 00초
-        LocalDateTime startOfMonth = baseDate.withDayOfMonth(1).atStartOfDay(); // 기준일 해당 월 1일 00시 00분 00초
+        LocalDateTime startOfDay = baseDate.atStartOfDay();
+        LocalDateTime endOfDay = baseDate.plusDays(1).atStartOfDay();
+        LocalDateTime startOfWeek = baseDate.with(DayOfWeek.MONDAY).atStartOfDay();
+        LocalDateTime startOfMonth = baseDate.withDayOfMonth(1).atStartOfDay();
 
-        /**
-         * 오늘 00:00 ~ 내일 00:00 미만
-         * 이번 주 월요일 00:00 ~ 내일 00:00 미만
-         * 이번 달 1일 00:00 ~ 내일 00:00 미만
-         */
         int daily = userQueryService.countUsersRegisteredSince(startOfDay, endOfDay);
         int weekly = userQueryService.countUsersRegisteredSince(startOfWeek, endOfDay);
         int monthly = userQueryService.countUsersRegisteredSince(startOfMonth, endOfDay);
@@ -75,13 +69,13 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
     @Cacheable(value = DashboardAdminCacheNames.CLOTHES, key = "'default'", unless = "#result == null")
     public AdminClothesStatisticsResponse adminClothesStatistics() {
 
-        long totalClothes = clothesQueryService.countClothesByIsDeletedFalse(); // 전체 옷 수량
+        long totalClothes = clothesQueryService.countClothesByIsDeletedFalse();
 
-        List<CategoryStat> categoryStats = clothesQueryService.countTopCategoryStats(); // 카테고리별 옷 수량
+        List<CategoryStat> categoryStats = clothesQueryService.countTopCategoryStats();
 
-        List<ClothesColorCount> clothesColors = clothesQueryService.clothesColorsCount(); // 색상별 옷 수량
+        List<ClothesColorCount> clothesColors = clothesQueryService.clothesColorsCount();
 
-        List<ClothesSizeCount> clothesSizes = clothesQueryService.clothesSizesCount(); // 사이즈별 옷 수량
+        List<ClothesSizeCount> clothesSizes = clothesQueryService.clothesSizesCount();
 
         return new AdminClothesStatisticsResponse(
                 totalClothes,
@@ -98,15 +92,12 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
             unless = "#result == null"
     )
     public AdminSalePostStatisticsResponse adminSalePostStatistics(LocalDate baseDate) {
-
         if (baseDate == null) {
             baseDate = LocalDate.now();
         }
 
-        // 판매글 총 수량
         long totalSales = salePostQueryService.countByIsDeletedFalse();
 
-        // 상태별 판매글 수량
         List<SaleStatusCount> saleStatusCounts = salePostQueryService.saleStatusCounts();
 
         EnumMap<SaleStatus, Long> countMap = new EnumMap<>(SaleStatus.class);
@@ -120,11 +111,10 @@ public class DashboardAdminQueryServiceImpl implements DashboardAdminQueryServic
                 )
                 .toList();
 
-        // 일, 주, 월별 통계 수량
-        LocalDateTime startOfDay = baseDate.atStartOfDay(); // 기준이 되는 날 00시 00분 00초
-        LocalDateTime endOfDay = baseDate.plusDays(1).atStartOfDay(); // 기준일 기준 다음 날 00시 00분 00초
-        LocalDateTime startOfWeek = baseDate.with(DayOfWeek.MONDAY).atStartOfDay(); // 기준일 기준 월요일 00시 00분 00초
-        LocalDateTime startOfMonth = baseDate.withDayOfMonth(1).atStartOfDay(); // 기준일 해당 월 1일 00시 00분 00초
+        LocalDateTime startOfDay = baseDate.atStartOfDay();
+        LocalDateTime endOfDay = baseDate.plusDays(1).atStartOfDay();
+        LocalDateTime startOfWeek = baseDate.with(DayOfWeek.MONDAY).atStartOfDay();
+        LocalDateTime startOfMonth = baseDate.withDayOfMonth(1).atStartOfDay();
 
         int daily = salePostQueryService.countSalePostsRegisteredSince(startOfDay, endOfDay);
         int weekly = salePostQueryService.countSalePostsRegisteredSince(startOfWeek, endOfDay);

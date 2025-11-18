@@ -30,13 +30,6 @@ public class ImageController {
 
     private final ImageCommandService imageCommandService;
 
-    /**
-     * Presigned URL 생성
-     *
-     * @param authUser: 인증된 사용자 정보
-     * @param request   Presigned URL 생성 요청 객체 (파일명, 확장자 등 포함)
-     * @return PresignedUrlResponse 객체를 포함한 성공 응답
-     */
     @Operation(
             summary = "Presigned URL 생성",
             description = "S3에 이미지 업로드를 위한 Presigned URL을 생성합니다. 생성된 URL로 5분 이내에 이미지를 업로드할 수 있습니다.",
@@ -53,7 +46,6 @@ public class ImageController {
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody PresignedUrlRequest request
     ) {
-
         PresignedUrlResponse response = imageCommandService.generatePresignedUrl(
                 authUser.getUserId(),
                 request
@@ -62,12 +54,6 @@ public class ImageController {
         return Response.success(response, ImageSuccessCode.PRESIGNED_URL_CREATED);
     }
 
-    /**
-     * 이미지 메타데이터 저장 API
-     *
-     * @param request 이미지 저장 요청 객체 (이미지 경로, 타입 등 포함)
-     * @return ImageSaveResponse 객체를 포함한 성공 응답
-     */
     @Operation(
             summary = "이미지 메타데이터 저장",
             description = "S3에 업로드된 이미지의 메타데이터를 DB에 저장합니다.",
@@ -83,7 +69,6 @@ public class ImageController {
     public ResponseEntity<Response<ImageSaveResponse>> saveImage(
             @Valid @RequestBody ImageSaveRequest request
     ) {
-
         ImageSaveResponse response = imageCommandService.saveImage(request);
 
         return Response.success(response, ImageSuccessCode.IMAGE_SAVED);

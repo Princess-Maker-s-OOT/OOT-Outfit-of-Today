@@ -5,12 +5,8 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-/**
- * 옷장 삭제 응답 DTO
- */
 @Builder(access = AccessLevel.PRIVATE)
 public record ClosetDeleteResponse(
-
         Long closetId,
         LocalDateTime deletedAt
 ) {
