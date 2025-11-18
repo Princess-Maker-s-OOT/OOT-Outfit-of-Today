@@ -1,5 +1,6 @@
 package org.example.ootoutfitoftoday.support.fixture.salepost;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.ootoutfitoftoday.common.response.Response;
 import org.example.ootoutfitoftoday.domain.auth.dto.AuthUser;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 판매글 테스트 데이터 생성 컨트롤러
  * 성능 테스트 및 개발 환경에서만 활성화
  */
+@Tag(name = "판매글 테스트 데이터", description = "판매글 성능 테스트용 더미 데이터 생성")
 @Profile({"local", "dev"})
 @RestController
 @RequiredArgsConstructor

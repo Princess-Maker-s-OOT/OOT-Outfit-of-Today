@@ -14,8 +14,7 @@ public interface SalePostCommandService {
 
     SalePostCreateResponse createSalePost(
             Long userId,
-            SalePostCreateRequest request,
-            List<String> imageUrls
+            SalePostCreateRequest request
     );
 
     SalePostCreateResponse createSalePostFromRecommendation(
@@ -27,7 +26,7 @@ public interface SalePostCommandService {
             String tradeAddress,
             BigDecimal tradeLatitude,
             BigDecimal tradeLongitude,
-            List<String> imageUrls
+            List<Long> imageIds
     );
 
     SalePostDetailResponse updateSalePost(

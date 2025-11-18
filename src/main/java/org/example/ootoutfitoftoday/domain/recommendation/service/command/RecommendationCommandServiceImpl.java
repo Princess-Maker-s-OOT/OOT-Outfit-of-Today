@@ -179,7 +179,7 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
                 request.tradeAddress(),
                 request.tradeLatitude(),
                 request.tradeLongitude(),
-                request.imageUrls()
+                request.imageIds()
         );
 
         log.info("판매글 생성 완료 - 추천ID: {}, 판매글ID: {}",

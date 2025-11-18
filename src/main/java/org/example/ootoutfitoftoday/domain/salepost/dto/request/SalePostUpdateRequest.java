@@ -39,5 +39,5 @@ public class SalePostUpdateRequest {
     private BigDecimal tradeLongitude;  // 경도
 
     @NotEmpty(message = "이미지는 최소 1개 이상 필요합니다.")
-    private List<String> imageUrls;
+    private List<Long> imageIds;
 }

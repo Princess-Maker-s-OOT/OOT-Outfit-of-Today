@@ -6,7 +6,6 @@ import lombok.Getter;
 import org.example.ootoutfitoftoday.common.util.Location;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
-import org.example.ootoutfitoftoday.domain.salepost.entity.SalePostImage;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,7 +25,7 @@ public class SalePostCreateResponse {
     private final BigDecimal tradeLongitude;
     private final Long userId;
     private final Long categoryId;
-    private final List<String> imageUrls;
+    private final List<SalePostImageResponse> images;
     private final LocalDateTime createdAt;
 
     public static SalePostCreateResponse from(SalePost salePost) {
@@ -43,8 +42,8 @@ public class SalePostCreateResponse {
                 .tradeLongitude(location.longitude())
                 .userId(salePost.getUser().getId())
                 .categoryId(salePost.getCategory().getId())
-                .imageUrls(salePost.getImages().stream()
-                        .map(SalePostImage::getImageUrl)
+                .images(salePost.getImages().stream()
+                        .map(SalePostImageResponse::from)
                         .toList())
                 .createdAt(salePost.getCreatedAt())
                 .build();

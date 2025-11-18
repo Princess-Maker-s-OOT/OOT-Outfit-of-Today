@@ -50,6 +50,6 @@ public class SalePostPublicListResponse {
             return null;
         }
 
-        return salePost.getImages().get(0).getImageUrl();
+        return salePost.getImages().get(0).getImage().getUrl();
     }
 }

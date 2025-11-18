@@ -7,14 +7,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.common.util.PointFormatAndParse;
 import org.example.ootoutfitoftoday.domain.category.entity.Category;
 import org.example.ootoutfitoftoday.domain.category.service.query.CategoryQueryService;
+import org.example.ootoutfitoftoday.domain.image.entity.Image;
+import org.example.ootoutfitoftoday.domain.image.service.query.ImageQueryService;
 import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostCreateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.request.SalePostUpdateRequest;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostCreateResponse;
 import org.example.ootoutfitoftoday.domain.salepost.dto.response.SalePostDetailResponse;
 import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
+import org.example.ootoutfitoftoday.domain.salepost.entity.SalePostImage;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostErrorCode;
 import org.example.ootoutfitoftoday.domain.salepost.exception.SalePostException;
+import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostImageRepository;
 import org.example.ootoutfitoftoday.domain.salepost.repository.SalePostRepository;
 import org.example.ootoutfitoftoday.domain.user.entity.User;
 import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
@@ -24,6 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,6 +42,8 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
     private final CategoryQueryService categoryQueryService;
     private final SalePostRepository salePostRepository;
     private final EntityManager entityManager;
+    private final ImageQueryService imageQueryService;
+    private final SalePostImageRepository salePostImageRepository;
 
     /**
      * 판매글 생성 (Write-Through 패턴)
@@ -44,14 +53,28 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
     @CacheEvict(value = "salePostListCache", allEntries = true)
     public SalePostCreateResponse createSalePost(
             Long userId,
-            SalePostCreateRequest request,
-            List<String> imageUrls
+            SalePostCreateRequest request
     ) {
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
         Category category = categoryQueryService.findById(request.getCategoryId());
 
-        String tradeLocation = PointFormatAndParse.format(request.getTradeLatitude(), request.getTradeLongitude());
+        List<Image> images = imageQueryService.findAllByIdInAndIsDeletedFalse(
+                request.getImageIds()
+        );
+
+        Map<Long, Image> imageMap = images.stream()
+                .collect(Collectors.toMap(Image::getId, img -> img));
+
+        List<Image> orderedImages = request.getImageIds().stream()
+                .map(imageMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        String tradeLocation = PointFormatAndParse.format(
+                request.getTradeLatitude(),
+                request.getTradeLongitude()
+        );
 
         SalePost salePost = SalePost.create(
                 user,
@@ -61,7 +84,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 request.getPrice(),
                 request.getTradeAddress(),
                 tradeLocation,
-                imageUrls
+                orderedImages
         );
 
         return saveSalePostAndCreateResponse(salePost);
@@ -78,9 +101,19 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
             String tradeAddress,
             BigDecimal tradeLatitude,
             BigDecimal tradeLongitude,
-            List<String> imageUrls
+            List<Long> imageIds
     ) {
         Category category = categoryQueryService.findById(categoryId);
+
+        List<Image> images = imageQueryService.findAllByIdInAndIsDeletedFalse(imageIds);
+
+        Map<Long, Image> imageMap = images.stream()
+                .collect(Collectors.toMap(Image::getId, img -> img));
+
+        List<Image> orderedImages = imageIds.stream()
+                .map(imageMap::get)
+                .filter(Objects::nonNull)
+                .toList();
 
         String tradeLocation = PointFormatAndParse.format(
                 tradeLatitude,
@@ -95,7 +128,7 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 price,
                 tradeAddress,
                 tradeLocation,
-                imageUrls
+                orderedImages
         );
 
         SalePostCreateResponse response = saveSalePostAndCreateResponse(salePost);
@@ -127,6 +160,14 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
 
         Long salePostId = salePostRepository.findLastInsertId();
 
+        SalePost savedSalePostForImages = salePostRepository.findByIdAsNativeQuery(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
+
+        for (SalePostImage image : salePost.getImages()) {
+            image.setSalePost(savedSalePostForImages);
+            salePostImageRepository.save(image);
+        }
+
         SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
@@ -152,7 +193,10 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
             throw new SalePostException(SalePostErrorCode.UNAUTHORIZED_ACCESS);
         }
 
-        if (salePost.getStatus() == SaleStatus.RESERVED || salePost.getStatus() == SaleStatus.TRADING || salePost.getStatus() == SaleStatus.COMPLETED) {
+        if (salePost.getStatus() == SaleStatus.RESERVED ||
+                salePost.getStatus() == SaleStatus.TRADING ||
+                salePost.getStatus() == SaleStatus.COMPLETED
+        ) {
             log.warn("Cannot update sale post - salePostId: {}, status: {}",
                     salePostId, salePost.getStatus());
             throw new SalePostException(SalePostErrorCode.CANNOT_UPDATE_NON_SELLING_POST);
@@ -172,7 +216,36 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
                 tradeLocation
         );
 
-        // 업데이트 이후 영속성 컨텍스트
+        List<SalePostImage> existingImages = salePostImageRepository.findBySalePostId(salePostId);
+        for (SalePostImage existingImage : existingImages) {
+            existingImage.softDelete();
+        }
+        salePostImageRepository.saveAll(existingImages);
+
+        List<Image> images = imageQueryService.findAllByIdInAndIsDeletedFalse(request.getImageIds());
+
+        Map<Long, Image> imageMap = images.stream()
+                .collect(Collectors.toMap(Image::getId, img -> img));
+
+        List<Image> orderedImages = request.getImageIds().stream()
+                .map(imageMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        SalePost savedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
+                .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
+
+        for (int i = 0; i < orderedImages.size(); i++) {
+            boolean isMain = (i == 0);
+            SalePostImage newImage = SalePostImage.create(
+                    orderedImages.get(i),
+                    i + 1,
+                    isMain
+            );
+            newImage.setSalePost(savedSalePost);
+            salePostImageRepository.save(newImage);
+        }
+
         entityManager.clear();
 
         SalePost updatedSalePost = salePostRepository.findByIdAsNativeQuery(salePostId)
