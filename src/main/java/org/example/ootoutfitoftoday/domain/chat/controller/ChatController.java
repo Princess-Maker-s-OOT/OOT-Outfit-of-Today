@@ -26,15 +26,6 @@ public class ChatController {
 
     private final ChatQueryService chatQueryService;
 
-
-    /**
-     * 채팅 리스트 조회
-     *
-     * @param chatroomId 채팅방 id
-     * @param page       페이지
-     * @param size       크기
-     * @return 채팅 리스트
-     */
     @Operation(
             summary = "채팅 조회",
             description = "회원이 채팅을 조회합니다.",
