@@ -20,6 +20,9 @@ public class SalePostImage extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 500)
+    private String imageUrl;
+
     @Column(nullable = false)
     private Integer displayOrder;
 
@@ -27,20 +30,16 @@ public class SalePostImage extends BaseEntity {
     private Boolean isMain;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "image_id", nullable = false)
-    private Image image;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_post_id", nullable = false)
     private SalePost salePost;
 
     @Builder(access = AccessLevel.PROTECTED)
     private SalePostImage(
-            Image image,
+            String imageUrl,
             Integer displayOrder,
             Boolean isMain
     ) {
-        this.image = image;
+        this.imageUrl = imageUrl;
         this.displayOrder = displayOrder;
         this.isMain = isMain;
     }
@@ -53,7 +52,7 @@ public class SalePostImage extends BaseEntity {
         validateImage(image);
 
         return SalePostImage.builder()
-                .image(image)
+                .imageUrl(image.getUrl())
                 .displayOrder(displayOrder)
                 .isMain(isMain)
                 .build();
