@@ -46,16 +46,9 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
     private final ImageQueryService imageQueryService;
     private final SalePostImageRepository salePostImageRepository;
 
-    /**
-     * 판매글 생성 (Write-Through 패턴)
-     * - DB에 저장 후 캐시 무효화 (리스트 캐시 전체 삭제)
-     */
     @Override
     @CacheEvict(value = "salePostListCache", allEntries = true)
-    public SalePostCreateResponse createSalePost(
-            Long userId,
-            SalePostCreateRequest request
-    ) {
+    public SalePostCreateResponse createSalePost(Long userId, SalePostCreateRequest request) {
         User user = userQueryService.findByIdAndIsDeletedFalse(userId);
 
         Category category = categoryQueryService.findById(request.getCategoryId());
@@ -91,7 +84,6 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         return saveSalePostAndCreateResponse(salePost);
     }
 
-    // 추천으로부터 판매글 생성
     @Override
     public SalePostCreateResponse createSalePostFromRecommendation(
             Recommendation recommendation,
@@ -140,7 +132,6 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         return response;
     }
 
-    // 판매글 저장 및 응답 생성 헬퍼 메서드
     private SalePostCreateResponse saveSalePostAndCreateResponse(SalePost salePost) {
         String status = salePost.getStatus().name();
         Long recommendationId = (salePost.getRecommendation() != null)
@@ -176,10 +167,6 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         return SalePostCreateResponse.from(savedSalePost);
     }
 
-    /**
-     * 판매글 수정 (Write-Through 패턴)
-     * - DB 업데이트 후 캐시 무효화
-     */
     @Override
     @CacheEvict(value = "salePostListCache", allEntries = true)
     public SalePostDetailResponse updateSalePost(
@@ -259,14 +246,9 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         return SalePostDetailResponse.from(updatedSalePost);
     }
 
-    /**
-     * 판매글 삭제
-     * - Soft Delete 후 캐시 무효화
-     */
     @Override
     @CacheEvict(value = "salePostListCache", allEntries = true)
     public void deleteSalePost(Long salePostId, Long userId) {
-
         SalePost salePost = salePostRepository.findByIdAndIsDeletedFalse(salePostId)
                 .orElseThrow(() -> new SalePostException(SalePostErrorCode.SALE_POST_NOT_FOUND));
 
@@ -284,10 +266,6 @@ public class SalePostCommandServiceImpl implements SalePostCommandService {
         salePost.softDelete();
     }
 
-    /**
-     * 판매글 상태 수정
-     * - 상태 변경 후 캐시 무효화 (리스트 필터에 영향)
-     */
     @Override
     @CacheEvict(value = "salePostListCache", allEntries = true)
     public SalePostDetailResponse updateSaleStatus(
