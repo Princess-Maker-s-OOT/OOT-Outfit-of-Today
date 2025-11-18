@@ -1,11 +1,11 @@
 package org.example.ootoutfitoftoday.kakao.client;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.ootoutfitoftoday.kakao.config.KakaoMapProperties;
 import org.example.ootoutfitoftoday.kakao.dto.KakaoPlaceResponse;
 import org.example.ootoutfitoftoday.kakao.exception.KakaoMapErrorCode;
 import org.example.ootoutfitoftoday.kakao.exception.KakaoMapException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -17,7 +17,6 @@ import java.net.URI;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class KakaoMapClient {
 
     private static final String KEYWORD_SEARCH_PATH = "/v2/local/search/keyword.json"; // 카카오 키워드 장소 검색 API의 경로
@@ -26,6 +25,14 @@ public class KakaoMapClient {
 
     private final RestTemplate restTemplate;
     private final KakaoMapProperties kakaoMapProperties;
+
+    public KakaoMapClient(
+            @Qualifier("kakaoMapRestTemplate") RestTemplate restTemplate,
+            KakaoMapProperties kakaoMapProperties
+    ) {
+        this.restTemplate = restTemplate;
+        this.kakaoMapProperties = kakaoMapProperties;
+    }
 
     /**
      * 키워드로 장소 검색
