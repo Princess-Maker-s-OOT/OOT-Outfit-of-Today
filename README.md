@@ -80,7 +80,8 @@ OOT는 **의류 기반 중고 거래 플랫폼**과 **디지털 옷장 관리 �
 
 - **전체 구조**: SRP(Single Responsibility Principle) 단일 책임 원칙 구조, React 프론트엔드, AWS EC2 배포
 
-## 와이어프레임
+## 와이어프레임 ![ezgif com-animated-gif-maker](https://github.com/user-attachments/assets/beef78db-c26e-4d0d-b666-5c4c8676171a)
+
 
 ## ERD ![img_1.png](img_1.png)
 
