@@ -1,0 +1,19 @@
+### 기본 빌드 시스템 (Gradle) ###
+.gradle
+build/
+
+### 소스 관리 및 IDE 관련 기본 파일 ###
+.git
+.gitignore
+.gitattributes
+*.iml
+*.iws
+*.ipr
+.DS_Store
+
+### 문서 및 기타 ###
+HELP.md
+*.md
+
+### IntelliJ IDEA ###
+.idea

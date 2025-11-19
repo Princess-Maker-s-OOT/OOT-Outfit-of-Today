@@ -1,0 +1,184 @@
+package org.example.ootoutfitoftoday.domain.recommendation.service.query;
+
+import com.ootcommon.recommendation.status.RecommendationStatus;
+import com.ootcommon.recommendation.type.RecommendationType;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.example.ootoutfitoftoday.domain.donation.dto.response.DonationCenterSearchResponse;
+import org.example.ootoutfitoftoday.domain.donation.service.query.DonationCenterQueryService;
+import org.example.ootoutfitoftoday.domain.recommendation.dto.response.RecommendationGetMyResponse;
+import org.example.ootoutfitoftoday.domain.recommendation.entity.Recommendation;
+import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationErrorCode;
+import org.example.ootoutfitoftoday.domain.recommendation.exception.RecommendationException;
+import org.example.ootoutfitoftoday.domain.recommendation.repository.RecommendationRepository;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.example.ootoutfitoftoday.domain.user.service.query.UserQueryService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class RecommendationQueryServiceImpl implements RecommendationQueryService {
+
+    private final RecommendationRepository recommendationRepository;
+    private final UserQueryService userQueryService;
+    private final DonationCenterQueryService donationCenterQueryService;
+
+    @Override
+    public Page<RecommendationGetMyResponse> getMyRecommendations(
+            Long userId,
+            Pageable pageable
+    ) {
+        log.info("추천 목록 조회 시작 - 사용자: {}, 페이지: {}, 크기: {}",
+                userId, pageable.getPageNumber(), pageable.getPageSize());
+
+        Page<Recommendation> idsPage = recommendationRepository.findRecommendationIdsByUserId(
+                userId,
+                pageable
+        );
+
+        if (idsPage.isEmpty()) {
+            log.debug("추천 기록 없음 - 사용자: {}", userId);
+
+            return Page.empty(pageable);
+        }
+
+        List<Long> ids = idsPage.getContent().stream()
+                .map(Recommendation::getId)
+                .toList();
+
+        log.debug("1단계: 추천 ID 조회 완료 - 조회 건수: {}, 사용자: {}", ids.size(), userId);
+
+        List<Recommendation> recommendations =
+                recommendationRepository.findRecommendationsWithDetailsByIds(ids);
+
+        log.debug("2단계: 추천 상세 정보 로드 완료 - 로드 건수: {}, 사용자: {}", recommendations.size(), userId);
+
+        Map<Long, Recommendation> recommendationMap = recommendations.stream()
+                .collect(Collectors.toMap(Recommendation::getId, r -> r));
+
+        List<RecommendationGetMyResponse> content = ids.stream()
+                .map(recommendationMap::get)
+                .map(RecommendationGetMyResponse::from)
+                .toList();
+
+        log.info("추천 목록 조회 완료 - 조회 건수: {}, 사용자: {}, 전체 건수: {}",
+                content.size(), userId, idsPage.getTotalElements());
+
+        return new PageImpl<>(
+                content,
+                pageable,
+                idsPage.getTotalElements()
+        );
+    }
+
+    @Override
+    public Recommendation findById(Long recommendationId) {
+        log.debug("추천 조회 - 추천ID: {}", recommendationId);
+
+        return recommendationRepository.findById(recommendationId)
+                .orElseThrow(() -> {
+                    log.warn("추천을 찾을 수 없음 - 추천ID: {}", recommendationId);
+                    return new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND);
+                });
+    }
+
+    @Override
+    public List<DonationCenterSearchResponse> searchDonationCentersFromRecommendation(
+            Long recommendationId,
+            Long userId,
+            Integer radius,
+            String keyword
+    ) {
+        log.info("기부처 검색 시작 - 추천ID: {}, 사용자: {}, 반경: {}, 키워드: {}",
+                recommendationId, userId, radius, keyword);
+
+        Recommendation recommendation = findById(recommendationId);
+        log.debug("추천 조회 완료 - 추천ID: {}, 상태: {}, 타입: {}, 소유자: {}",
+                recommendationId, recommendation.getStatus(), recommendation.getType(), recommendation.getUser().getId());
+
+        if (!recommendation.getUser().getId().equals(userId)) {
+            log.warn("추천 접근 권한 없음 - 추천ID: {}, 요청사용자: {}, 소유자: {}",
+                    recommendationId, userId, recommendation.getUser().getId());
+            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_FOUND);
+        }
+
+        if (recommendation.getStatus() != RecommendationStatus.ACCEPTED) {
+            log.warn("추천 상태가 ACCEPTED가 아님 - 추천ID: {}, 상태: {}",
+                    recommendationId, recommendation.getStatus());
+            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_ACCEPTED);
+        }
+
+        if (recommendation.getType() != RecommendationType.DONATION) {
+            log.warn("추천 타입이 DONATION이 아님 - 추천ID: {}, 타입: {}",
+                    recommendationId, recommendation.getType());
+            throw new RecommendationException(RecommendationErrorCode.RECOMMENDATION_NOT_DONATION_TYPE);
+        }
+
+        User user = userQueryService.findByIdAsNativeQuery(userId);
+        log.debug("사용자 거래 위치: {}", user.getTradeLocation());
+
+        if (user.getTradeLocation() == null || user.getTradeLocation().isEmpty()) {
+            log.warn("사용자 위치 정보 없음 - 사용자: {}", userId);
+            throw new RecommendationException(RecommendationErrorCode.USER_LOCATION_NOT_FOUND);
+        }
+
+        double[] coordinates = parseTradeLocation(user.getTradeLocation());
+        Double longitude = coordinates[0];
+        Double latitude = coordinates[1];
+
+        log.debug("위치 파싱 완료 - 위도: {}, 경도: {}", latitude, longitude);
+
+        List<DonationCenterSearchResponse> results = donationCenterQueryService.searchNearbyDonationCenters(
+                latitude,
+                longitude,
+                radius,
+                keyword
+        );
+
+        log.info("기부처 검색 완료 - 검색 건수: {}, 추천ID: {}", results.size(), recommendationId);
+
+        return results;
+    }
+
+    private double[] parseTradeLocation(String tradeLocation) {
+        log.debug("거래 위치 파싱 시작: {}", tradeLocation);
+        try {
+            String locationStr = tradeLocation
+                    .replace("POINT(", "")
+                    .replace(")", "")
+                    .trim();
+
+            String[] coords = locationStr.split("\\s+");
+
+            if (coords.length != 2) {
+                log.error("잘못된 위치 형식 - 좌표 개수: {}", coords.length);
+                throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
+            }
+
+            double latitude = Double.parseDouble(coords[0]);
+            double longitude = Double.parseDouble(coords[1]);
+
+            if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+                log.error("잘못된 좌표 범위 - 위도: {}, 경도: {}", latitude, longitude);
+                throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
+            }
+
+            log.debug("위치 파싱 성공 - 위도: {}, 경도: {}", latitude, longitude);
+            return new double[]{longitude, latitude};
+
+        } catch (NumberFormatException e) {
+            log.error("거래 위치 좌표 파싱 실패: {}", tradeLocation, e);
+            throw new RecommendationException(RecommendationErrorCode.INVALID_USER_LOCATION_FORMAT);
+        }
+    }
+}

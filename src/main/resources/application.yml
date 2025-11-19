@@ -1,22 +1,166 @@
 spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/${DB_NAME}
-    username: ${USER_NAME}
-    password: ${PASSWORD}
+  application:
+    name: oot-server
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local} # 환경변수 우선, 없으면 local
+
+  # SQL 초기화 설정 추가
+  # TODO
+  sql:
+    init:
+      mode: always                            # 항상 실행 (프로파일별로 다르게 설정 가능)
+      encoding: UTF-8
+      continue-on-error: false
+      # data-locations: classpath:data.sql    # 기본값이므로 생략 가능
+
   jpa:
-    hibernate:
-      ddl-auto: update
     properties:
       hibernate:
-        show_sql: true
         format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+    defer-datasource-initialization: true
 
-# API ?? ??
+  # CORS 설정 추가
+  cors:
+    allowed-origins: http://localhost:3000
+
+  # Redis 설정 추가
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 3000ms
+
+  # 데이터소스 드라이버만 공통으로 정의
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # Spring Batch 설정
+  batch:
+    job:
+      enabled: false  # 애플리케이션 시작 시 자동 Job 실행 방지 (스케줄러로 수동 실행)
+    jdbc:
+      initialize-schema: always  # 배치 메타데이터 테이블 자동 생성
+
+  jackson:
+    default-property-inclusion: non_null
+  config:
+    import: optional:file:.env[.properties]
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+  # OAuth2 설정
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+
+        provider:
+          google:
+            # prompt 파라미터를 URL에 직접 추가
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?prompt=select_account    # 사용자가 로그인할 때 브라우저가 이동하는 URL(Google 로그인 화면)
+            token-uri: https://www.googleapis.com/oauth2/v4/token                                    # 로그인 완료 후 서버가 Google에게 access token 전송 요청을 보내는 URL
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo                             # 발급받은 token으로 사용자 정보(email, name 등)를 가져오는 API
+            user-name-attribute: sub                                                                 # 사용자 정보 중 고유 식별자로 쓸 필드명(sub = Google의 unique user id)
+
+  cloud:
+    aws:
+      # AWS Parameter Store 자동 설정 활성화
+      parameter-store:
+        enabled: true
+
+      # S3 버킷 설정
+      s3:
+        bucket: ${aws.s3.bucket}
+
+      # 리전 설정
+      region:
+        static: ap-northeast-2
+        ## Spring Cloud AWS(버전 3.x) 라이브러리의 정적 리전 설정 표준 키
+        ## 따라서 staticRegion -> static 수정
+
 server:
+  port: 8080
   servlet:
     context-path: /api
+    # 세션 쿠키 설정 추가
+    session:
+      cookie:
+        # SameSite 정책 설정
+        same-site: lax
+        secure: false      # 로컬 개발(HTTP)에서는 false, 프로덕션(HTTPS)에서는 true
+        http-only: true    # JavaScript 접근 차단
+        path: /
+        max-age: 1800      # 30분 (OAuth2 flow 완료까지 충분한 시간)
+      timeout: 30m         # 세션 타임아웃
 
-# JWT ??? ?
+  session:
+    # 세션 저장소를 Redis로 변경(선택사항, 더 안정적)
+    store-type: none    # 기본값은 none(메모리)
+
+# OAuth 커스텀 설정
+oauth:
+  temp-code-ttl-minutes: 3
+
+# 프론트엔드 URL 설정 추가
+frontend:
+  url: ${FRONTEND_URL:http://localhost:3000}
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        # 웹을 통해 노출할 Actuator 엔드포인트를 지정합니다.
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      # prometheus 엔드포인트를 활성화합니다. (기본값은 true이나 명시 권장)
+      enabled: true
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: OOT-observability
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true  # 히스토그램 버킷 생성
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    org.springframework.core.env: DEBUG
+    org.springframework.boot.context.config: DEBUG
+    com.zaxxer.hikari: DEBUG
+
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
+  # TODO: 추후 리팩토링 대상
+  refresh-expiration: 604800000    # 7일(밀리초)
+  max-devices-per-user: 5          # 기본값 5개, 필요시 변경 가능
+
+kakao:
+  map:
+    api-key: ${KAKAO_MAP_API_KEY}
+    base-url: https://dapi.kakao.com
+
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
+  api:
+    url:
+      confirm: https://api.tosspayments.com/v1/payments/confirm

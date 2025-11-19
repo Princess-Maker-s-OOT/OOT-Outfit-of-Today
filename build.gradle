@@ -43,6 +43,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -55,7 +56,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    //JWT
+    // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.6'
@@ -64,7 +65,61 @@ dependencies {
     implementation "io.github.openfeign.querydsl:querydsl-jpa:7.0"
     annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:7.0:jpa"
 
-    testImplementation 'com.h2database:h2'
+    // Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    testImplementation 'com.h2database:h2:2.3.232'
+
+    // WebSocket
+    implementation 'org.springframework.security:spring-security-messaging'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // AWS Parameter Store
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+
+    // AWS SDK for Java v2 (S3)
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
+
+    // OAuth2 소셜 로그인(Google)
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // Monitoring
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    // Point 객체를 사용한 위치 정보(위도/경도) 처리용
+    implementation 'org.locationtech.jts:jts-core:1.20.0'
+    implementation 'org.hibernate.orm:hibernate-spatial:6.6.29.Final'
+
+    // Redis - 캐싱, 분산 락, 세션 관리 등을 위한 필수 의존성
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // Redis 캐싱 기능 활성화를 위한 의존성
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    // Redisson - 분산 락(Distributed Lock) 구현을 위한 고급 Redis 클라이언트
+    // 기본 Lettuce보다 락, pub/sub 등 고급 기능에 강력
+    implementation 'org.redisson:redisson-spring-boot-starter:3.52.0'
+
+    // HTTP Client (토스페이먼츠 API 호출용)
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
+
+    // Spring Batch - 대용량 데이터 배치 처리
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    testImplementation 'org.springframework.batch:spring-batch-test'
+
+    // 공통 DTO 레포
+    implementation 'com.github.Princess-Maker-s-OOT:OOT-Common:v.1.0.7'
+}
+
+// Spring Cloud AWS BOM (버전 통합 관리)
+dependencyManagement {
+    imports {
+        mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:3.4.0"
+    }
 }
 
 tasks.named('test') {

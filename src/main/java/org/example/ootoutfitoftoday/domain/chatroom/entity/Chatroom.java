@@ -1,4 +1,74 @@
 package org.example.ootoutfitoftoday.domain.chatroom.entity;
 
-public class Chatroom {
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.example.ootoutfitoftoday.common.entity.BaseEntity;
+import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUser;
+import org.example.ootoutfitoftoday.domain.chatparticipatinguser.entity.ChatParticipatingUserId;
+import org.example.ootoutfitoftoday.domain.salepost.entity.SalePost;
+import org.example.ootoutfitoftoday.domain.user.entity.User;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Getter
+@Table(name = "chatrooms")
+@NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
+public class Chatroom extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToMany(mappedBy = "chatroom")
+    private List<ChatParticipatingUser> chatParticipatingUsers = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sale_post_id", nullable = false)
+    private SalePost salePost;
+
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @Builder(access = AccessLevel.PRIVATE)
+    private Chatroom(SalePost salePost) {
+        this.salePost = salePost;
+    }
+
+    public static Chatroom create(SalePost salePost) {
+
+        return Chatroom.builder()
+                .salePost(salePost)
+                .build();
+    }
+
+    public void addChatParticipatingUser(User user) {
+        boolean alreadyExists = this.chatParticipatingUsers.stream()
+                .anyMatch(p -> p.getUser().getId().equals(user.getId()));
+        if (alreadyExists) {
+
+            return;
+        }
+
+        ChatParticipatingUserId chatParticipatingUserId = ChatParticipatingUserId.create(
+                this.id,
+                user.getId()
+        );
+        ChatParticipatingUser chatParticipatingUser = ChatParticipatingUser.create(
+                chatParticipatingUserId,
+                this, user
+        );
+        this.chatParticipatingUsers.add(chatParticipatingUser);
+        user.getChatParticipatingUsers().add(chatParticipatingUser);
+    }
 }
+

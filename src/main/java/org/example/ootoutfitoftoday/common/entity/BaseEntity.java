@@ -22,16 +22,19 @@ public class BaseEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    @Column(name = "deleted", nullable = false)
-    private boolean deleted;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted;
+
+    @Column(name = "deleted_at", nullable = true)
+    private LocalDateTime deletedAt;
 
     public void softDelete() {
-        this.deleted = true;
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
     }
+
     public void restore() {
-        this.deleted = false;
-    }
-    public boolean isDeleted() {
-        return this.deleted;
+        this.isDeleted = false;
+        this.deletedAt = null;
     }
 }

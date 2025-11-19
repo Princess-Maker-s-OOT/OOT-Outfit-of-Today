@@ -1,0 +1,81 @@
+spring:
+  config:
+    import:
+      - "aws-parameterstore:/config/common/"
+      - "aws-parameterstore:/config/dev/"
+
+  datasource:
+    url: jdbc:mysql://${db.host}:${db.port:3306}/${db.name}?useSSL=false&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    username: ${db.username}
+    password: ${db.password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # Redis 연결 설정(DEV)
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port:6379}
+      password: ${redis.password}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 2
+          max-wait: -1ms
+
+  # 캐시 설정(DEV)
+  cache:
+    type: redis
+    redis:
+      cache-null-values: false
+      key-prefix: "oot:dev:cache:"
+      use-key-prefix: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    display-request-duration: true
+    tryItOutEnabled: true
+
+cloud:
+  aws:
+    region:
+      static-region: ${aws.s3.region}
+    s3:
+      bucket: ${aws.s3.bucket}
+    stack:
+      auto: true
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
+
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
+  api:
+    url:
+      confirm: https://api.tosspayments.com/v1/payments/confirm
+
+# Logging 설정 (Loki로 전송)
+logging:
+  file:
+    name: /app-logs/application.log
+    max-size: 100MB
+    max-history: 7
+    total-size-cap: 1GB
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: DEBUG

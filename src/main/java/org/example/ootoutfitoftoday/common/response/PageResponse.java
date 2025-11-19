@@ -1,0 +1,52 @@
+package org.example.ootoutfitoftoday.common.response;
+
+import lombok.Builder;
+import org.example.ootoutfitoftoday.common.exception.SuccessCode;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Builder
+public record PageResponse<T>(
+        HttpStatus httpStatus,
+        int statusValue,
+        boolean success,
+        String code,
+        String message,
+        PageData<T> data,
+        LocalDateTime timestamp
+) {
+    public static <T> ResponseEntity<PageResponse<T>> success(Page<T> pagedData, SuccessCode successCode) {
+
+        return ResponseEntity.status(successCode.getHttpStatus()).body(
+                PageResponse.<T>builder()
+                        .httpStatus(successCode.getHttpStatus())
+                        .statusValue(successCode.getHttpStatus().value())
+                        .success(true)
+                        .code(successCode.getCode())
+                        .message(successCode.getMessage())
+                        .data(PageData.<T>builder()
+                                .content(pagedData.getContent())
+                                .totalElements(pagedData.getTotalElements())
+                                .totalPages(pagedData.getTotalPages())
+                                .size(pagedData.getSize())
+                                .number(pagedData.getNumber())
+                                .build())
+                        .timestamp(java.time.LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    @Builder
+    private record PageData<T>(
+            List<T> content,
+            long totalElements,
+            int totalPages,
+            int size,
+            int number
+    ) {
+    }
+}

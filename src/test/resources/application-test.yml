@@ -1,9 +1,14 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
+    # 💡 CI 워크플로우의 Docker 서비스 주소와 포트 (127.0.0.1:3306)를 사용
+    url: jdbc:mysql://127.0.0.1:3306/test_db?useSSL=false&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver # MySQL JDBC 드라이버 명시
+    username: root # CI Docker Compose에서 설정한 사용자 이름
+    password: root # CI Docker Compose에서 설정한 비밀번호
+  #    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+  #    driver-class-name: org.h2.Driver
+  #    username: ${USER_NAME:sa}
+  #    password: ${PASSWORD:}
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -11,16 +16,56 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      database: 1
+        dialect: org.hibernate.dialect.MySQLDialect # MySQL 방언 설정
+  #        dialect: org.hibernate.dialect.H2Dialect
+  config:
+    import: optional:file:.env[.properties]
 
   cache:
-    type: redis
+    type: redis # <- 이 부분 변경(기존: redis)none
+
+  # Redis 연결 설정(로컬 개발용)
+  data:
+    redis:
+      host: 127.0.0.1                  # Docker Compose로 실행한 Redis 주소
+      port: 6379                       # Redis 기본 포트
+      password: ${REDIS_PASSWORD:}     # 환경변수 우선, 없으면 빈 문자열(CI 호환)
+      timeout: 3000ms                  # 연결 타임아웃(3초)
+      lettuce: # Lettuce 클라이언트 설정(기본 클라이언트)
+        pool:
+          max-active: 8                # 최대 연결 수
+          max-idle: 8                  # 유휴 상태 최대 연결 수
+          min-idle: 2                  # 유휴 상태 최소 연결 수
+          max-wait: -1ms               # 연결 대기 시간(-1은 무제한)
+
+redisson:
+  single-server:
+    address: redis://127.0.0.1:6379
+    connection-pool-size: 64
+    connection-minimum-idle-size: 10
+    idle-connection-timeout: 10000
+    timeout: 3000
+    retry-attempts: 3
+    retry-interval: 1500
+  threads: 4
+  netty-threads: 4
 
 jwt:
   secret:
-    key: VGhpc0lzQUR1bW15S2V5Rm9yVGVzdGluZ1BsdXNQcm9qZWN0RG9Ob3RVc2VJblByb2R1Y3Rpb24xMjMh
+    key: JUeuMQYOTYa1zq2TSHmzZz5BnHf8hHQnkGeT9aRuAAr05a32bspdCHH8B+3sNcfOV5tYe5yfyypgF9lWV68zEA==
+
+cloud:
+  aws:
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+    region:
+      static: ${AWS_REGION}
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
+
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
+  api:
+    url:
+      confirm: https://api.tosspayments.com/v1/payments/confirm
